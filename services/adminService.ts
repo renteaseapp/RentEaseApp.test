@@ -11,7 +11,7 @@ import {
   ProductAdminApprovalStatus
 } from '../types';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = 'https://renteaseapi-test.onrender.com/api';
 const ADMIN_API = `${API_URL}/admin`;
 
 const api = axios.create({ baseURL: API_URL });

@@ -1,6 +1,6 @@
 import { Product, Category, Province, ApiError, ProductAdminApprovalStatus, ProductAvailabilityStatus, ProductSearchParams, PaginatedResponse } from '../types';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://renteaseapi-test.onrender.com/api';
 
 export const getFeaturedProducts = async (limit: number = 8): Promise<{ data: Product[] }> => {
   try {

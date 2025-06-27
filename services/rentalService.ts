@@ -1,7 +1,7 @@
 import { Rental, CreateRentalPayload, PaymentProofPayload, ReviewPayload, ApiError, PaginatedResponse, RentalStatus, PaymentStatus, Review, RentalPickupMethod, RentalReturnConditionStatus, ApiResponse, InitiateReturnPayload } from '../types';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = 'https://renteaseapi-test.onrender.com/api';
 
 // Create axios instance with base URL
 const api = axios.create({
@@ -402,7 +402,7 @@ export const setActualPickupTime = async (rentalIdOrUid: string | number, actual
 export const createReview = async ({ rental_id, rating_product, rating_owner, comment }: { rental_id: number, rating_product: number, rating_owner: number, comment: string }) => {
   const token = localStorage.getItem('authToken');
   const res = await axios.post(
-    'http://localhost:3001/api/products/reviews',
+    'https://renteaseapi-test.onrender.com/api/products/reviews',
     { rental_id, rating_product, rating_owner, comment },
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -410,14 +410,14 @@ export const createReview = async ({ rental_id, rating_product, rating_owner, co
 };
 
 export const getReview = async (rentalId: number) => {
-  const res = await axios.get(`http://localhost:3001/api/products/reviews/${rentalId}`);
+  const res = await axios.get(`https://renteaseapi-test.onrender.com/api/products/reviews/${rentalId}`);
   return res.data;
 };
 
 export const updateReview = async (rentalId: number, { rating_product, rating_owner, comment }: { rating_product?: number, rating_owner?: number, comment?: string }) => {
   const token = localStorage.getItem('authToken');
   const res = await axios.put(
-    `http://localhost:3001/api/products/reviews/${rentalId}`,
+    `https://renteaseapi-test.onrender.com/api/products/reviews/${rentalId}`,
     { rating_product, rating_owner, comment },
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -427,7 +427,7 @@ export const updateReview = async (rentalId: number, { rating_product, rating_ow
 export const deleteReview = async (rentalId: number) => {
   const token = localStorage.getItem('authToken');
   const res = await axios.delete(
-    `http://localhost:3001/api/products/reviews/${rentalId}`,
+    `https://renteaseapi-test.onrender.com/api/products/reviews/${rentalId}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   return res.data;

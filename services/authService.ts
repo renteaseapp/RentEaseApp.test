@@ -21,7 +21,7 @@ export type ResetPasswordPayload = ResetPasswordPayloadType;
 
 export const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
   try {
-    const response = await axios.post<ApiResponse<LoginResponse>>('http://localhost:3001/api/auth/login', credentials, {
+    const response = await axios.post<ApiResponse<LoginResponse>>('https://renteaseapi-test.onrender.com/api/auth/login', credentials, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -58,7 +58,7 @@ export const login = async (credentials: LoginCredentials): Promise<LoginRespons
 
 export const register = async (credentials: RegisterCredentials): Promise<RegisterResponse> => {
   try {
-    const response = await axios.post<ApiResponse<{ user: User; access_token: string }>>('http://localhost:3001/api/users/register', credentials);
+    const response = await axios.post<ApiResponse<{ user: User; access_token: string }>>('https://renteaseapi-test.onrender.com/api/users/register', credentials);
     const { data } = response.data;
     return {
       user: data.user,
@@ -82,7 +82,7 @@ export const register = async (credentials: RegisterCredentials): Promise<Regist
 
 export const forgotPassword = async (email: string): Promise<ForgotPasswordResponse> => {
   try {
-    const response = await axios.post('http://localhost:3001/api/auth/request-password-reset', { email });
+    const response = await axios.post('https://renteaseapi-test.onrender.com/api/auth/request-password-reset', { email });
     return response.data;
   } catch (error: any) {
     if (error.response) {
@@ -100,7 +100,7 @@ export const forgotPassword = async (email: string): Promise<ForgotPasswordRespo
 
 export const resetPassword = async (payload: ResetPasswordPayloadType): Promise<ResetPasswordResponse> => {
   try {
-    const response = await axios.post('http://localhost:3001/api/auth/reset-password-with-otp', payload, {
+    const response = await axios.post('https://renteaseapi-test.onrender.com/api/auth/reset-password-with-otp', payload, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
