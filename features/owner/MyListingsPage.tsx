@@ -543,13 +543,13 @@ export const MyListingsPage: React.FC = () => {
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {displayProducts.map(product => (
-                  <Card key={product.id} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+                  <Card key={product.id} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-1 h-full flex flex-col">
                     {/* Product Image */}
-                    <div className="aspect-w-16 aspect-h-9 overflow-hidden rounded-t-lg">
+                    <div className="aspect-video overflow-hidden rounded-t-lg">
                       <img 
                         src={product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url || 'https://picsum.photos/400/225?grayscale'} 
-                alt={product.title}
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
+                        alt={product.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                       />
                     </div>
 
@@ -588,24 +588,24 @@ export const MyListingsPage: React.FC = () => {
                 </div>
 
                       {/* Actions */}
-                      <div className="flex flex-wrap gap-2">
-                        <Link to={ROUTE_PATHS.EDIT_PRODUCT.replace(':productId', String(product.id))} className="flex-1">
+                      <div className="flex flex-col gap-2 mt-auto">
+                        <Link to={ROUTE_PATHS.EDIT_PRODUCT.replace(':productId', String(product.id))}>
                           <Button size="sm" variant="outline" className="w-full">
                             {t('myListingsPage.actions.edit')}
                           </Button>
-                  </Link>
+                        </Link>
                         <Button 
                           size="sm" 
                           variant="danger" 
                           onClick={() => handleDelete(product.id, product.title)}
-                          className="flex-1"
+                          className="w-full"
                         >
                           {t('myListingsPage.actions.delete')}
                         </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             ) : (
               /* List View */
@@ -681,7 +681,7 @@ export const MyListingsPage: React.FC = () => {
                           </div>
 
                           {/* Actions */}
-                          <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col gap-2 min-w-[200px]">
+                          <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col gap-2 min-w-[200px] w-full">
                             <Link to={ROUTE_PATHS.EDIT_PRODUCT.replace(':productId', String(product.id))}>
                               <Button variant="outline" className="w-full">
                                 {t('myListingsPage.actions.edit')}
@@ -691,7 +691,7 @@ export const MyListingsPage: React.FC = () => {
                             <select 
                               value={product.availability_status || ''} 
                               onChange={(e) => handleChangeStatus(product.id, e.target.value as ProductAvailabilityStatus)}
-                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white w-full"
                             >
                               <option value="available">{t('myListingsPage.status.available')}</option>
                               <option value="unavailable">{t('myListingsPage.status.unavailable')}</option>

@@ -88,7 +88,7 @@ export const RenterDashboardPage: React.FC = () => {
     <div className="container mx-auto p-0 md:p-8">
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
         {/* Sidebar */}
-        <aside className="bg-white md:rounded-xl md:shadow sticky top-6 h-fit md:h-[calc(100vh-48px)] flex md:flex-col flex-row md:items-stretch items-center md:py-8 py-2 md:px-4 px-2 z-10 border md:border-none">
+        <aside className="bg-white md:rounded-xl md:shadow sticky top-6 h-fit md:h-[calc(100vh-48px)] flex md:flex-col flex-row md:items-stretch items-center md:py-8 py-2 md:px-4 px-2 z-10 border md:border-none overflow-x-auto">
           <nav aria-label="Renter dashboard sidebar" className="flex md:flex-col flex-row gap-2 md:gap-4 w-full">
             <NavLink to={ROUTE_PATHS.RENTER_DASHBOARD} className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'}` } aria-label={t('renterDashboard.title')} end>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12a9 9 0 1118 0 9 9 0 01-18 0zm9-4v4l3 3" /></svg>
@@ -144,7 +144,7 @@ export const RenterDashboardPage: React.FC = () => {
                     {current_active_rentals.data.map(rental => {
                       const status = getStatusDisplay(rental.rental_status || '');
                       return (
-                        <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-green-50 transition-colors">
+                        <div key={rental.rental_uid} className="flex items-center gap-2 sm:gap-4 p-4 border rounded-lg bg-white hover:bg-green-50 transition-colors">
                           <div className="flex-shrink-0">
                             <img 
                               src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
@@ -152,7 +152,7 @@ export const RenterDashboardPage: React.FC = () => {
                               className="w-16 h-16 object-cover rounded-lg border"
                             />
                           </div>
-                          <div className="flex-grow">
+                          <div className="flex-grow min-w-0">
                             <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
                               <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
                               <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
@@ -192,7 +192,7 @@ export const RenterDashboardPage: React.FC = () => {
                     {confirmed_rentals.data.map(rental => {
                       const status = getStatusDisplay(rental.rental_status || '');
                       return (
-                        <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-indigo-50 transition-colors">
+                        <div key={rental.rental_uid} className="flex items-center gap-2 sm:gap-4 p-4 border rounded-lg bg-white hover:bg-indigo-50 transition-colors">
                           <div className="flex-shrink-0">
                             <img 
                               src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
@@ -200,7 +200,7 @@ export const RenterDashboardPage: React.FC = () => {
                               className="w-16 h-16 object-cover rounded-lg border"
                             />
                           </div>
-                          <div className="flex-grow">
+                          <div className="flex-grow min-w-0">
                             <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
                               <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
                               <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
@@ -236,7 +236,7 @@ export const RenterDashboardPage: React.FC = () => {
                     {pending_action_rentals.data.map(rental => {
                       const status = getStatusDisplay(rental.rental_status || '');
                       return (
-                        <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-yellow-50 transition-colors">
+                        <div key={rental.rental_uid} className="flex items-center gap-2 sm:gap-4 p-4 border rounded-lg bg-white hover:bg-yellow-50 transition-colors">
                           <div className="flex-shrink-0">
                             <img 
                               src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
@@ -244,7 +244,7 @@ export const RenterDashboardPage: React.FC = () => {
                               className="w-16 h-16 object-cover rounded-lg border"
                             />
                           </div>
-                          <div className="flex-grow">
+                          <div className="flex-grow min-w-0">
                             <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
                               <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
                               <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
@@ -291,7 +291,7 @@ export const RenterDashboardPage: React.FC = () => {
                     {pending_approval_rentals.data.map(rental => {
                       const status = getStatusDisplay(rental.rental_status || '');
                       return (
-                        <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-blue-50 transition-colors">
+                        <div key={rental.rental_uid} className="flex items-center gap-2 sm:gap-4 p-4 border rounded-lg bg-white hover:bg-blue-50 transition-colors">
                           <div className="flex-shrink-0">
                             <img 
                               src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
@@ -299,7 +299,7 @@ export const RenterDashboardPage: React.FC = () => {
                               className="w-16 h-16 object-cover rounded-lg border"
                             />
                           </div>
-                          <div className="flex-grow">
+                          <div className="flex-grow min-w-0">
                             <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
                               <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
                               <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
@@ -335,7 +335,7 @@ export const RenterDashboardPage: React.FC = () => {
                     {completed_rentals.data.map(rental => {
                       const status = getStatusDisplay(rental.rental_status || '');
                       return (
-                        <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors">
+                        <div key={rental.rental_uid} className="flex items-center gap-2 sm:gap-4 p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors">
                           <div className="flex-shrink-0">
                             <img 
                               src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
@@ -343,7 +343,7 @@ export const RenterDashboardPage: React.FC = () => {
                               className="w-16 h-16 object-cover rounded-lg border"
                             />
                           </div>
-                          <div className="flex-grow">
+                          <div className="flex-grow min-w-0">
                             <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
                               <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
                               <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
@@ -379,7 +379,7 @@ export const RenterDashboardPage: React.FC = () => {
                     {cancelled_rentals.data.map(rental => {
                       const status = getStatusDisplay(rental.rental_status || '');
                       return (
-                        <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-red-50 transition-colors">
+                        <div key={rental.rental_uid} className="flex items-center gap-2 sm:gap-4 p-4 border rounded-lg bg-white hover:bg-red-50 transition-colors">
                           <div className="flex-shrink-0">
                             <img 
                               src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
@@ -387,7 +387,7 @@ export const RenterDashboardPage: React.FC = () => {
                               className="w-16 h-16 object-cover rounded-lg border"
                             />
                           </div>
-                          <div className="flex-grow">
+                          <div className="flex-grow min-w-0">
                             <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
                               <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
                               <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
@@ -423,7 +423,7 @@ export const RenterDashboardPage: React.FC = () => {
                     {late_return_rentals.data.map(rental => {
                       const status = getStatusDisplay(rental.rental_status || '');
                       return (
-                        <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-orange-50 transition-colors">
+                        <div key={rental.rental_uid} className="flex items-center gap-2 sm:gap-4 p-4 border rounded-lg bg-white hover:bg-orange-50 transition-colors">
                           <div className="flex-shrink-0">
                             <img 
                               src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
@@ -431,7 +431,7 @@ export const RenterDashboardPage: React.FC = () => {
                               className="w-16 h-16 object-cover rounded-lg border"
                             />
                           </div>
-                          <div className="flex-grow">
+                          <div className="flex-grow min-w-0">
                             <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
                               <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
                               <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>

@@ -318,7 +318,7 @@ export const ProductDetailPage: React.FC = () => {
     setAddAddressError(null);
     try {
       const token = localStorage.getItem('authToken');
-      const res = await axios.post('http://localhost:3001/api/users/me/addresses', newAddress, {
+      const res = await axios.post('https://renteaseapi-test.onrender.com/api/users/me/addresses', newAddress, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -385,184 +385,200 @@ export const ProductDetailPage: React.FC = () => {
 
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen py-6 sm:py-10">
-      <div className="container mx-auto px-2 sm:px-4 max-w-6xl">
-        <div className="bg-white shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8">
+      <div className="container mx-auto px-2 py-6 max-w-5xl">
+        <div className="bg-white rounded-3xl shadow-2xl p-0 md:p-6 flex flex-col md:flex-row gap-8 md:gap-10">
           {/* Gallery */}
-          <div className="p-2 sm:p-6 flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-white">
-            <div className="w-full aspect-w-16 aspect-h-12 rounded-xl sm:rounded-2xl overflow-hidden shadow-lg mb-3 sm:mb-4 border border-gray-100 max-w-xs sm:max-w-full mx-auto">
-                 {selectedImage ? (
-                   <img 
-                     src={selectedImage} 
-                     alt={product.title} 
-                  className="object-contain w-full h-full max-h-[300px] sm:max-h-[500px] transition-transform duration-300 hover:scale-105"
-                   />
-                 ) : (
-                   <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                     <span className="text-gray-400">{t('productDetailPage.noImage')}</span>
-                   </div>
-                 )}
-              </div>
-              {allImages.length > 1 && (
-              <div className="flex space-x-2 overflow-x-auto pb-2 max-w-xs sm:max-w-full mx-auto">
-                  {allImages.map((img, index) => (
-                    <button
-                      key={img.id || index}
-                      onClick={() => setSelectedImage(img.image_url)}
-                    className={`w-14 h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden border-2 focus:outline-none transition-all duration-200
-                        ${selectedImage === img.image_url ? 'border-blue-500 ring-2 ring-blue-500' : 'border-transparent hover:border-gray-300'}`}
-                    >
-                      <img src={img.image_url} alt={`${product.title} thumbnail ${index + 1}`} className="object-cover w-full h-full" />
-                    </button>
-                  ))}
+          <div className="flex-1 flex flex-col items-center md:items-start">
+            <div className="w-full aspect-w-16 aspect-h-12 rounded-2xl overflow-hidden shadow mb-4 border border-gray-100 max-w-xs md:max-w-full mx-auto">
+              {selectedImage ? (
+                <img 
+                  src={selectedImage} 
+                  alt={product.title} 
+                  className="object-contain w-full h-full max-h-[350px] md:max-h-[500px] transition-transform duration-300 hover:scale-105 bg-white"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                  <span className="text-gray-400">{t('productDetailPage.noImage')}</span>
                 </div>
               )}
             </div>
-
-            {/* Product Info */}
-          <div className="p-4 sm:p-8 flex flex-col justify-between">
+            {allImages.length > 1 && (
+              <div className="flex space-x-2 overflow-x-auto pb-2 max-w-xs md:max-w-full mx-auto">
+                {allImages.map((img, index) => (
+                  <button
+                    key={img.id || index}
+                    onClick={() => setSelectedImage(img.image_url)}
+                    className={`flex-shrink-0 w-14 h-14 md:w-20 md:h-20 rounded-xl overflow-hidden border-2 focus:outline-none transition-all duration-200
+                      ${selectedImage === img.image_url ? 'border-blue-500 ring-2 ring-blue-500' : 'border-transparent hover:border-gray-300'}`}
+                  >
+                    <img src={img.image_url} alt={`${product.title} thumbnail ${index + 1}`} className="object-cover w-full h-full" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Product Info + Owner Card */}
+          <div className="flex-1 flex flex-col gap-6 justify-between">
             <div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-900 tracking-tight break-words max-w-full">{product.title}</h1>
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 tracking-tight break-words max-w-full">{product.title}</h1>
                 {product.category && (
-                  <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 sm:px-3 py-1 rounded-full shadow-sm">{product.category.name}</span>
+                  <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">{product.category.name}</span>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
                     <StarIcon key={i} filled={i < Math.round(product.average_rating || 0)} />
                   ))}
-                  <span className="ml-2 text-gray-600 text-xs sm:text-sm">{t('productDetailPage.reviewsCount', { count: product.total_reviews || 0 })}</span>
+                  <span className="ml-2 text-gray-600 text-xs">{t('productDetailPage.reviewsCount', { count: product.total_reviews || 0 })}</span>
                 </div>
                 <span className="text-gray-400">|</span>
-                <span className="text-xs sm:text-sm text-gray-600">{t('productDetailPage.viewedCount', { count: product.view_count || 0 })}</span>
+                <span className="text-xs text-gray-600">{t('productDetailPage.viewedCount', { count: product.view_count || 0 })}</span>
                 {product.availability_status && (
-                  <span className={`ml-2 sm:ml-4 px-2.5 sm:px-3 py-1 rounded-full text-xs font-bold shadow-sm ${product.availability_status === 'available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{t('productDetailPage.statusLabel')} {product.availability_status.replace('_', ' ').toUpperCase()}</span>
+                  <span className={`ml-2 px-3 py-1 rounded-full text-xs font-bold shadow-sm ${product.availability_status === 'available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{t('productDetailPage.statusLabel')} {product.availability_status.replace('_', ' ').toUpperCase()}</span>
                 )}
               </div>
-              <div className="mb-4 sm:mb-6 flex flex-wrap gap-2 sm:gap-4 items-center">
-                <span className="text-3xl sm:text-5xl font-extrabold text-blue-700">฿{(product.rental_price_per_day ?? 0).toLocaleString()}</span>
-                <span className="text-lg sm:text-xl text-gray-500">{t('productCard.pricePerDay')}</span>
-              {product.rental_price_per_week && (
-                  <span className="text-base sm:text-lg font-semibold text-gray-700 bg-blue-50 px-2.5 sm:px-3 py-1 rounded-full">฿{(product.rental_price_per_week ?? 0).toLocaleString()} {t('productCard.pricePerWeek')}</span>
-              )}
-              {product.rental_price_per_month && (
-                  <span className="text-base sm:text-lg font-semibold text-gray-700 bg-blue-50 px-2.5 sm:px-3 py-1 rounded-full">฿{(product.rental_price_per_month ?? 0).toLocaleString()} {t('productCard.pricePerMonth')}</span>
-              )}
-              {product.security_deposit && (
-                  <span className="text-xs sm:text-sm text-gray-600 bg-yellow-50 px-2.5 sm:px-3 py-1 rounded-full">{t('productDetailPage.securityDeposit')}: <span className="font-bold text-yellow-700">฿{(product.security_deposit ?? 0).toLocaleString()}</span></span>
+              <div className="mb-4 flex flex-wrap gap-2 items-center">
+                <span className="text-3xl md:text-5xl font-extrabold text-blue-700">฿{(product.rental_price_per_day ?? 0).toLocaleString()}</span>
+                <span className="text-lg text-gray-500">{t('productCard.pricePerDay')}</span>
+                {product.rental_price_per_week && (
+                  <span className="text-base font-semibold text-gray-700 bg-blue-50 px-3 py-1 rounded-full">฿{(product.rental_price_per_week ?? 0).toLocaleString()} {t('productCard.pricePerWeek')}</span>
+                )}
+                {product.rental_price_per_month && (
+                  <span className="text-base font-semibold text-gray-700 bg-blue-50 px-3 py-1 rounded-full">฿{(product.rental_price_per_month ?? 0).toLocaleString()} {t('productCard.pricePerMonth')}</span>
+                )}
+                {product.security_deposit && (
+                  <span className="text-xs text-gray-600 bg-yellow-50 px-3 py-1 rounded-full">{t('productDetailPage.securityDeposit')}: <span className="font-bold text-yellow-700">฿{(product.security_deposit ?? 0).toLocaleString()}</span></span>
                 )}
               </div>
-              <div className="mb-3 sm:mb-4 text-gray-700 text-base sm:text-lg leading-relaxed border-l-4 border-blue-200 pl-3 sm:pl-4 bg-blue-50/50 py-2 rounded">
+              <div className="mb-4 text-gray-700 text-base leading-relaxed border-l-4 border-blue-200 pl-4 bg-blue-50/50 py-2 rounded">
                 {product.description || <span className="italic text-gray-400">No description available.</span>}
-                </div>
-              {product.specifications && Object.keys(product.specifications).length > 0 && (
-                <div className="mb-4 sm:mb-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2 border-b border-gray-100 pb-1">{t('productDetailPage.specificationsLabel')}</h3>
-                  <ul className="list-disc list-inside text-gray-600 space-y-1">
-                    {Object.entries(product.specifications).map(([key, value]) => (
-                      <li key={key}><strong>{key}:</strong> {String(value)}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {product.condition_notes && (
-                <div className="mb-3 sm:mb-4">
-                  <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-1">{t('productDetailPage.conditionNotes')}</h3>
-                  <p className="text-xs sm:text-sm text-gray-600">{product.condition_notes}</p>
-                </div>
-              )}
-              {product.address_details && (
-                <div className="mb-3 sm:mb-4">
-                  <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-1">{t('productDetailPage.pickupLocation')}</h3>
-                  <p className="text-xs sm:text-sm text-gray-600">{product.address_details}</p>
-                </div>
-              )}
-              {product.province && (
-                <p className="text-xs sm:text-sm text-gray-600 mb-2 flex items-center">
-                  <LocationMarkerIcon /> {t('productDetailPage.location', { locationName: product.province.name_th })}
-                </p>
-              )}
-              {product.min_rental_duration_days && product.max_rental_duration_days && (
-                <div className="mb-3 sm:mb-4">
-                  <span className="text-xs sm:text-sm text-gray-600">{t('productDetailPage.rentalDuration')}: </span>
-                  <span className="text-xs sm:text-sm font-semibold text-gray-700">
-                    {product.min_rental_duration_days} - {product.max_rental_duration_days} {t('productDetailPage.days')}
-                  </span>
-                </div>
-              )}
-              <div className="my-6 sm:my-8 border-t border-gray-200"></div>
-              {/* CTA & Owner */}
-              <div className="flex flex-col md:flex-row md:items-center gap-3 sm:gap-4">
+              </div>
+            </div>
+            {/* CTA Buttons */}
+            <div className="flex flex-col md:flex-row gap-3 mt-4">
               {product.owner?.id !== authUser?.id ? (
                 <>
-                    <Button size="lg" variant="primary" className="w-full md:w-auto px-6 sm:px-10 py-2.5 sm:py-3 text-base sm:text-lg font-bold shadow-lg" onClick={() => setShowRentalModal(true)}>
+                  <Button size="lg" variant="primary" className="w-full md:w-auto px-6 py-3 text-base font-bold shadow-lg" onClick={() => setShowRentalModal(true)}>
                     {t('productDetailPage.requestToRentButton')}
                   </Button>
-                    <Button size="lg" variant="ghost" className="w-full md:w-auto px-6 sm:px-10 py-2.5 sm:py-3 text-base sm:text-lg font-bold border border-blue-200 hover:bg-blue-50">
+                  <Button size="lg" variant="ghost" className="w-full md:w-auto px-6 py-3 text-base font-bold border border-blue-200 hover:bg-blue-50">
                     {t('productDetailPage.addToWishlistButton')}
                   </Button>
                 </>
               ) : (
-                  <div className="mb-4 sm:mb-6 text-center text-gray-400 text-base font-medium">{t('productDetailPage.thisIsYourOwnProduct', 'นี่คือสินค้าของคุณเอง')}</div>
+                <div className="mb-4 text-center text-gray-400 text-base font-medium">{t('productDetailPage.thisIsYourOwnProduct', 'นี่คือสินค้าของคุณเอง')}</div>
               )}
-              {product.owner && (
-                  <div className="flex items-center gap-3 sm:gap-4 bg-gray-50 rounded-xl px-4 sm:px-5 py-3 sm:py-4 shadow border border-gray-100 w-full md:w-auto">
-                    {product.owner.profile_picture_url ? (
-                      <img 
-                        src={product.owner.profile_picture_url} 
-                        alt={product.owner.first_name || 'Owner'} 
-                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-blue-200"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-blue-100">
-                        <span className="text-gray-500 text-lg sm:text-xl">
-                          {(product.owner.first_name || 'O')[0].toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-base sm:text-lg font-bold text-gray-900">{product.owner.first_name}</p>
-                      {product.owner.average_owner_rating !== undefined && product.owner.average_owner_rating !== null && (
-                        <div className="flex items-center mt-1">
-                           {[...Array(5)].map((_, i) => (
-                            <StarIcon key={i} filled={i < Math.round(product.owner?.average_owner_rating || 0)} className="h-4 w-4"/>
-                          ))}
-                           <span className="ml-1 text-xs text-gray-500">({product.owner.average_owner_rating.toFixed(1)})</span>
-                        </div>
-                      )}
-                      {product.owner.created_at && <p className="text-xs text-gray-500">{t('productDetailPage.memberSince', { date: new Date(product.owner.created_at).toLocaleDateString() })}</p>}
-                      {product.owner.id !== authUser?.id ? (
-                        <Button variant="secondary" size="sm" className="mt-2" onClick={handleContactOwner} disabled={contactingOwner} isLoading={contactingOwner}>
-                          {t('productDetailPage.contactOwnerButton')}
-                        </Button>
-                      ) : (
-                        <div className="mt-2 text-sm text-gray-400">{t('productDetailPage.cannotChatWithOwnProduct', 'คุณไม่สามารถแชทกับสินค้าของตัวเองได้')}</div>
-                      )}
-                    </div>
+            </div>
+            {/* Owner Card */}
+            {product.owner && (
+              <div className="flex items-center gap-4 bg-gray-50 rounded-xl px-5 py-4 shadow border border-gray-100 mt-6 w-full md:w-auto">
+                {product.owner.profile_picture_url ? (
+                  <img 
+                    src={product.owner.profile_picture_url} 
+                    alt={product.owner.first_name || 'Owner'} 
+                    className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover border-2 border-blue-200"
+                  />
+                ) : (
+                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-blue-100">
+                    <span className="text-gray-500 text-lg md:text-xl">
+                      {(product.owner.first_name || 'O')[0].toUpperCase()}
+                    </span>
                   </div>
+                )}
+                <div>
+                  <p className="text-base md:text-lg font-bold text-gray-900">{product.owner.first_name}</p>
+                  {product.owner.average_owner_rating !== undefined && product.owner.average_owner_rating !== null && (
+                    <div className="flex items-center mt-1">
+                      {[...Array(5)].map((_, i) => (
+                        <StarIcon key={i} filled={i < Math.round(product.owner?.average_owner_rating || 0)} className="h-4 w-4"/>
+                      ))}
+                      <span className="ml-1 text-xs text-gray-500">({product.owner.average_owner_rating.toFixed(1)})</span>
+                    </div>
+                  )}
+                  {product.owner.created_at && <p className="text-xs text-gray-500">{t('productDetailPage.memberSince', { date: new Date(product.owner.created_at).toLocaleDateString() })}</p>}
+                  {product.owner.id !== authUser?.id ? (
+                    <Button variant="secondary" size="sm" className="mt-2" onClick={handleContactOwner} disabled={contactingOwner} isLoading={contactingOwner}>
+                      {t('productDetailPage.contactOwnerButton')}
+                    </Button>
+                  ) : (
+                    <div className="mt-2 text-sm text-gray-400">{t('productDetailPage.cannotChatWithOwnProduct', 'คุณไม่สามารถแชทกับสินค้าของตัวเองได้')}</div>
                   )}
                 </div>
-            </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Product Reviews Section */}
-        <div className="mt-8 sm:mt-12">
-          {product && <ProductReviews productId={product.id} />}
-      </div>
+        {/* Divider */}
+        <div className="my-10 border-t"></div>
 
-      {/* Rental Request Modal */}
-      {showRentalModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-none sm:rounded-lg shadow-lg max-w-full sm:max-w-lg w-full p-2 sm:p-6 relative">
+        {/* [2] PRODUCT DETAILS SECTION */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-white rounded-2xl shadow p-6 flex flex-col gap-4">
+            <h2 className="text-xl font-bold mb-2">{t('productDetailPage.detailsSectionTitle', 'รายละเอียดสินค้า')}</h2>
+            <div className="text-gray-700 text-base leading-relaxed">
+              {product.description || <span className="italic text-gray-400">No description available.</span>}
+            </div>
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <div>
+                <h3 className="text-base font-semibold text-gray-800 mb-1 border-b border-gray-100 pb-1">{t('productDetailPage.specificationsLabel')}</h3>
+                <ul className="list-disc list-inside text-gray-600 space-y-1">
+                  {Object.entries(product.specifications).map(([key, value]) => (
+                    <li key={key}><strong>{key}:</strong> {String(value)}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {product.condition_notes && (
+              <div>
+                <h3 className="text-xs font-semibold text-gray-700 mb-1">{t('productDetailPage.conditionNotes')}</h3>
+                <p className="text-xs text-gray-600">{product.condition_notes}</p>
+              </div>
+            )}
+            {product.address_details && (
+              <div>
+                <h3 className="text-xs font-semibold text-gray-700 mb-1">{t('productDetailPage.pickupLocation')}</h3>
+                <p className="text-xs text-gray-600">{product.address_details}</p>
+              </div>
+            )}
+            {product.province && (
+              <p className="text-xs text-gray-600 flex items-center">
+                <LocationMarkerIcon /> {t('productDetailPage.location', { locationName: product.province.name_th })}
+              </p>
+            )}
+            {product.min_rental_duration_days && product.max_rental_duration_days && (
+              <div>
+                <span className="text-xs text-gray-600">{t('productDetailPage.rentalDuration')}: </span>
+                <span className="text-xs font-semibold text-gray-700">
+                  {product.min_rental_duration_days} - {product.max_rental_duration_days} {t('productDetailPage.days')}
+                </span>
+              </div>
+            )}
+          </div>
+          {/* You can add more info or a summary card here if needed */}
+        </div>
+
+        {/* Divider */}
+        <div className="my-10 border-t"></div>
+
+        {/* [3] REVIEWS SECTION */}
+        <div className="bg-white rounded-2xl shadow p-6">
+          {product && <ProductReviews productId={product.id} />}
+        </div>
+
+        {/* [4] RENTAL MODAL (unchanged, but you can add more padding/steps UI if desired) */}
+        {showRentalModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg max-w-full sm:max-w-lg w-full p-2 sm:p-6 relative overflow-y-auto max-h-[90vh]">
               <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl" onClick={() => setShowRentalModal(false)} aria-label="ปิด">&times;</button>
               <h2 className="text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2">
                 <span role="img" aria-label="เช่า">📝</span> {t('productDetailPage.rentalRequestTitle')}
               </h2>
               <p className="text-gray-500 mb-4 text-xs sm:text-sm">กรุณากรอกข้อมูลให้ครบถ้วนเพื่อส่งคำขอเช่าสินค้านี้</p>
-            {formError && <ErrorMessage message={formError} onDismiss={() => setFormError(null)} />}
-            {formSuccess && <div className="text-green-600 mb-2">{formSuccess}</div>}
+              {formError && <ErrorMessage message={formError} onDismiss={() => setFormError(null)} />}
+              {formSuccess && <div className="text-green-600 mb-2">{formSuccess}</div>}
               <form onSubmit={handleRentalSubmit} className="space-y-4 sm:space-y-5">
                 {/* Step 1: เลือกวันที่ */}
                 <div>
@@ -589,8 +605,8 @@ export const ProductDetailPage: React.FC = () => {
                         todayButton="วันนี้"
                         calendarStartDay={1}
                       />
-              </div>
-              <div>
+                    </div>
+                    <div>
                       <span className="block text-xs text-gray-600 mb-1">วันสิ้นสุด (End Date)</span>
                       <DatePicker
                         selected={endDateObj}
@@ -619,27 +635,27 @@ export const ProductDetailPage: React.FC = () => {
                 <div>
                   <label htmlFor="pickup_method" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">2. วิธีรับสินค้า <span className="text-red-500">*</span></label>
                   <select name="pickup_method" id="pickup_method" value={pickupMethod} onChange={e => setPickupMethod(e.target.value as RentalPickupMethod)} className="block w-full p-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-400">
-                  <option value={RentalPickupMethod.SELF_PICKUP}>{t('productDetailPage.selfPickupOption')}</option>
-                  <option value={RentalPickupMethod.DELIVERY}>{t('productDetailPage.deliveryOption')}</option>
-                </select>
-              </div>
+                    <option value={RentalPickupMethod.SELF_PICKUP}>{t('productDetailPage.selfPickupOption')}</option>
+                    <option value={RentalPickupMethod.DELIVERY}>{t('productDetailPage.deliveryOption')}</option>
+                  </select>
+                </div>
                 {/* Step 3: ที่อยู่สำหรับจัดส่ง (ถ้าเลือก delivery) */}
-              {pickupMethod === RentalPickupMethod.DELIVERY && (
-                <div>
+                {pickupMethod === RentalPickupMethod.DELIVERY && (
+                  <div>
                     <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">3. ที่อยู่สำหรับจัดส่ง <span className="text-red-500">*</span></label>
-                  {isLoadingAddresses ? (
+                    {isLoadingAddresses ? (
                       <div className="text-blue-500">{t('productDetailPage.loadingAddresses')}</div>
-                  ) : addresses.length > 0 ? (
+                    ) : addresses.length > 0 ? (
                       <>
                         <select value={selectedAddressId || ''} onChange={e => setSelectedAddressId(Number(e.target.value))} className="block w-full p-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-400">
-                      <option value="">{t('productDetailPage.selectAddressOption')}</option>
-                      {addresses.map(addr => (
-                        <option key={addr.id} value={addr.id}>{addr.recipient_name} - {addr.address_line1}, {addr.district}, {addr.province_name || addr.province_id}</option>
-                      ))}
-                    </select>
+                          <option value="">{t('productDetailPage.selectAddressOption')}</option>
+                          {addresses.map(addr => (
+                            <option key={addr.id} value={addr.id}>{addr.recipient_name} - {addr.address_line1}, {addr.district}, {addr.province_name || addr.province_id}</option>
+                          ))}
+                        </select>
                         <button type="button" className="mt-2 text-blue-600 underline text-xs sm:text-sm" onClick={() => setShowAddAddress(true)}>+ เพิ่มที่อยู่ใหม่</button>
                       </>
-                  ) : (
+                    ) : (
                       <>
                         <div className="text-red-500">{t('productDetailPage.noAddressesFound')}</div>
                         <button type="button" className="mt-2 text-blue-600 underline text-xs sm:text-sm" onClick={() => setShowAddAddress(true)}>+ เพิ่มที่อยู่ใหม่</button>
@@ -647,7 +663,7 @@ export const ProductDetailPage: React.FC = () => {
                     )}
                     {showAddAddress && (
                       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                        <div className="bg-white rounded-none sm:rounded-lg shadow-lg max-w-full sm:max-w-md w-full p-2 sm:p-6 relative">
+                        <div className="bg-white rounded-lg shadow-lg max-w-full sm:max-w-md w-full p-2 sm:p-6 relative">
                           <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl" onClick={() => setShowAddAddress(false)} aria-label="ปิด">&times;</button>
                           <h3 className="text-lg sm:text-xl font-bold mb-4">เพิ่มที่อยู่ใหม่</h3>
                           {addAddressError && <div className="text-red-600 mb-2">{addAddressError}</div>}
@@ -670,16 +686,16 @@ export const ProductDetailPage: React.FC = () => {
                           </form>
                         </div>
                       </div>
-                  )}
-                </div>
-              )}
+                    )}
+                  </div>
+                )}
                 {/* Step 4: หมายเหตุ */}
-              <div>
+                <div>
                   <label htmlFor="notes" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">4. หมายเหตุเพิ่มเติม (ถ้ามี)</label>
                   <textarea name="notes" id="notes" value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="block w-full p-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-400" placeholder={t('productDetailPage.notesPlaceholder')}></textarea>
                 </div>
                 {/* Summary */}
-                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mt-2 border">
+                <div className="bg-gray-50 rounded-lg p-4 mt-2 border">
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between text-xs sm:text-sm">
                       <span>จำนวนวันที่เช่า</span>
@@ -694,15 +710,15 @@ export const ProductDetailPage: React.FC = () => {
                       <span>ยอดที่ต้องชำระ</span>
                       <span className="text-lg sm:text-xl text-green-600">฿{totalAmount.toLocaleString()}</span>
                     </div>
-                </div>
+                  </div>
                 </div>
                 <Button type="submit" isLoading={isSubmitting} fullWidth variant="primary" size="lg" className="mt-2">
                   <span role="img" aria-label="ส่ง">🚀</span> {t('productDetailPage.submitRentalRequestButton')}
-              </Button>
-            </form>
+                </Button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </div>
   );

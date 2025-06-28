@@ -346,9 +346,9 @@ export const OwnerRentalHistoryPage: React.FC = () => {
         viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {rentalsResponse.data.map((rental: Rental) => (
-              <Card key={rental.id} className="hover:shadow-xl transition-shadow border-2 border-transparent hover:border-blue-300 bg-white rounded-xl overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="flex flex-col h-full">
+              <Card key={rental.id} className="hover:shadow-xl transition-shadow border-2 border-transparent hover:border-blue-300 bg-white rounded-xl overflow-hidden h-full flex flex-col">
+                <CardContent className="p-0 min-w-0">
+                  <div className="flex flex-col h-full min-w-0">
                     {/* Product Image */}
                     <div className="h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
                       {rental.product?.primary_image?.image_url ? (
@@ -403,7 +403,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
           <div className="space-y-4">
             {rentalsResponse.data.map((rental: Rental) => (
               <Card key={rental.id} className="hover:shadow-xl transition-shadow border-2 border-transparent hover:border-blue-300 bg-white rounded-xl overflow-hidden">
-                <CardContent className="flex flex-col md:flex-row items-center p-0">
+                <CardContent className="flex flex-col md:flex-row items-center p-0 min-w-0">
                   {/* Product Image */}
                   <div className="w-full md:w-48 h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
                     {rental.product?.primary_image?.image_url ? (

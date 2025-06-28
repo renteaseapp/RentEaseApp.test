@@ -55,20 +55,20 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-12 rounded-lg shadow-xl mb-12 text-center">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 md:p-12 rounded-lg shadow-xl mb-12 text-center">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('homePage.heroTitle')}</h1>
         <p className="text-lg md:text-xl mb-8">{t('homePage.heroSubtitle')}</p>
-        <form onSubmit={handleSearch} className="max-w-xl mx-auto flex">
+        <form onSubmit={handleSearch} className="max-w-xl mx-auto flex flex-col sm:flex-row gap-2 sm:gap-0">
           <input 
             type="search" 
             placeholder={t('homePage.searchInputPlaceholder')}
-            className="flex-grow p-4 rounded-l-lg text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:outline-none"
+            className="flex-grow p-4 rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:outline-none w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <button 
             type="submit" 
-            className="bg-yellow-400 text-gray-900 font-bold p-4 rounded-r-lg hover:bg-yellow-500 transition-colors"
+            className="bg-yellow-400 text-gray-900 font-bold p-4 rounded-b-lg sm:rounded-r-lg sm:rounded-bl-none hover:bg-yellow-500 transition-colors w-full sm:w-auto"
           >
             {t('general.search')}
           </button>

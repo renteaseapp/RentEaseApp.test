@@ -31,7 +31,7 @@ export const ChatInboxPage: React.FC = () => {
   // Realtime: listen for conversation updates
   useEffect(() => {
     if (!user?.id) return;
-    const socket = io(process.env.VITE_SOCKET_URL || 'http://localhost:3001', {
+    const socket = io(process.env.VITE_SOCKET_URL || 'https://renteaseapi-test.onrender.com', {
       auth: { token: localStorage.getItem('authToken') },
       transports: ['websocket']
     });
@@ -86,7 +86,7 @@ export const ChatInboxPage: React.FC = () => {
           {filteredConversations.map(convo => (
             <Link key={convo.id} to={ROUTE_PATHS.CHAT_ROOM.replace(':conversationId', String(convo.id))}>
               <Card className="hover:shadow-xl transition-all rounded-2xl border border-blue-100 bg-white/90 group">
-                <CardContent className="flex items-center space-x-4 py-4 px-5">
+                <CardContent className="flex items-center gap-2 sm:gap-4 py-4 px-5">
                   <div className="relative">
                     <img
                       src={convo.other_user?.profile_picture_url || `https://picsum.photos/seed/${convo.other_user?.id}/50/50`}
