@@ -318,7 +318,7 @@ export const ProductDetailPage: React.FC = () => {
     setAddAddressError(null);
     try {
       const token = localStorage.getItem('authToken');
-      const res = await axios.post('https://renteaseapi-test.onrender.com/api/users/me/addresses', newAddress, {
+      const res = await axios.post('http://localhost:3001/api/users/me/addresses', newAddress, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
