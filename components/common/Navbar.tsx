@@ -142,7 +142,7 @@ export const Navbar: React.FC = () => {
         setUnreadCount(data.filter((n: any) => !n.is_read).length);
       });
     // Socket.io for realtime notification
-    const socket = io(process.env.VITE_SOCKET_URL || 'http://localhost:3001', {
+    const socket = io(process.env.VITE_SOCKET_URL || 'https://renteaseapi-test.onrender.com', {
       auth: { token: localStorage.getItem('authToken') },
       transports: ['websocket']
     });
