@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 services:
   - type: web
     name: rentease-web
@@ -6,4 +7,14 @@ services:
     buildCommand: npm install && npm run build
     envVars:
       - key: NODE_VERSION
+=======
+services:
+  - type: web
+    name: rentease-web
+    env: static
+    staticPublishPath: dist
+    buildCommand: npm install && npm run build
+    envVars:
+      - key: NODE_VERSION
+>>>>>>> ff04465 (Initial commit)
         value: 18 
