@@ -1251,5 +1251,23 @@
     "categories": "Categories",
     "complaints": "Complaints",
     "reports": "Reports & Analytics"
+  },
+  "wishlistPage": {
+    "title": "My Wishlist",
+    "subtitle": "All your favorite items in one place.",
+    "empty": {
+      "title": "Your wishlist is empty",
+      "subtitle": "Looks like you haven't added anything yet. Let's find something you'll love!",
+      "browseButton": "Browse Items"
+    },
+    "removeButton": "Remove",
+    "alerts": {
+      "removedSuccess": "Removed from wishlist successfully!"
+    },
+    "errors": {
+      "loadFailed": "Failed to load wishlist. Please try again.",
+      "removeFailed": "Failed to remove item from wishlist. Please try again."
+    },
+    "loading": "Loading your wishlist..."
   }
 }
