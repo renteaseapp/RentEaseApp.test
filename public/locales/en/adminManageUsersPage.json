@@ -1,0 +1,45 @@
+{
+  "title": "Manage Users",
+  "loadingUsers": "Loading users...",
+  "noUsersFound": "No users found.",
+  "confirmDelete": "Are you sure you want to delete this user?",
+  "table": {
+    "name": "Name",
+    "emailUsername": "Email / Username",
+    "status": "Status",
+    "idVerified": "ID Verified",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "idVerification": {
+    "notSubmitted": "Not Submitted",
+    "pending": "Pending",
+    "verified": "Verified",
+    "rejected": "Rejected"
+  },
+  "actions": {
+    "viewEdit": "View/Edit",
+    "ban": "Ban",
+    "unban": "Unban",
+    "search": "Search",
+    "clear": "Clear",
+    "actions": "Actions",
+    "close": "Close"
+  },
+  "error": {
+    "loadFailed": "Failed to load users.",
+    "banFailed": "Failed to ban user.",
+    "unbanFailed": "Failed to unban user.",
+    "deleteFailed": "Failed to delete user."
+  },
+  "pagination": {
+    "prev": "Prev",
+    "next": "Next",
+    "page": "Page"
+  },
+  "searchPlaceholder": "Search by name or email...",
+  "noResults": "No results found."
+} 

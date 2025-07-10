@@ -1,0 +1,40 @@
+{
+  "loadingUserDetail": "Loading user details...",
+  "userNotFound": "User not found.",
+  "title": "User Details: {{name}} (@{{username}})",
+  "accountInfo": "Account Information",
+  "profilePictureAlt": "Profile picture",
+  "email": "Email",
+  "phone": "Phone",
+  "status": "Status",
+  "active": "Active",
+  "inactive": "Inactive",
+  "joined": "Joined",
+  "lastLogin": "Last Login",
+  "notAvailable": "N/A",
+  "idVerification": "ID Verification",
+  "idDocumentFront": "ID Document (Front)",
+  "idDocumentFrontAlt": "ID Document Front",
+  "idDocumentBack": "ID Document (Back)",
+  "idDocumentBackAlt": "ID Document Back",
+  "selfieWithId": "Selfie with ID",
+  "selfieWithIdAlt": "Selfie with ID",
+  "idVerificationStatus": {
+    "notSubmitted": "Not Submitted",
+    "pending": "Pending",
+    "verified": "Verified",
+    "rejected": "Rejected"
+  },
+  "verifyId": "Verify ID",
+  "rejectId": "Reject ID",
+  "processing": "Processing...",
+  "adminActions": "Admin Actions",
+  "banUser": "Ban User",
+  "unbanUser": "Unban User",
+  "error": {
+    "loadFailed": "Failed to load user details.",
+    "banFailed": "Failed to ban user.",
+    "unbanFailed": "Failed to unban user.",
+    "updateVerificationFailed": "Failed to update verification status."
+  }
+} 

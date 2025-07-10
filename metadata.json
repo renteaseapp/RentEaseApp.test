@@ -1,0 +1,5 @@
+{
+  "name": "RentEase Web",
+  "description": "A web application for users to list and rent items. This version focuses on core user authentication, product browsing, and profile management.",
+  "requestFramePermissions": []
+}
