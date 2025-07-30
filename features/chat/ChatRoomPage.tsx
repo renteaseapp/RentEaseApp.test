@@ -2,18 +2,23 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getConversationMessages, sendMessage, markMessagesAsRead, getConversations } from '../../services/chatService';
-import { ChatMessage, ChatConversation, ApiError, User } from '../../types'; // Assuming ChatConversation might be needed for context
+import { ChatMessage, ChatConversation, ApiError, } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { Button } from '../../components/ui/Button';
-import { InputField } from '../../components/ui/InputField';
 import { ROUTE_PATHS } from '../../constants';
 import { io, Socket } from 'socket.io-client';
-
-// Placeholder for fetching conversation details if needed (e.g., other user's name)
-// const getConversationDetails = async (conversationId: string): Promise<Partial<ChatConversation>> => {
-//     return new Promise(res => setTimeout(() => res({other_user: {id:2, first_name: "Mock Partner"}}), 100));
-// }
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaArrowLeft, 
+  FaPaperPlane, 
+  FaSmile, 
+  FaPaperclip, 
+  FaTimes,
+  FaDownload,
+  FaCircle,
+  FaCheck,
+  FaCheckDouble
+} from 'react-icons/fa';
 
 // ฟังก์ชันแปลงข้อความให้ preview ลิงก์ (url) ได้
 function renderMessageWithLinks(text: string) {
@@ -46,7 +51,7 @@ export const ChatRoomPage: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const socketRef = useRef<Socket | null>(null);
-  const [fileUploading, setFileUploading] = useState(false);
+  const [, setFileUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewType, setPreviewType] = useState<'image' | 'file' | null>(null);
@@ -202,166 +207,295 @@ export const ChatRoomPage: React.FC = () => {
   if (error) return <ErrorMessage message={error} />;
 
   return (
-    <div className="min-h-screen bg-[#f0f2f5] flex flex-col items-center justify-center">
-      <div className="w-full max-w-2xl flex flex-col h-[calc(100vh-64px)] shadow-xl rounded-xl overflow-hidden">
-        {/* HEADER */}
-        <div className="flex items-center gap-3 p-3 bg-[#0084ff] rounded-t-xl shadow sticky top-0 z-10">
-          <Link to={ROUTE_PATHS.CHAT_INBOX} className="p-2 rounded-full hover:bg-blue-700 transition">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          </Link>
-          <img src={conversationInfo?.other_user?.profile_picture_url || `https://picsum.photos/seed/${conversationInfo?.other_user?.id}/50/50`} className="w-10 h-10 rounded-full border-2 border-white shadow" />
-          <div>
-            <div className="font-bold text-white text-lg">{conversationInfo?.other_user?.first_name || 'User'}</div>
-            <div className="text-xs text-blue-100">กำลังใช้งาน</div>
-          </div>
-      </div>
-        {/* MESSAGE LIST */}
-        <div
-          className="flex-grow overflow-y-auto bg-[#f0f2f5] px-4 py-6 custom-scrollbar"
-          onScroll={e => {
-            const el = e.currentTarget;
-            isAtBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
-          }}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="max-w-4xl mx-auto h-screen flex flex-col">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white shadow-lg border-b border-gray-200 rounded-b-2xl"
         >
-        {hasMore && !isLoading && (
-          <div className="text-center mb-2">
-            <button className="text-blue-500 underline hover:text-blue-700 transition-colors" disabled={loadingMore} onClick={() => {
-              setLoadingMore(true);
-              fetchMessages({ before_message_id: messages[0]?.id });
-            }}>Load previous</button>
-          </div>
-        )}
-          {/* Messenger-style bubble grouping */}
-          {uniqueMessages.map((msg, idx, arr) => {
-            const isMe = msg.sender_id === authUser?.id;
-            const prev = arr[idx - 1];
-            const next = arr[idx + 1];
-            const isFirstOfGroup = !prev || prev.sender_id !== msg.sender_id;
-            const isLastOfGroup = !next || next.sender_id !== msg.sender_id;
-            return (
-              <div key={msg.message_uid || (msg.id + '_' + msg.sent_at)} className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`}>
-                {!isMe && isFirstOfGroup && (
-                  <img src={conversationInfo?.other_user?.profile_picture_url || `https://picsum.photos/seed/${conversationInfo?.other_user?.id}/50/50`} className="w-7 h-7 rounded-full mr-2 self-end" />
-                )}
-                <div className={`
-                  px-4 py-2 shadow
-                  ${isMe
-                    ? 'bg-[#0084ff] text-white'
-                    : 'bg-white text-gray-900 border'}
-                  max-w-[70%]
-                  ${isMe
-                    ? `${isFirstOfGroup ? 'rounded-t-2xl' : 'rounded-tr-md'} ${isLastOfGroup ? 'rounded-b-2xl' : 'rounded-br-md'} rounded-l-2xl`
-                    : `${isFirstOfGroup ? 'rounded-t-2xl' : 'rounded-tl-md'} ${isLastOfGroup ? 'rounded-b-2xl' : 'rounded-bl-md'} rounded-r-2xl`}
-                  animate-fadeIn
-                `}>
-              {/* ถ้ามีไฟล์แนบ */}
-              {msg.attachment_url && (
-                msg.message_type === 'image' ? (
-                  <img
-                    src={msg.attachment_url}
-                    alt="attachment"
-                    className="max-h-40 mb-2 rounded-lg cursor-pointer border border-blue-200 group-hover:shadow-lg transition-all"
-                    onClick={() => {
-                      setPreviewUrl(msg.attachment_url!);
-                      setPreviewType('image');
-                      setPreviewName(msg.attachment_metadata?.originalname || null);
-                    }}
-                  />
-                ) : (
-                  <a
-                    href={msg.attachment_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline block mb-2 cursor-pointer hover:text-blue-800"
-                    onClick={e => {
-                      e.preventDefault();
-                      setPreviewUrl(msg.attachment_url!);
-                      setPreviewType('file');
-                      setPreviewName(msg.attachment_metadata?.originalname || null);
-                    }}
-                  >
-                    📎 {msg.attachment_metadata?.originalname || 'Download file'}
-                  </a>
-                )
-              )}
-                  <div className="break-words whitespace-pre-line text-base">
-                {renderMessageWithLinks(msg.message_content)}
-                  </div>
-                  <div className="text-xs mt-1 text-gray-400 text-right">{new Date(msg.sent_at).toLocaleTimeString()}</div>
+          <div className="flex items-center gap-4 p-4">
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Link to={ROUTE_PATHS.CHAT_INBOX} className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                <FaArrowLeft className="w-5 h-5 text-gray-600" />
+              </Link>
+            </motion.div>
+            
+            <div className="relative">
+              <img 
+                src={conversationInfo?.other_user?.profile_picture_url || `https://picsum.photos/seed/${conversationInfo?.other_user?.id}/50/50`} 
+                className="w-12 h-12 rounded-full border-3 border-blue-200 shadow-md" 
+              />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+            </div>
+            
+            <div className="flex-1">
+              <h2 className="font-bold text-lg text-gray-800">{conversationInfo?.other_user?.first_name || 'User'}</h2>
+              <div className="flex items-center gap-2">
+                <FaCircle className="w-2 h-2 text-green-500" />
+                <span className="text-sm text-gray-500">Online</span>
+              </div>
             </div>
           </div>
-            );
-          })}
-        <div ref={messagesEndRef} />
-      </div>
-        {/* INPUT BAR */}
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2 p-3 bg-white rounded-b-xl shadow sticky bottom-0 z-10">
-          <button type="button" className="p-2 rounded-full hover:bg-gray-100">
-            <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M15 9h.01M12 9h.01M9 9h.01" /></svg>
-          </button>
-          <input
-            name="newMessage"
-            type="text"
-            value={newMessageContent}
-            onChange={e => setNewMessageContent(e.target.value)}
-            placeholder="พิมพ์ข้อความ..."
-            className="flex-grow rounded-full border px-4 py-2 focus:ring-2 focus:ring-blue-100 transition text-base bg-gray-50"
-            autoComplete="off"
-            onKeyDown={e => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage(e);
-              }
-            }}
-          />
-          <button type="button" className="p-2 rounded-full hover:bg-gray-100" onClick={() => fileInputRef.current?.click()}>
-            <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a2 2 0 10-2.828-2.828z" /></svg>
-          </button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-            onChange={e => {
-              const file = e.target.files?.[0];
-              if (file) {
-                handleFileUpload(file, newMessageContent);
-                setNewMessageContent('');
-                if (fileInputRef.current) fileInputRef.current.value = '';
-              }
-            }}
-            accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.zip,.rar,.txt,.csv,.ppt,.pptx,.doc,.docx"
-          />
-          <button
-            type="submit"
-            disabled={!newMessageContent.trim() || isSending}
-            className="p-2 rounded-full bg-[#0084ff] hover:bg-blue-700 text-white shadow transition flex items-center justify-center"
-            style={{ minWidth: 44, minHeight: 44 }}
-          >
-            {isSending ? (
-              <svg className="w-6 h-6 animate-spin" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-            ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-            )}
-          </button>
-        </form>
-      </div>
+        </motion.div>
 
-      {/* Modal สำหรับ preview ไฟล์/รูป */}
-      {previewUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-all" onClick={() => setPreviewUrl(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl max-w-full max-h-full p-4 relative animate-fadeIn" onClick={e => e.stopPropagation()}>
-            <button className="absolute top-2 right-2 text-gray-600 hover:text-red-500 text-2xl transition-colors" onClick={() => setPreviewUrl(null)}>&times;</button>
-            {previewType === 'image' ? (
-              <img src={previewUrl} alt={previewName || 'preview'} className="max-h-[70vh] max-w-[80vw] object-contain rounded-xl shadow" />
-            ) : (
-              <div className="flex flex-col items-center">
-                <span className="mb-2 font-semibold text-lg">{previewName || 'File preview'}</span>
-                <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-lg hover:text-blue-800 transition-colors">Download / Open</a>
-              </div>
+        {/* Messages Container */}
+        <div className="flex-1 overflow-hidden">
+          <div
+            className="h-full overflow-y-auto px-4 py-6 space-y-4 custom-scrollbar"
+            onScroll={e => {
+              const el = e.currentTarget;
+              isAtBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+            }}
+          >
+            {/* Load More Button */}
+            {hasMore && !isLoading && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="text-blue-500 underline hover:text-blue-700 transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200"
+                  disabled={loadingMore}
+                  onClick={() => {
+                    setLoadingMore(true);
+                    fetchMessages({ before_message_id: messages[0]?.id });
+                  }}
+                >
+                  {loadingMore ? 'Loading...' : 'Load previous messages'}
+                </motion.button>
+              </motion.div>
             )}
+
+            {/* Messages */}
+            <AnimatePresence>
+              {uniqueMessages.map((msg, idx, arr) => {
+                const isMe = msg.sender_id === authUser?.id;
+                const prev = arr[idx - 1];
+                const next = arr[idx + 1];
+                const isFirstOfGroup = !prev || prev.sender_id !== msg.sender_id;
+                const isLastOfGroup = !next || next.sender_id !== msg.sender_id;
+                
+                return (
+                  <motion.div
+                    key={msg.message_uid || (msg.id + '_' + msg.sent_at)}
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.3, type: "spring", stiffness: 100 }}
+                    className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-2`}
+                  >
+                    {!isMe && isFirstOfGroup && (
+                      <img 
+                        src={conversationInfo?.other_user?.profile_picture_url || `https://picsum.photos/seed/${conversationInfo?.other_user?.id}/50/50`} 
+                        className="w-8 h-8 rounded-full mr-2 self-end shadow-sm" 
+                      />
+                    )}
+                    
+                    <div className={`
+                      max-w-[70%] px-4 py-3 shadow-sm
+                      ${isMe
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                        : 'bg-white text-gray-800 border border-gray-200'}
+                      ${isMe
+                        ? `${isFirstOfGroup ? 'rounded-t-2xl' : 'rounded-tr-lg'} ${isLastOfGroup ? 'rounded-b-2xl' : 'rounded-br-lg'} rounded-l-2xl`
+                        : `${isFirstOfGroup ? 'rounded-t-2xl' : 'rounded-tl-lg'} ${isLastOfGroup ? 'rounded-b-2xl' : 'rounded-bl-lg'} rounded-r-2xl`}
+                    `}>
+                      {/* File Attachment */}
+                      {msg.attachment_url && (
+                        <div className="mb-3">
+                          {msg.message_type === 'image' ? (
+                            <motion.img
+                              whileHover={{ scale: 1.02 }}
+                              src={msg.attachment_url}
+                              alt="attachment"
+                              className="max-h-48 rounded-lg cursor-pointer border border-gray-200 shadow-sm"
+                              onClick={() => {
+                                setPreviewUrl(msg.attachment_url!);
+                                setPreviewType('image');
+                                setPreviewName(msg.attachment_metadata?.originalname || null);
+                              }}
+                            />
+                          ) : (
+                            <motion.div
+                              whileHover={{ scale: 1.02 }}
+                              className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer border border-gray-200"
+                              onClick={() => {
+                                setPreviewUrl(msg.attachment_url!);
+                                setPreviewType('file');
+                                setPreviewName(msg.attachment_metadata?.originalname || null);
+                              }}
+                            >
+                              <FaPaperclip className="text-gray-500" />
+                              <span className="text-sm font-medium text-gray-700">
+                                {msg.attachment_metadata?.originalname || 'Download file'}
+                              </span>
+                              <FaDownload className="text-gray-400 ml-auto" />
+                            </motion.div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Message Content */}
+                      <div className="break-words whitespace-pre-line text-sm leading-relaxed">
+                        {renderMessageWithLinks(msg.message_content)}
+                      </div>
+                      
+                      {/* Message Time and Status */}
+                      <div className="flex items-center justify-end gap-1 mt-2">
+                        <span className="text-xs opacity-70">
+                          {new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {isMe && (
+                          <div className="flex items-center gap-1">
+                            <FaCheck className="w-3 h-3" />
+                            <FaCheckDouble className="w-3 h-3" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+            
+            <div ref={messagesEndRef} />
           </div>
         </div>
-      )}
+
+        {/* Input Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white shadow-lg border-t border-gray-200 rounded-t-2xl p-4"
+        >
+          <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+            >
+              <FaSmile className="w-5 h-5 text-gray-500" />
+            </motion.button>
+            
+            <div className="flex-1 relative">
+              <input
+                name="newMessage"
+                type="text"
+                value={newMessageContent}
+                onChange={e => setNewMessageContent(e.target.value)}
+                placeholder="Type a message..."
+                className="w-full rounded-full border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50"
+                autoComplete="off"
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage(e);
+                  }
+                }}
+              />
+            </div>
+            
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <FaPaperclip className="w-5 h-5 text-gray-500" />
+            </motion.button>
+            
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleFileUpload(file, newMessageContent);
+                  setNewMessageContent('');
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }
+              }}
+              accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.zip,.rar,.txt,.csv,.ppt,.pptx,.doc,.docx"
+            />
+            
+            <motion.button
+              type="submit"
+              disabled={!newMessageContent.trim() || isSending}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              {isSending ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              ) : (
+                <FaPaperPlane className="w-5 h-5" />
+              )}
+            </motion.button>
+          </form>
+        </motion.div>
+      </div>
+
+      {/* File Preview Modal */}
+      <AnimatePresence>
+        {previewUrl && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            onClick={() => setPreviewUrl(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-full max-h-full p-6 relative"
+              onClick={e => e.stopPropagation()}
+            >
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="absolute top-4 right-4 text-gray-600 hover:text-red-500 text-2xl transition-colors"
+                onClick={() => setPreviewUrl(null)}
+              >
+                <FaTimes />
+              </motion.button>
+              
+              {previewType === 'image' ? (
+                <img src={previewUrl} alt={previewName || 'preview'} className="max-h-[70vh] max-w-[80vw] object-contain rounded-xl shadow" />
+              ) : (
+                <div className="flex flex-col items-center p-8">
+                  <FaPaperclip className="text-6xl text-gray-400 mb-4" />
+                  <span className="mb-4 font-semibold text-lg text-gray-800">{previewName || 'File preview'}</span>
+                  <motion.a
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    href={previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-xl hover:bg-blue-600 transition-colors shadow-lg"
+                  >
+                    <FaDownload />
+                    Download / Open
+                  </motion.a>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -6,12 +6,35 @@ import { getProductByID } from '../../services/productService';
 import { Rental, ApiError, RentalStatus, RentalReturnConditionStatus, InitiateReturnPayload, Product } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
 import { useAlert } from '../../contexts/AlertContext';
 import { InitiateReturnForm } from './InitiateReturnForm';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaArrowLeft, 
+  FaCalendarAlt, 
+  FaUser, 
+  FaMoneyBillWave, 
+  FaClock, 
+  FaCheckCircle, 
+  FaExclamationTriangle, 
+  FaTimes, 
+  FaCreditCard, 
+  FaBox, 
+  FaStar, 
+  FaEye, 
+  FaDownload,
+  FaShieldAlt,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaEnvelope,
+  FaHistory,
+  FaInfoCircle,
+  FaCheck,
+  FaBan,
+  FaTruck
+} from 'react-icons/fa';
 
 export const RenterRentalDetailPage: React.FC = () => {
   const { rentalId } = useParams<{ rentalId: string }>();
@@ -185,19 +208,62 @@ export const RenterRentalDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <Link to={ROUTE_PATHS.MY_RENTALS_RENTER} className="text-blue-600 hover:underline mb-4 block">&larr; {t('renterRentalDetailPage.backToMyRentals')}</Link>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="container mx-auto p-4 md:p-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-6"
+        >
+          <Link 
+            to={ROUTE_PATHS.MY_RENTALS_RENTER} 
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors mb-4"
+          >
+            <FaArrowLeft className="h-4 w-4" />
+            {t('renterRentalDetailPage.backToMyRentals')}
+          </Link>
+          
+          <div className="flex items-center gap-4 mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl shadow-lg">
+              <FaEye className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                {rental.product?.title}
+              </h1>
+              <p className="text-gray-600 text-lg">รายละเอียดการเช่า</p>
+            </div>
+          </div>
+        </motion.div>
+        
+        {statusBox && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-6"
+          >
+            {statusBox}
+          </motion.div>
+        )}
       
-      <div className="grid grid-cols-1 md:grid-cols-3 md:gap-8">
-        {/* Main Content (Left Column) */}
-        <div className="md:col-span-2 space-y-6">
-          <h1 className="text-3xl font-bold text-gray-800 ">{rental.product?.title}</h1>
-          {statusBox}
-
-          {/* Product Image */}
-          {(productDetails?.primary_image?.image_url || rental.product?.primary_image?.image_url || (rental.product?.images && rental.product.images[0]?.image_url)) && (
-            <Card>
-              <CardContent>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="grid grid-cols-1 md:grid-cols-3 md:gap-8"
+        >
+          {/* Main Content (Left Column) */}
+          <div className="md:col-span-2 space-y-6">
+            {/* Product Image */}
+            {(productDetails?.primary_image?.image_url || rental.product?.primary_image?.image_url || (rental.product?.images && rental.product.images[0]?.image_url)) && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+              >
                 <img
                   src={
                     productDetails?.primary_image?.image_url ||
@@ -206,278 +272,445 @@ export const RenterRentalDetailPage: React.FC = () => {
                     ''
                   }
                   alt={productDetails?.title || rental.product?.title || 'Product Image'}
-                  className="w-full max-w-md max-h-72 h-auto object-cover rounded-lg shadow-md mx-auto"
+                  className="w-full max-w-md max-h-72 h-auto object-cover rounded-xl shadow-lg mx-auto"
                 />
-              </CardContent>
-            </Card>
-          )}
+              </motion.div>
+            )}
 
-          {/* Product & Return Details in separate cards */}
-          <Card>
-            <CardContent>
-              <h3 className="text-xl font-semibold mb-4">{t('renterRentalDetailPage.productDetails')}</h3>
-              <div className="space-y-2">
-                <div><strong>{t('renterRentalDetailPage.productName')}:</strong> {productDetails?.title || rental.product?.title}</div>
-                <div><strong>{t('renterRentalDetailPage.category')}:</strong> {productDetails?.category?.name || rental.product?.category?.name}</div>
-                <div><strong>{t('renterRentalDetailPage.pricePerDay')}:</strong> ฿{(productDetails?.rental_price_per_day || rental.product?.rental_price_per_day)?.toLocaleString?.() || '-'}</div>
-                <div><strong>{t('renterRentalDetailPage.deposit')}:</strong> ฿{(productDetails?.security_deposit || rental.product?.security_deposit)?.toLocaleString?.() || '-'}</div>
+            {/* Product Details */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-blue-100 rounded-xl">
+                  <FaInfoCircle className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800">{t('renterRentalDetailPage.productDetails')}</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaBox className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.productName')}</span>
+                      <p className="font-semibold">{productDetails?.title || rental.product?.title}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaShieldAlt className="h-5 w-5 text-green-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.category')}</span>
+                      <p className="font-semibold">{productDetails?.category?.name || rental.product?.category?.name}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaMoneyBillWave className="h-5 w-5 text-yellow-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.pricePerDay')}</span>
+                      <p className="font-semibold">฿{(productDetails?.rental_price_per_day || rental.product?.rental_price_per_day)?.toLocaleString?.() || '-'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaShieldAlt className="h-5 w-5 text-purple-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.deposit')}</span>
+                      <p className="font-semibold">฿{(productDetails?.security_deposit || rental.product?.security_deposit)?.toLocaleString?.() || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+                
                 {(productDetails?.specifications && Object.keys(productDetails.specifications).length > 0) || (rental.product?.specifications && Object.keys(rental.product.specifications).length > 0) ? (
-                  <div>
-                    <strong>Specifications:</strong>
-                    <ul className="list-disc list-inside pl-4 mt-1">
+                  <div className="mt-6">
+                    <h4 className="font-semibold text-gray-800 mb-3">Specifications:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {Object.entries(productDetails?.specifications || rental.product?.specifications || {}).map(([key, value]) => (
-                        <li key={key} className="capitalize">{key.replace(/_/g, ' ')}: {String(value)}</li>
+                        <div key={key} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+                          <FaInfoCircle className="h-4 w-4 text-blue-500" />
+                          <span className="text-sm capitalize">{key.replace(/_/g, ' ')}: <strong>{String(value)}</strong></span>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 ) : null}
+                
                 {productDetails?.condition_notes || rental.product?.condition_notes ? (
-                  <p><strong>{t('renterRentalDetailPage.conditionNotes')}:</strong> {productDetails?.condition_notes || rental.product?.condition_notes}</p>
+                  <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FaExclamationTriangle className="h-5 w-5 text-yellow-600" />
+                      <span className="font-semibold text-yellow-800">{t('renterRentalDetailPage.conditionNotes')}</span>
+                    </div>
+                    <p className="text-yellow-700">{productDetails?.condition_notes || rental.product?.condition_notes}</p>
+                  </div>
                 ) : null}
               </div>
-            </CardContent>
-          </Card>
-          
-          {rental.actual_return_time && (
-             <Card>
-                <CardContent>
-                   <h3 className="text-xl font-semibold text-green-800 mb-3">{t('renterRentalDetailPage.returnInfo.title')}</h3>
-                    <div className="space-y-2">
-                      <p><strong>{t('renterRentalDetailPage.returnInfo.returnedAt')}:</strong> {new Date(rental.actual_return_time).toLocaleString()}</p>
-                      {rental.return_condition_status && (
-                        <p><strong>{t('renterRentalDetailPage.returnInfo.condition')}:</strong> {getReturnConditionText(rental.return_condition_status)}</p>
-                      )}
-                      {rental.notes_from_owner_on_return && (
-                        <p><strong>{t('renterRentalDetailPage.returnInfo.notes')}:</strong> {rental.notes_from_owner_on_return}</p>
-                      )}
-                      {rental.return_condition_image_urls && rental.return_condition_image_urls.length > 0 ? (
+            </motion.div>
+            
+            {rental.actual_return_time && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.0 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-green-100 rounded-xl">
+                    <FaCheckCircle className="h-6 w-6 text-green-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-green-800">{t('renterRentalDetailPage.returnInfo.title')}</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
+                      <FaCalendarAlt className="h-5 w-5 text-green-500" />
+                      <div>
+                        <span className="text-sm text-gray-500">{t('renterRentalDetailPage.returnInfo.returnedAt')}</span>
+                        <p className="font-semibold">{new Date(rental.actual_return_time).toLocaleString()}</p>
+                      </div>
+                    </div>
+                    {rental.return_condition_status && (
+                      <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
+                        <FaShieldAlt className="h-5 w-5 text-green-500" />
                         <div>
-                          <strong>{t('renterRentalDetailPage.returnInfo.images')}:</strong>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {rental.return_condition_image_urls.map((imageUrl, index) => (
-                              <a key={index} href={imageUrl} target="_blank" rel="noopener noreferrer">
-                                <img src={imageUrl} alt={`Return evidence ${index + 1}`} className="w-20 h-20 object-cover rounded border" />
-                              </a>
-                            ))}
-                          </div>
+                          <span className="text-sm text-gray-500">{t('renterRentalDetailPage.returnInfo.condition')}</span>
+                          <p className="font-semibold">{getReturnConditionText(rental.return_condition_status)}</p>
                         </div>
-                      ) : (
-                        <p><strong>{t('renterRentalDetailPage.returnInfo.images')}:</strong> {t('renterRentalDetailPage.returnInfo.noImages')}</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {rental.notes_from_owner_on_return && (
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                      <div className="flex items-center gap-2 mb-2">
+                        <FaUser className="h-5 w-5 text-blue-600" />
+                        <span className="font-semibold text-blue-800">{t('renterRentalDetailPage.returnInfo.notes')}</span>
+                      </div>
+                      <p className="text-blue-700">{rental.notes_from_owner_on_return}</p>
+                    </div>
+                  )}
+                  
+                  {rental.return_condition_image_urls && rental.return_condition_image_urls.length > 0 ? (
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-3">{t('renterRentalDetailPage.returnInfo.images')}</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {rental.return_condition_image_urls.map((imageUrl, index) => (
+                          <a key={index} href={imageUrl} target="_blank" rel="noopener noreferrer" className="group">
+                            <img 
+                              src={imageUrl} 
+                              alt={`Return evidence ${index + 1}`} 
+                              className="w-full h-24 object-cover rounded-lg border-2 border-gray-200 group-hover:border-blue-400 transition-colors" 
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <FaInfoCircle className="h-5 w-5 text-gray-500" />
+                        <span className="text-gray-600">{t('renterRentalDetailPage.returnInfo.noImages')}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {Boolean(rental.payment_proof_url) && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.2 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-blue-100 rounded-xl">
+                    <FaCreditCard className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-800">{t('renterRentalDetailPage.paymentSlip')}</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex justify-center">
+                    <a href={rental.payment_proof_url!} target="_blank" rel="noopener noreferrer" className="group">
+                      <img 
+                        src={rental.payment_proof_url!} 
+                        alt="Payment Slip" 
+                        className="max-w-xs rounded-xl shadow-lg border-2 border-gray-200 group-hover:border-blue-400 transition-colors" 
+                      />
+                    </a>
+                  </div>
+                  <div className="flex justify-center">
+                    <a 
+                      href={rental.payment_proof_url!} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      <FaDownload className="h-4 w-4" />
+                      {t('renterRentalDetailPage.viewDownloadSlip')}
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Sidebar (Right Column) */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="space-y-6"
+          >
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+              {/* Main Action Buttons */}
+              <div className="space-y-4 mb-8">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Actions</h3>
+                {rental.rental_status === RentalStatus.PENDING_PAYMENT && (
+                  <Link to={ROUTE_PATHS.PAYMENT_PAGE.replace(':rentalId', String(rental.id))} className="block">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+                    >
+                      <FaCreditCard className="h-5 w-5" />
+                      {t('renterRentalDetailPage.buttons.proceedToPayment')}
+                    </motion.button>
+                  </Link>
+                )}
+                {[RentalStatus.CONFIRMED, RentalStatus.ACTIVE, RentalStatus.LATE_RETURN].includes(rental.rental_status) && rental.actual_pickup_time && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowReturnForm(true)}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-4 px-6 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+                  >
+                    <FaBox className="h-5 w-5" />
+                    {t('renterRentalDetailPage.buttons.returnItem')}
+                  </motion.button>
+                )}
+                {/* Actual Pickup Button */}
+                {rental.actual_pickup_time == null && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowPickupModal(true)}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 px-6 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+                  >
+                    <FaCalendarAlt className="h-5 w-5" />
+                    แจ้งวัน-เวลารับสินค้าจริง
+                  </motion.button>
+                )}
+                {rental.rental_status === RentalStatus.COMPLETED && !rental.review_by_renter && (
+                  <Link to={ROUTE_PATHS.SUBMIT_REVIEW.replace(':rentalId', String(rental.id))} className="block">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-4 px-6 rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+                    >
+                      <FaStar className="h-5 w-5" />
+                      {t('renterRentalDetailPage.buttons.leaveReview')}
+                    </motion.button>
+                  </Link>
+                )}
+              </div>
+
+              <hr className="my-6 border-gray-200" />
+
+              {/* Rental Details */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">{t('renterRentalDetailPage.rentalDetailsTitle')}</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaShieldAlt className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.rentalId')}</span>
+                      <p className="font-semibold">{rental.rental_uid}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaInfoCircle className="h-5 w-5 text-green-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.statusLabel')}</span>
+                      <p className="font-semibold">{t(`rentalStatus.${rental.rental_status}`, rental.rental_status.replace(/_/g, ' ').toUpperCase())}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaCreditCard className="h-5 w-5 text-purple-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.paymentStatusLabel')}</span>
+                      <p className="font-semibold">{t(`paymentStatus.${rental.payment_status}`, rental.payment_status.replace(/_/g, ' ').toUpperCase())}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaCalendarAlt className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.rentalPeriod')}</span>
+                      <p className="font-semibold">{new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaClock className="h-5 w-5 text-green-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">Actual Pickup</span>
+                      <p className="font-semibold">{rental.actual_pickup_time ? new Date(rental.actual_pickup_time).toLocaleString() : '-'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaHistory className="h-5 w-5 text-purple-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">Actual Return</span>
+                      <p className="font-semibold">{rental.actual_return_time ? new Date(rental.actual_return_time).toLocaleString() : '-'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaCalendarAlt className="h-5 w-5 text-orange-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">Days</span>
+                      <p className="font-semibold">{Math.ceil((new Date(rental.end_date).getTime() - new Date(rental.start_date).getTime()) / (1000*60*60*24))}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaMoneyBillWave className="h-5 w-5 text-yellow-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.pricePerDay')}</span>
+                      <p className="font-semibold">฿{rental.rental_price_per_day_at_booking.toLocaleString()}</p>
+                    </div>
+                  </div>
+                  {typeof rental.security_deposit_at_booking === 'number' && (
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                      <FaShieldAlt className="h-5 w-5 text-blue-500" />
+                      <div>
+                        <span className="text-sm text-gray-500">{t('renterRentalDetailPage.deposit')}</span>
+                        <p className="font-semibold">฿{rental.security_deposit_at_booking.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  )}
+                  {typeof rental.delivery_fee === 'number' && (
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                      <FaTruck className="h-5 w-5 text-green-500" />
+                      <div>
+                        <span className="text-sm text-gray-500">Delivery Fee</span>
+                        <p className="font-semibold">฿{rental.delivery_fee.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  )}
+                  {typeof rental.platform_fee_renter === 'number' && (
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                      <FaCreditCard className="h-5 w-5 text-purple-500" />
+                      <div>
+                        <span className="text-sm text-gray-500">Platform Fee</span>
+                        <p className="font-semibold">฿{rental.platform_fee_renter.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl">
+                    <FaMoneyBillWave className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">Subtotal</span>
+                      <p className="font-semibold">฿{rental.calculated_subtotal_rental_fee.toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
+                    <FaCheckCircle className="h-5 w-5 text-green-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.totalPaid')}</span>
+                      <p className="font-semibold">฿{(rental.final_amount_paid || rental.total_amount_due).toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <hr className="my-6 border-gray-200" />
+
+              {/* People Info */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">People</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaUser className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.owner')}</span>
+                      <p className="font-semibold">{rental.owner?.first_name} {rental.owner?.last_name} (@{rental.owner?.username})</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaUser className="h-5 w-5 text-green-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{t('renterRentalDetailPage.renter')}</span>
+                      <p className="font-semibold">{rental.renter?.first_name} {rental.renter?.last_name} (@{rental.renter?.username})</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <hr className="my-6 border-gray-200" />
+
+              {/* Pickup/Delivery Info */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">{t('renterRentalDetailPage.pickupMethod')}</h3>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <FaMapMarkerAlt className="h-5 w-5 text-blue-500" />
+                  <div>
+                    <span className="text-sm text-gray-500">Method</span>
+                    <p className="font-semibold">{t(`pickupMethod.${rental.pickup_method}`, rental.pickup_method.replace('_',' ').toUpperCase())}</p>
+                  </div>
+                </div>
+                {rental.delivery_address && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <div className="flex items-center gap-2 mb-3">
+                      <FaMapMarkerAlt className="h-5 w-5 text-blue-600" />
+                      <span className="font-semibold text-blue-800">{t('renterRentalDetailPage.deliveryAddress')}</span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <FaUser className="h-4 w-4 text-gray-500" />
+                        <span><strong>{rental.delivery_address.recipient_name}</strong> ({rental.delivery_address.phone_number})</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <FaMapMarkerAlt className="h-4 w-4 text-gray-500" />
+                        <span>{rental.delivery_address.address_line1}{rental.delivery_address.address_line2 && <> {rental.delivery_address.address_line2}</>}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <FaMapMarkerAlt className="h-4 w-4 text-gray-500" />
+                        <span>
+                          {rental.delivery_address.sub_district && rental.delivery_address.sub_district + ', '}
+                          {rental.delivery_address.district && rental.delivery_address.district + ', '}
+                          {rental.delivery_address.province_name || rental.delivery_address.province_id}, {rental.delivery_address.postal_code}
+                        </span>
+                      </div>
+                      {rental.delivery_address.notes && (
+                        <div className="flex items-center gap-2">
+                          <FaInfoCircle className="h-4 w-4 text-gray-500" />
+                          <span className="text-gray-600">{rental.delivery_address.notes}</span>
+                        </div>
                       )}
                     </div>
-                </CardContent>
-             </Card>
-          )}
-
-          {Boolean(rental.payment_proof_url) && (
-            <Card>
-                <CardContent>
-                    <h3 className="text-xl font-semibold mb-4">{t('renterRentalDetailPage.paymentSlip')}</h3>
-                     <div className="my-2">
-                        <a href={rental.payment_proof_url!} target="_blank" rel="noopener noreferrer">
-                        <img src={rental.payment_proof_url!} alt="Payment Slip" className="max-w-xs rounded shadow border" />
-                        </a>
-                    </div>
-                    <a href={rental.payment_proof_url!} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{t('renterRentalDetailPage.viewDownloadSlip')}</a>
-                </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Sidebar (Right Column) */}
-        <div className="space-y-6">
-            <Card className="p-4">
-                 {/* Main Action Buttons */}
-                <div className="space-y-3 mb-6">
-                    {rental.rental_status === RentalStatus.PENDING_PAYMENT && (
-                        <Link to={ROUTE_PATHS.PAYMENT_PAGE.replace(':rentalId', String(rental.id))} className="block">
-                            <Button variant="primary" size="lg" className="w-full">{t('renterRentalDetailPage.buttons.proceedToPayment')}</Button>
-                        </Link>
-                    )}
-                    {[RentalStatus.CONFIRMED, RentalStatus.ACTIVE, RentalStatus.LATE_RETURN].includes(rental.rental_status) && rental.actual_pickup_time && (
-                        <Button variant="primary" size="lg" className="w-full" onClick={() => setShowReturnForm(true)}>{t('renterRentalDetailPage.buttons.returnItem')}</Button>
-                    )}
-                    {/* Actual Pickup Button */}
-                    {rental.actual_pickup_time == null && (
-                      <Button variant="outline" className="w-full" onClick={() => setShowPickupModal(true)}>
-                        แจ้งวัน-เวลารับสินค้าจริง
-                      </Button>
-                    )}
-                     {rental.rental_status === RentalStatus.COMPLETED && !rental.review_by_renter && (
-                        <Link to={ROUTE_PATHS.SUBMIT_REVIEW.replace(':rentalId', String(rental.id))} className="block">
-                            <Button variant="outline" className="w-full">{t('renterRentalDetailPage.buttons.leaveReview')}</Button>
-                        </Link>
-                    )}
-                </div>
-
-                <hr className="my-4"/>
-
-                {/* Rental Details - DETAILED */}
-                <div className="space-y-2 text-sm">
-                  <h3 className="text-lg font-semibold mb-2">{t('renterRentalDetailPage.rentalDetailsTitle')}</h3>
-                  <div><strong>{t('renterRentalDetailPage.rentalId')}:</strong> {rental.rental_uid}</div>
-                  <div><strong>{t('renterRentalDetailPage.statusLabel')}:</strong> {t(`rentalStatus.${rental.rental_status}`, rental.rental_status.replace(/_/g, ' ').toUpperCase())}</div>
-                  <div><strong>{t('renterRentalDetailPage.paymentStatusLabel')}:</strong> {t(`paymentStatus.${rental.payment_status}`, rental.payment_status.replace(/_/g, ' ').toUpperCase())}</div>
-                  <div><strong>{t('renterRentalDetailPage.rentalPeriod')}:</strong> {new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}</div>
-                  <div><strong>Actual Pickup:</strong> {rental.actual_pickup_time ? new Date(rental.actual_pickup_time).toLocaleString() : '-'}</div>
-                  <div><strong>Actual Return:</strong> {rental.actual_return_time ? new Date(rental.actual_return_time).toLocaleString() : '-'}</div>
-                  <div><strong>Days:</strong> {Math.ceil((new Date(rental.end_date).getTime() - new Date(rental.start_date).getTime()) / (1000*60*60*24))}</div>
-                  <div><strong>{t('renterRentalDetailPage.pricePerDay')}:</strong> ฿{rental.rental_price_per_day_at_booking.toLocaleString()}</div>
-                  {typeof rental.security_deposit_at_booking === 'number' && <div><strong>{t('renterRentalDetailPage.deposit')}:</strong> ฿{rental.security_deposit_at_booking.toLocaleString()}</div>}
-                  {typeof rental.delivery_fee === 'number' && <div><strong>Delivery Fee:</strong> ฿{rental.delivery_fee.toLocaleString()}</div>}
-                  {typeof rental.platform_fee_renter === 'number' && <div><strong>Platform Fee:</strong> ฿{rental.platform_fee_renter.toLocaleString()}</div>}
-                  <div><strong>Subtotal:</strong> ฿{rental.calculated_subtotal_rental_fee.toLocaleString()}</div>
-                  <div><strong>{t('renterRentalDetailPage.totalPaid')}:</strong> ฿{(rental.final_amount_paid || rental.total_amount_due).toLocaleString()}</div>
-                  <div><strong>Created:</strong> {new Date(rental.created_at).toLocaleString()}</div>
-                  <div><strong>Updated:</strong> {new Date(rental.updated_at).toLocaleString()}</div>
-                  {rental.notes_from_renter && <div><strong>{t('renterRentalDetailPage.yourNotes')}:</strong> {rental.notes_from_renter}</div>}
-                  {rental.cancellation_reason && <div className="text-red-600"><strong>{t('renterRentalDetailPage.cancellationReason')}:</strong> {rental.cancellation_reason}</div>}
-                </div>
-
-                <hr className="my-4"/>
-
-                 {/* People Info */}
-                 <div className="space-y-2 text-sm">
-                    <h3 className="text-lg font-semibold mb-2">People</h3>
-                    <p><strong>{t('renterRentalDetailPage.owner')}:</strong> {rental.owner?.first_name} {rental.owner?.last_name} (@{rental.owner?.username})</p>
-                    <p><strong>{t('renterRentalDetailPage.renter')}:</strong> {rental.renter?.first_name} {rental.renter?.last_name} (@{rental.renter?.username})</p>
-                 </div>
-                 
-                 <hr className="my-4"/>
-
-                {/* Pickup/Delivery Info */}
-                <div className="space-y-2 text-sm">
-                    <h3 className="text-lg font-semibold mb-2">{t('renterRentalDetailPage.pickupMethod')}</h3>
-                    <p>{t(`pickupMethod.${rental.pickup_method}`, rental.pickup_method.replace('_',' ').toUpperCase())}</p>
-                    {rental.delivery_address && (
-                        <div className="bg-gray-50 p-2 rounded border mt-1">
-                        <strong>{t('renterRentalDetailPage.deliveryAddress')}:</strong>
-                          <div><b>{rental.delivery_address.recipient_name}</b> ({rental.delivery_address.phone_number})</div>
-                          <div>{rental.delivery_address.address_line1}{rental.delivery_address.address_line2 && <> {rental.delivery_address.address_line2}</>}</div>
-                          <div>
-                            {rental.delivery_address.sub_district && rental.delivery_address.sub_district + ', '}
-                            {rental.delivery_address.district && rental.delivery_address.district + ', '}
-                            {rental.delivery_address.province_name || rental.delivery_address.province_id}, {rental.delivery_address.postal_code}
-                          </div>
-                          {rental.delivery_address.notes && <div className="text-xs text-gray-500 mt-1">{rental.delivery_address.notes}</div>}
-                        </div>
-                    )}
-                </div>
-
-                {/* Secondary Actions */}
-                 {[RentalStatus.PENDING_OWNER_APPROVAL, RentalStatus.PENDING_PAYMENT].includes(rental.rental_status) && (
-                     <>
-                        <hr className="my-4"/>
-                        <Button variant="danger" onClick={() => setShowCancelDialog(true)} className="w-full text-sm">{t('renterRentalDetailPage.buttons.cancelRental')}</Button>
-                     </>
+                  </div>
                 )}
-
-            </Card>
-        </div>
-      </div>
-
-
-      {showCancelDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">{t('renterRentalDetailPage.cancelDialog.title')}</h3>
-            <p>{t('renterRentalDetailPage.cancelDialog.confirmation')}</p>
-            <p className="text-sm text-gray-500 mt-2 mb-4">{t('renterRentalDetailPage.cancelDialog.warning')}</p>
-            <form onSubmit={(e) => { e.preventDefault(); handleCancelRental(); }}>
-              <label htmlFor="cancelReason" className="block text-sm font-medium text-gray-700">{t('renterRentalDetailPage.cancelDialog.reasonLabel')}</label>
-              <textarea
-                id="cancelReason"
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                placeholder={t('renterRentalDetailPage.cancelDialog.reasonPlaceholder')}
-                rows={3}
-              />
-              {cancelError && <p className="text-red-500 text-sm mt-1">{cancelError}</p>}
-              <div className="mt-6 flex justify-end space-x-4">
-                <Button type="button" variant="outline" onClick={() => setShowCancelDialog(false)} disabled={isCancelling}>{t('renterRentalDetailPage.cancelDialog.back')}</Button>
-                <Button type="submit" variant="danger" disabled={isCancelling}>
-                  {isCancelling ? t('renterRentalDetailPage.cancelDialog.cancelling') : t('renterRentalDetailPage.cancelDialog.confirm')}
-                </Button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {showReturnForm && rental && (
-        <InitiateReturnForm
-          rentalId={rental.id}
-          onSubmit={async (payload) => {
-            setIsReturning(true);
-            setReturnError(null);
-            try {
-              await handleInitiateReturn(payload);
-              setShowReturnForm(false);
-            } catch (err: any) {
-              // Check for missing images error
-              const msg = err?.response?.data?.message || err.message || '';
-              if (msg.includes('return_condition_images')) {
-                setReturnError('กรุณาแนบรูปภาพสภาพสินค้าอย่างน้อย 1 รูป (return_condition_images[])');
-              } else {
-                setReturnError(msg || 'เกิดข้อผิดพลาดในการคืนสินค้า');
-              }
-            } finally {
-              setIsReturning(false);
-            }
-          }}
-          onCancel={() => setShowReturnForm(false)}
-          isLoading={isReturning}
-        />
-      )}
-
-      {/* Show return error if any */}
-      {returnError && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-            <div className="text-red-600 font-bold text-center">{returnError}</div>
-            <div className="flex justify-center mt-4">
-              <Button onClick={() => setReturnError(null)} variant="outline">ปิด</Button>
+              {/* Secondary Actions */}
+              {[RentalStatus.PENDING_OWNER_APPROVAL, RentalStatus.PENDING_PAYMENT].includes(rental.rental_status) && (
+                <>
+                  <hr className="my-6 border-gray-200" />
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowCancelDialog(true)}
+                    className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-4 px-6 rounded-xl font-semibold hover:from-red-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+                  >
+                    <FaBan className="h-5 w-5" />
+                    {t('renterRentalDetailPage.buttons.cancelRental')}
+                  </motion.button>
+                </>
+              )}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal for Actual Pickup */}
-      {showPickupModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">แจ้งวัน-เวลารับสินค้าจริง</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              setPickupLoading(true);
-              setPickupError(null);
-              try {
-                if (!pickupTime) throw new Error('กรุณาเลือกวัน-เวลา');
-                // แปลงเป็น ISO8601
-                const iso = new Date(pickupTime).toISOString();
-                await setActualPickupTime(rental.id, iso);
-                setShowPickupModal(false);
-                setPickupTime('');
-                fetchRentalDetails();
-                showSuccess('บันทึกวัน-เวลารับสินค้าสำเร็จ');
-              } catch (err: any) {
-                setPickupError(err?.response?.data?.message || err.message || 'เกิดข้อผิดพลาด');
-              } finally {
-                setPickupLoading(false);
-              }
-            }}>
-              <label className="block mb-2">เลือกวัน-เวลารับสินค้าจริง</label>
-              <input type="datetime-local" className="block w-full border rounded p-2 mb-4" value={pickupTime} onChange={e => setPickupTime(e.target.value)} required />
-              {pickupError && <div className="text-red-600 mb-2">{pickupError}</div>}
-              <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => setShowPickupModal(false)} disabled={pickupLoading}>ยกเลิก</Button>
-                <Button type="submit" isLoading={pickupLoading} variant="primary">บันทึก</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 };

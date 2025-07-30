@@ -5,10 +5,27 @@ import { getMyRentals, getProductReviews } from '../../services/rentalService';
 import { Rental, ApiError, PaginatedResponse, RentalStatus, Review } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaSearch, 
+  FaFilter, 
+  FaCalendarAlt, 
+  FaUser, 
+  FaMoneyBillWave, 
+  FaClock, 
+  FaCheckCircle, 
+  FaExclamationTriangle, 
+  FaTimes, 
+  FaEye, 
+  FaStar, 
+  FaArrowRight,
+  FaBox,
+  FaCreditCard,
+  FaHistory,
+  FaShieldAlt
+} from 'react-icons/fa';
 
 export const MyRentalsPage: React.FC = () => {
   const { user } = useAuth();
@@ -61,24 +78,45 @@ export const MyRentalsPage: React.FC = () => {
       .finally(() => setIsLoading(false));
   };
 
-  const getStatusBadgeClass = (status: RentalStatus): string => {
+  const getStatusBadgeClass = (status: RentalStatus): { color: string; icon: React.ReactNode } => {
     switch (status) {
       case RentalStatus.COMPLETED:
-        return 'bg-green-100 text-green-700';
+        return { 
+          color: 'bg-green-100 text-green-800 border-green-200',
+          icon: <FaCheckCircle className="h-3 w-3" />
+        };
       case RentalStatus.ACTIVE:
-        return 'bg-blue-100 text-blue-700';
+        return { 
+          color: 'bg-blue-100 text-blue-800 border-blue-200',
+          icon: <FaClock className="h-3 w-3" />
+        };
       case RentalStatus.PENDING_PAYMENT:
-        return 'bg-yellow-100 text-yellow-700';
+        return { 
+          color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+          icon: <FaCreditCard className="h-3 w-3" />
+        };
       case RentalStatus.RETURN_PENDING:
-        return 'bg-purple-100 text-purple-700';
+        return { 
+          color: 'bg-purple-100 text-purple-800 border-purple-200',
+          icon: <FaBox className="h-3 w-3" />
+        };
       case RentalStatus.LATE_RETURN:
-        return 'bg-red-100 text-red-700';
+        return { 
+          color: 'bg-red-100 text-red-800 border-red-200',
+          icon: <FaExclamationTriangle className="h-3 w-3" />
+        };
       case RentalStatus.CANCELLED_BY_RENTER:
       case RentalStatus.CANCELLED_BY_OWNER:
       case RentalStatus.REJECTED_BY_OWNER:
-        return 'bg-red-100 text-red-700';
+        return { 
+          color: 'bg-red-100 text-red-800 border-red-200',
+          icon: <FaTimes className="h-3 w-3" />
+        };
       default:
-        return 'bg-gray-100 text-gray-700';
+        return { 
+          color: 'bg-gray-100 text-gray-800 border-gray-200',
+          icon: <FaShieldAlt className="h-3 w-3" />
+        };
     }
   };
 
@@ -122,139 +160,273 @@ export const MyRentalsPage: React.FC = () => {
   if (error) return <ErrorMessage message={error} />;
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">{t('my_rentals_as_renter')}</h1>
-
-      <div className="mb-6 flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-        <div>
-          <label htmlFor="statusFilter" className="mr-2 font-medium">{t('filter_by_status')}</label>
-          <select 
-            id="statusFilter"
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="p-2 border rounded-md shadow-sm"
-          >
-            {RENTAL_STATUS_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </div>
-        <div className="flex-1 flex gap-2">
-          <input
-            type="text"
-            placeholder={t('search_rentals')}
-            value={pendingSearch}
-            onChange={e => setPendingSearch(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            className="p-2 border rounded-md shadow-sm w-full"
-          />
-          <Button variant="primary" onClick={handleSearch}>{t('search')}</Button>
-        </div>
-      </div>
-
-      {rentalsResponse && rentalsResponse.data.length > 0 ? (
-        (() => {
-          const filteredRentals = search
-            ? rentalsResponse.data.filter(r =>
-                r.product?.title?.toLowerCase().includes(search.toLowerCase())
-              )
-            : rentalsResponse.data;
-          return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredRentals.map(rental => (
-                <Card key={rental.id} className="overflow-hidden flex flex-col md:flex-row gap-0 md:gap-4 border border-gray-100 shadow-md hover:shadow-lg transition-shadow">
-                  {/* Product Image */}
-                  <div className="flex-shrink-0 w-full md:w-40 h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
-                    {rental.product?.primary_image?.image_url ? (
-                      <img src={rental.product.primary_image.image_url} alt={rental.product.title} className="object-cover w-full h-full rounded-l-xl" />
-                    ) : (
-                      <svg className="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a4 4 0 004 4h10a4 4 0 004-4V7a4 4 0 00-4-4H7a4 4 0 00-4 4z" /></svg>
-                    )}
-                  </div>
-                  {/* Info */}
-                  <CardContent className="flex-1 flex flex-col justify-between p-4">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id))} className="text-lg font-bold text-blue-700 hover:underline">
-                          {rental.product?.title || 'N/A'}
-                        </Link>
-                        {rental.product?.category?.name && (
-                          <span className="bg-blue-50 text-blue-600 text-xs font-semibold px-2 py-0.5 rounded-full">{rental.product.category.name}</span>
-                        )}
-                        <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${getStatusBadgeClass(rental.rental_status)}`}>{getStatusText(rental.rental_status)}</span>
-                      </div>
-                      <div className="text-xs text-gray-500 mb-2">Rental ID: {rental.rental_uid.substring(0,8)}...</div>
-                      <div className="flex flex-wrap gap-4 mb-2 text-sm text-gray-700">
-                        <span>{t('renterRentalDetailPage.labels.rentalPeriod', 'ช่วงเช่า')}: <b>{new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}</b></span>
-                        <span>{t('renterRentalDetailPage.labels.owner', 'เจ้าของ')}: <b>{rental.owner?.first_name || 'N/A'} {rental.owner?.last_name || ''}</b></span>
-                      </div>
-                      {/* Actual Pickup Time: show only if status is confirmed, active, or completed */}
-                      {['confirmed', 'active', 'completed'].includes(rental.rental_status) && rental.actual_pickup_time && (
-                        <div className="mb-2 text-sm text-green-700">
-                          {t('renterRentalDetailPage.labels.actualPickup', 'Actual Pickup')}: <b>{new Date(rental.actual_pickup_time).toLocaleString()}</b>
-                        </div>
-                      )}
-                      <div className="flex flex-wrap gap-4 mb-2 text-sm text-gray-700">
-                        <span>{t('renterRentalDetailPage.labels.totalPaid', 'ยอดชำระ')}: <b className="text-blue-700">฿{(rental.final_amount_paid || rental.total_amount_due).toLocaleString()}</b></span>
-                        <span>{t('renterRentalDetailPage.labels.bookedOn', 'จองเมื่อ')}: <b>{new Date(rental.created_at).toLocaleDateString()}</b></span>
-                      </div>
-                      {/* Return status info */}
-                      {rental.rental_status === RentalStatus.RETURN_PENDING && (
-                        <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded">
-                          <p className="text-sm text-purple-700">
-                            <strong>ℹ️ {t('renterRentalDetailPage.status.return_pending_desc')}</strong>
-                          </p>
-                        </div>
-                      )}
-                      {rental.rental_status === RentalStatus.LATE_RETURN && (
-                        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
-                          <p className="text-sm text-red-700">
-                            <strong>⚠️ {t('renterRentalDetailPage.status.late_return_desc')}</strong>
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-3 flex gap-2 flex-wrap">
-                      <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id))}>
-                        <Button variant="outline" size="sm">{t('view_details')}</Button>
-                      </Link>
-                      {rental.rental_status === RentalStatus.COMPLETED && !reviews[rental.id] && ( 
-                        <Link to={ROUTE_PATHS.SUBMIT_REVIEW.replace(':rentalId', String(rental.id))}>
-                          <Button variant="primary" size="sm">{t('leave_a_review')}</Button>
-                        </Link>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {/* Pagination controls */}
-              {rentalsResponse.meta.last_page > 1 && (
-                <div className="mt-8 flex justify-center">
-                  {Array.from({length: rentalsResponse.meta.last_page}, (_, i) => i + 1).map(page => (
-                    <Button 
-                      key={page}
-                      onClick={() => fetchMyRentals(page)}
-                      variant={page === rentalsResponse.meta.current_page ? 'primary' : 'ghost'}
-                      size="sm"
-                      className="mx-1"
-                    >
-                      {page}
-                    </Button>
-                  ))}
-                </div>
-              )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="container mx-auto p-4 md:p-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-4 mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl shadow-lg">
+              <FaHistory className="h-8 w-8 text-white" />
             </div>
-          );
-        })()
-      ) : (
-        <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow">
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">{t('no_rentals_found')}</h3>
-          <p className="text-gray-500 mb-4">{t('start_by_browsing_items_to_rent')}</p>
-          <Link to={ROUTE_PATHS.HOME}>
-            <Button variant="primary">{t('browsing_items')}</Button>
-          </Link>
-        </div>
-      )}
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                {t('my_rentals_as_renter')}
+              </h1>
+              <p className="text-gray-600 text-lg">จัดการการเช่าของคุณ</p>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mb-8"
+        >
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-xl">
+                <FaFilter className="h-5 w-5 text-blue-600" />
+              </div>
+              <label htmlFor="statusFilter" className="font-semibold text-gray-700">{t('filter_by_status')}</label>
+              <select 
+                id="statusFilter"
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+              >
+                {RENTAL_STATUS_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1 flex gap-3">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaSearch className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder={t('search_rentals')}
+                  value={pendingSearch}
+                  onChange={e => setPendingSearch(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  className="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                />
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSearch}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                {t('search')}
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+
+        {rentalsResponse && rentalsResponse.data.length > 0 ? (
+          (() => {
+            const filteredRentals = search
+              ? rentalsResponse.data.filter(r =>
+                  r.product?.title?.toLowerCase().includes(search.toLowerCase())
+                )
+              : rentalsResponse.data;
+            return (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              >
+                {filteredRentals.map((rental, index) => {
+                  const statusInfo = getStatusBadgeClass(rental.rental_status);
+                  return (
+                    <motion.div
+                      key={rental.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
+                      whileHover={{ y: -4, scale: 1.02 }}
+                      className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-200"
+                    >
+                      {/* Product Image */}
+                      <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                        {rental.product?.primary_image?.image_url ? (
+                          <img 
+                            src={rental.product.primary_image.image_url} 
+                            alt={rental.product.title} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full">
+                            <FaBox className="w-16 h-16 text-gray-300" />
+                          </div>
+                        )}
+                        <div className="absolute top-3 right-3">
+                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${statusInfo.color}`}>
+                            {statusInfo.icon}
+                            {getStatusText(rental.rental_status)}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Info */}
+                      <div className="p-6">
+                        <div className="mb-4">
+                          <div className="flex flex-wrap items-center gap-2 mb-3">
+                            <Link 
+                              to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id))} 
+                              className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors"
+                            >
+                              {rental.product?.title || 'N/A'}
+                            </Link>
+                            {rental.product?.category?.name && (
+                              <span className="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200">
+                                {rental.product.category.name}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500 mb-3">Rental ID: {rental.rental_uid.substring(0,8)}...</div>
+                          
+                          <div className="space-y-2 text-sm text-gray-700">
+                            <div className="flex items-center gap-2">
+                              <FaCalendarAlt className="h-4 w-4 text-blue-500" />
+                              <span><strong>{t('renterRentalDetailPage.labels.rentalPeriod', 'ช่วงเช่า')}:</strong> {new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <FaUser className="h-4 w-4 text-green-500" />
+                              <span><strong>{t('renterRentalDetailPage.labels.owner', 'เจ้าของ')}:</strong> {rental.owner?.first_name || 'N/A'} {rental.owner?.last_name || ''}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <FaMoneyBillWave className="h-4 w-4 text-yellow-500" />
+                              <span><strong>{t('renterRentalDetailPage.labels.totalPaid', 'ยอดชำระ')}:</strong> <span className="text-blue-600 font-semibold">฿{(rental.final_amount_paid || rental.total_amount_due).toLocaleString()}</span></span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <FaClock className="h-4 w-4 text-gray-500" />
+                              <span><strong>{t('renterRentalDetailPage.labels.bookedOn', 'จองเมื่อ')}:</strong> {new Date(rental.created_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Actual Pickup Time */}
+                          {['confirmed', 'active', 'completed'].includes(rental.rental_status) && rental.actual_pickup_time && (
+                            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
+                              <div className="flex items-center gap-2 text-sm text-green-700">
+                                <FaCheckCircle className="h-4 w-4" />
+                                <span><strong>{t('renterRentalDetailPage.labels.actualPickup', 'Actual Pickup')}:</strong> {new Date(rental.actual_pickup_time).toLocaleString()}</span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Return status info */}
+                          {rental.rental_status === RentalStatus.RETURN_PENDING && (
+                            <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-xl">
+                              <div className="flex items-center gap-2 text-sm text-purple-700">
+                                <FaBox className="h-4 w-4" />
+                                <span><strong>ℹ️ {t('renterRentalDetailPage.status.return_pending_desc')}</strong></span>
+                              </div>
+                            </div>
+                          )}
+                          {rental.rental_status === RentalStatus.LATE_RETURN && (
+                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+                              <div className="flex items-center gap-2 text-sm text-red-700">
+                                <FaExclamationTriangle className="h-4 w-4" />
+                                <span><strong>⚠️ {t('renterRentalDetailPage.status.late_return_desc')}</strong></span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex gap-3 flex-wrap">
+                          <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id))}>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                            >
+                              <FaEye className="h-4 w-4" />
+                              {t('view_details')}
+                            </motion.button>
+                          </Link>
+                          {rental.rental_status === RentalStatus.COMPLETED && !reviews[rental.id] && ( 
+                            <Link to={ROUTE_PATHS.SUBMIT_REVIEW.replace(':rentalId', String(rental.id))}>
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                              >
+                                <FaStar className="h-4 w-4" />
+                                {t('leave_a_review')}
+                              </motion.button>
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+                
+                {/* Pagination controls */}
+                {rentalsResponse.meta.last_page > 1 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.8 }}
+                    className="col-span-full mt-8 flex justify-center"
+                  >
+                    <div className="flex gap-2">
+                      {Array.from({length: rentalsResponse.meta.last_page}, (_, i) => i + 1).map(page => (
+                        <motion.button
+                          key={page}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => fetchMyRentals(page)}
+                          className={`px-4 py-2 rounded-xl font-semibold transition-all duration-200 ${
+                            page === rentalsResponse.meta.current_page 
+                              ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
+                              : 'bg-white text-gray-700 border border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                          }`}
+                        >
+                          {page}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            );
+          })()
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex flex-col items-center justify-center py-16 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20"
+          >
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full mb-6">
+              <FaHistory className="h-12 w-12 text-gray-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">{t('no_rentals_found')}</h3>
+            <p className="text-gray-600 mb-6 text-center max-w-md">{t('start_by_browsing_items_to_rent')}</p>
+            <Link to={ROUTE_PATHS.HOME}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <FaSearch className="h-5 w-5" />
+                {t('browsing_items')}
+                <FaArrowRight className="h-5 w-5" />
+              </motion.button>
+            </Link>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };

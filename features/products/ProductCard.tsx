@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 interface ProductCardProps {
   product: Product;
+  viewMode?: 'grid' | 'list';
 }
 
 const LocationMarkerIcon = () => (

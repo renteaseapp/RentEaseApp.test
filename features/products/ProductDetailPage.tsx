@@ -16,7 +16,7 @@ import { sendMessage } from '../../services/chatService';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { addDays, isBefore, isAfter, format } from 'date-fns';
+import { addDays, isAfter, format } from 'date-fns';
 import { Tab, Tabs } from '@mui/material';
 
 const StarIcon: React.FC<{ filled: boolean; className?: string }> = ({ filled, className }) => (
@@ -156,7 +156,6 @@ export const ProductDetailPage: React.FC = () => {
   // Calculate tomorrow's date for min start date
   const today = new Date();
   const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
   useEffect(() => {
     if (!slugOrId) {

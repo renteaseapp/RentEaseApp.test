@@ -1,16 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAlert } from '../../contexts/AlertContext';
 import { getRenterDashboardData } from '../../services/renterService';
 import { RenterDashboardData, ApiError, } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { Card, CardContent } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, ShoppingBag, Heart } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { 
+  FaTachometerAlt, 
+  FaShoppingBag, 
+  FaHeart, 
+  FaCheckCircle, 
+  FaClock, 
+  FaExclamationTriangle, 
+  FaTimes, 
+  FaCheck, 
+  FaUser, 
+  FaCalendarAlt, 
+  FaMoneyBillWave, 
+  FaSearch, 
+  FaHistory, 
+  FaComments, 
+  FaUserCircle,
+  FaArrowRight,
+  FaCreditCard,
+  FaShieldAlt,
+  
+} from 'react-icons/fa';
 
 export const RenterDashboardPage: React.FC = () => {
   const { t } = useTranslation();
@@ -19,7 +38,6 @@ export const RenterDashboardPage: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<RenterDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const location = useLocation();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -51,15 +69,35 @@ export const RenterDashboardPage: React.FC = () => {
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case 'active':
-        return { text: t('renterDashboard.status.active'), color: 'text-green-600 bg-green-100' };
+        return { 
+          text: t('renterDashboard.status.active'), 
+          color: 'bg-green-100 text-green-800 border-green-200',
+          icon: <FaCheckCircle className="h-4 w-4" />
+        };
       case 'pending_payment':
-        return { text: t('renterDashboard.status.pendingPayment'), color: 'text-yellow-600 bg-yellow-100' };
+        return { 
+          text: t('renterDashboard.status.pendingPayment'), 
+          color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+          icon: <FaCreditCard className="h-4 w-4" />
+        };
       case 'pending_owner_approval':
-        return { text: t('renterDashboard.status.pendingApproval'), color: 'text-blue-600 bg-blue-100' };
+        return { 
+          text: t('renterDashboard.status.pendingApproval'), 
+          color: 'bg-blue-100 text-blue-800 border-blue-200',
+          icon: <FaClock className="h-4 w-4" />
+        };
       case 'completed':
-        return { text: t('renterDashboard.status.completed'), color: 'text-gray-600 bg-gray-100' };
+        return { 
+          text: t('renterDashboard.status.completed'), 
+          color: 'bg-gray-100 text-gray-800 border-gray-200',
+          icon: <FaCheck className="h-4 w-4" />
+        };
       default:
-        return { text: status.replace('_', ' ').toUpperCase(), color: 'text-gray-600 bg-gray-100' };
+        return { 
+          text: status.replace('_', ' ').toUpperCase(), 
+          color: 'bg-gray-100 text-gray-800 border-gray-200',
+          icon: <FaExclamationTriangle className="h-4 w-4" />
+        };
     }
   };
 
@@ -86,435 +124,853 @@ export const RenterDashboardPage: React.FC = () => {
   } = dashboardData;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col lg:flex-row gap-8">
 
           {/* Sidebar */}
-          <aside className="w-full lg:w-64 bg-white p-4 rounded-lg shadow-sm flex-shrink-0">
+          <motion.aside 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="w-full lg:w-64 bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-white/20 flex-shrink-0"
+          >
+            <div className="mb-6">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl mb-3">
+                <FaUser className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-800">Renter Dashboard</h3>
+              <p className="text-sm text-gray-600">Manage your rentals</p>
+            </div>
+            
             <nav className="space-y-2">
               <NavLink 
                 to={ROUTE_PATHS.RENTER_DASHBOARD} 
                 className={({ isActive }) => 
-                  `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 hover:shadow-md'
                   }`
                 } 
                 end
               >
-                <LayoutDashboard className="h-5 w-5" />
+                <FaTachometerAlt className="h-5 w-5" />
                 <span>{t('renterDashboard.sidebar.dashboard')}</span>
               </NavLink>
               <NavLink 
                 to={ROUTE_PATHS.MY_RENTALS_RENTER} 
                 className={({ isActive }) => 
-                  `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 hover:shadow-md'
                   }`
                 }
               >
-                <ShoppingBag className="h-5 w-5" />
+                <FaShoppingBag className="h-5 w-5" />
                 <span>{t('renterDashboard.sidebar.myRentals')}</span>
               </NavLink>
               <NavLink 
                 to={ROUTE_PATHS.WISHLIST} 
                 className={({ isActive }) => 
-                  `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 hover:shadow-md'
                   }`
                 }
               >
-                <Heart className="h-5 w-5" />
+                <FaHeart className="h-5 w-5" />
                 <span>{t('renterDashboard.sidebar.wishlist')}</span>
               </NavLink>
             </nav>
-          </aside>
+          </motion.aside>
 
           {/* Main Content */}
           <main className="flex-1">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-                <LayoutDashboard className="w-8 h-8 text-blue-500" />
-                {t('renterDashboard.title')}
-              </h1>
-              <p className="text-gray-600">{t('renterDashboard.welcome', { name: user?.first_name || t('renterDashboard.user') })}</p>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-8"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl shadow-lg">
+                  <FaTachometerAlt className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                    {t('renterDashboard.title')}
+                  </h1>
+                  <p className="text-gray-600 text-lg">
+                    {t('renterDashboard.welcome', { name: user?.first_name || t('renterDashboard.user') })}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+            >
               {/* ACTIVE RENTALS */}
-              <Card className="bg-green-50 border-green-200">
-                <CardContent>
-                  <div className="flex items-center mb-4 gap-2">
-                    <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                    <h2 className="text-xl font-semibold text-green-700 flex-1">{t('renterDashboard.activeRentals')}</h2>
-                    <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold">{current_active_rentals?.total || 0}</span>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white/20 rounded-xl">
+                        <FaCheckCircle className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.activeRentals')}</h2>
+                        <p className="text-green-100 text-sm">Currently active rentals</p>
+                      </div>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <span className="text-white font-bold text-lg">{current_active_rentals?.total || 0}</span>
+                    </div>
                   </div>
+                </div>
+                
+                <div className="p-6">
                   {current_active_rentals?.data?.length > 0 ? (
                     <div className="space-y-4">
-                      {current_active_rentals.data.map(rental => {
+                      {current_active_rentals.data.map((rental, index) => {
                         const status = getStatusDisplay(rental.rental_status || '');
                         return (
-                          <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-green-50 transition-colors">
-                            <div className="flex-shrink-0">
-                              <img 
-                                src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
-                                alt={rental.product?.title}
-                                className="w-16 h-16 object-cover rounded-lg border"
-                              />
+                          <motion.div
+                            key={rental.rental_uid}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: 0.6 + index * 0.1 }}
+                            whileHover={{ y: -2, scale: 1.02 }}
+                            className="bg-white rounded-xl shadow-md border border-gray-100 p-4 hover:shadow-lg transition-all duration-200"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="flex-shrink-0">
+                                <img 
+                                  src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
+                                  alt={rental.product?.title}
+                                  className="w-16 h-16 object-cover rounded-xl border-2 border-gray-100"
+                                />
+                              </div>
+                              <div className="flex-grow min-w-0">
+                                <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
+                                  <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors truncate">
+                                    {rental.product?.title}
+                                  </h3>
+                                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                    <div className="flex items-center gap-1">
+                                      <FaUser className="h-3 w-3" />
+                                      {rental.owner?.first_name}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <FaCalendarAlt className="h-3 w-3" />
+                                      {formatDate(rental.end_date!)}
+                                    </div>
+                                  </div>
+                                </Link>
+                              </div>
+                              <div className="flex-shrink-0 text-right">
+                                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${status.color}`}>
+                                  {status.icon}
+                                  {status.text}
+                                </span>
+                                <p className="text-sm font-bold text-green-600 mt-2 flex items-center gap-1">
+                                  <FaMoneyBillWave className="h-3 w-3" />
+                                  ฿{rental.total_amount_due?.toLocaleString()}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex-grow">
-                              <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
-                                <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
-                                <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
-                                <p className="text-sm text-gray-500">{t('renterDashboard.returnBy')}: {formatDate(rental.end_date!)}</p>
-                              </Link>
-                            </div>
-                            <div className="flex-shrink-0 text-right">
-                              <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${status.color}`}>{status.text}</span>
-                              <p className="text-sm font-bold text-green-700 mt-1">฿{rental.total_amount_due?.toLocaleString()}</p>
-                            </div>
-                          </div>
+                          </motion.div>
                         );
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <svg className="mx-auto h-12 w-12 text-green-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                      <p className="text-gray-500 mb-2">{t('renterDashboard.noActiveRentals')}</p>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.7 }}
+                      className="text-center py-12"
+                    >
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
+                        <FaCheckCircle className="h-10 w-10 text-green-500" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noActiveRentals')}</h3>
+                      <p className="text-gray-500 mb-4">No active rentals at the moment</p>
                       <Link to={ROUTE_PATHS.HOME}>
-                        <Button variant="outline" size="lg" className="mt-2">{t('renterDashboard.browseItems')}</Button>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                        >
+                          <FaSearch className="h-4 w-4" />
+                          {t('renterDashboard.browseItems')}
+                          <FaArrowRight className="h-4 w-4" />
+                        </motion.button>
                       </Link>
-                    </div>
+                    </motion.div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </motion.div>
 
               {/* CONFIRMED RENTALS */}
-              <Card className="bg-indigo-50 border-indigo-200">
-                <CardContent>
-                  <div className="flex items-center mb-4 gap-2">
-                    <svg className="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /></svg>
-                    <h2 className="text-xl font-semibold text-indigo-700 flex-1">{t('renterDashboard.confirmedRentals', 'ชำระเงินแล้ว รอเริ่มเช่า/รอเจ้าของยืนยัน')}</h2>
-                    <span className="inline-block bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full font-bold">{confirmed_rentals?.total || 0}</span>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-indigo-500 to-purple-500 p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white/20 rounded-xl">
+                        <FaClock className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.confirmedRentals', 'ชำระเงินแล้ว รอเริ่มเช่า/รอเจ้าของยืนยัน')}</h2>
+                        <p className="text-indigo-100 text-sm">Payment confirmed, waiting to start</p>
+                      </div>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <span className="text-white font-bold text-lg">{confirmed_rentals?.total || 0}</span>
+                    </div>
                   </div>
+                </div>
+                
+                <div className="p-6">
                   {confirmed_rentals?.data?.length > 0 ? (
                     <div className="space-y-4">
-                      {confirmed_rentals.data.map(rental => {
+                      {confirmed_rentals.data.map((rental, index) => {
                         const status = getStatusDisplay(rental.rental_status || '');
                         return (
-                          <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-indigo-50 transition-colors">
-                            <div className="flex-shrink-0">
-                              <img 
-                                src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
-                                alt={rental.product?.title}
-                                className="w-16 h-16 object-cover rounded-lg border"
-                              />
+                          <motion.div
+                            key={rental.rental_uid}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
+                            whileHover={{ y: -2, scale: 1.02 }}
+                            className="bg-white rounded-xl shadow-md border border-gray-100 p-4 hover:shadow-lg transition-all duration-200"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="flex-shrink-0">
+                                <img 
+                                  src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
+                                  alt={rental.product?.title}
+                                  className="w-16 h-16 object-cover rounded-xl border-2 border-gray-100"
+                                />
+                              </div>
+                              <div className="flex-grow min-w-0">
+                                <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
+                                  <h3 className="text-lg font-semibold text-gray-900 hover:text-indigo-600 transition-colors truncate">
+                                    {rental.product?.title}
+                                  </h3>
+                                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                    <div className="flex items-center gap-1">
+                                      <FaUser className="h-3 w-3" />
+                                      {rental.owner?.first_name}
+                                    </div>
+                                  </div>
+                                </Link>
+                              </div>
+                              <div className="flex-shrink-0 text-right">
+                                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${status.color}`}>
+                                  {status.icon}
+                                  {status.text}
+                                </span>
+                                <p className="text-sm font-bold text-indigo-600 mt-2 flex items-center gap-1">
+                                  <FaMoneyBillWave className="h-3 w-3" />
+                                  ฿{rental.total_amount_due?.toLocaleString()}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex-grow">
-                              <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
-                                <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
-                                <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
-                              </Link>
-                            </div>
-                            <div className="flex-shrink-0 text-right">
-                              <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${status.color}`}>{status.text}</span>
-                              <p className="text-sm font-bold text-indigo-700 mt-1">฿{rental.total_amount_due?.toLocaleString()}</p>
-                            </div>
-                          </div>
+                          </motion.div>
                         );
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <svg className="mx-auto h-12 w-12 text-indigo-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
-                      <p className="text-gray-500 mb-2">{t('renterDashboard.noConfirmedRentals', 'ยังไม่มีรายการที่ชำระเงินแล้ว รอเริ่มเช่า')}</p>
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.8 }}
+                      className="text-center py-12"
+                    >
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-100 rounded-full mb-4">
+                        <FaClock className="h-10 w-10 text-indigo-500" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noConfirmedRentals', 'ยังไม่มีรายการที่ชำระเงินแล้ว รอเริ่มเช่า')}</h3>
+                      <p className="text-gray-500 mb-4">No confirmed rentals waiting to start</p>
+                    </motion.div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </motion.div>
 
               {/* PENDING PAYMENT */}
-              <Card className="bg-yellow-50 border-yellow-200">
-                <CardContent>
-                  <div className="flex items-center mb-4 gap-2">
-                    <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /></svg>
-                    <h2 className="text-xl font-semibold text-yellow-700 flex-1">{t('renterDashboard.pendingActions')}</h2>
-                    <span className="inline-block bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-bold">{pending_action_rentals?.total || 0}</span>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.7 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white/20 rounded-xl">
+                        <FaCreditCard className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.pendingActions')}</h2>
+                        <p className="text-yellow-100 text-sm">Action required from you</p>
+                      </div>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <span className="text-white font-bold text-lg">{pending_action_rentals?.total || 0}</span>
+                    </div>
                   </div>
+                </div>
+                
+                <div className="p-6">
                   {pending_action_rentals?.data?.length > 0 ? (
                     <div className="space-y-4">
-                      {pending_action_rentals.data.map(rental => {
+                      {pending_action_rentals.data.map((rental, index) => {
                         const status = getStatusDisplay(rental.rental_status || '');
                         return (
-                          <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-yellow-50 transition-colors">
-                            <div className="flex-shrink-0">
-                              <img 
-                                src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
-                                alt={rental.product?.title}
-                                className="w-16 h-16 object-cover rounded-lg border"
-                              />
-                            </div>
-                            <div className="flex-grow">
-                              <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
-                                <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
-                                <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
-                              </Link>
-                            </div>
-                            <div className="flex-shrink-0 text-right">
-                              <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${status.color}`}>{status.text}</span>
-                              {rental.rental_status === 'pending_payment' && (
-                                <Link to={ROUTE_PATHS.PAYMENT_PAGE.replace(':rentalId', String(rental.id))}>
-                                  <Button size="lg" variant="primary" className="mt-2 flex items-center gap-1">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a5 5 0 00-10 0v2a2 2 0 00-2 2v7a2 2 0 002 2h10a2 2 0 002-2v-7a2 2 0 00-2-2z" /></svg>
-                                    {t('renterDashboard.proceedToPayment')}
-                                  </Button>
+                          <motion.div
+                            key={rental.rental_uid}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: 0.8 + index * 0.1 }}
+                            whileHover={{ y: -2, scale: 1.02 }}
+                            className="bg-white rounded-xl shadow-md border border-gray-100 p-4 hover:shadow-lg transition-all duration-200"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="flex-shrink-0">
+                                <img 
+                                  src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
+                                  alt={rental.product?.title}
+                                  className="w-16 h-16 object-cover rounded-xl border-2 border-gray-100"
+                                />
+                              </div>
+                              <div className="flex-grow min-w-0">
+                                <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
+                                  <h3 className="text-lg font-semibold text-gray-900 hover:text-yellow-600 transition-colors truncate">
+                                    {rental.product?.title}
+                                  </h3>
+                                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                    <div className="flex items-center gap-1">
+                                      <FaUser className="h-3 w-3" />
+                                      {rental.owner?.first_name}
+                                    </div>
+                                  </div>
                                 </Link>
-                              )}
-                              <p className="text-sm font-bold text-yellow-700 mt-1">฿{rental.total_amount_due?.toLocaleString()}</p>
+                              </div>
+                              <div className="flex-shrink-0 text-right">
+                                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${status.color}`}>
+                                  {status.icon}
+                                  {status.text}
+                                </span>
+                                {rental.rental_status === 'pending_payment' && (
+                                  <Link to={ROUTE_PATHS.PAYMENT_PAGE.replace(':rentalId', String(rental.id))}>
+                                    <motion.button
+                                      whileHover={{ scale: 1.05 }}
+                                      whileTap={{ scale: 0.95 }}
+                                      className="mt-2 inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                    >
+                                      <FaCreditCard className="h-4 w-4" />
+                                      {t('renterDashboard.proceedToPayment')}
+                                    </motion.button>
+                                  </Link>
+                                )}
+                                <p className="text-sm font-bold text-yellow-600 mt-2 flex items-center gap-1">
+                                  <FaMoneyBillWave className="h-3 w-3" />
+                                  ฿{rental.total_amount_due?.toLocaleString()}
+                                </p>
+                              </div>
                             </div>
-                          </div>
+                          </motion.div>
                         );
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <svg className="mx-auto h-12 w-12 text-yellow-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
-                      <p className="text-gray-500 mb-2">{t('renterDashboard.noPendingActions', 'No pending payments')}</p>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.9 }}
+                      className="text-center py-12"
+                    >
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-yellow-100 rounded-full mb-4">
+                        <FaCreditCard className="h-10 w-10 text-yellow-500" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noPendingActions', 'No pending payments')}</h3>
+                      <p className="text-gray-500 mb-4">No pending actions required</p>
                       <Link to={ROUTE_PATHS.HOME}>
-                        <Button variant="outline" size="lg" className="mt-2">{t('renterDashboard.browseItems')}</Button>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                        >
+                          <FaSearch className="h-4 w-4" />
+                          {t('renterDashboard.browseItems')}
+                          <FaArrowRight className="h-4 w-4" />
+                        </motion.button>
                       </Link>
-                    </div>
+                    </motion.div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </motion.div>
 
               {/* PENDING APPROVAL */}
-              <Card className="bg-blue-50 border-blue-200">
-                <CardContent>
-                  <div className="flex items-center mb-4 gap-2">
-                    <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01" /></svg>
-                    <h2 className="text-xl font-semibold text-blue-700 flex-1">{t('renterDashboard.pendingApproval')}</h2>
-                    <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold">{pending_approval_rentals?.total || 0}</span>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.8 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white/20 rounded-xl">
+                        <FaClock className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.pendingApproval')}</h2>
+                        <p className="text-blue-100 text-sm">Waiting for owner approval</p>
+                      </div>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <span className="text-white font-bold text-lg">{pending_approval_rentals?.total || 0}</span>
+                    </div>
                   </div>
+                </div>
+                
+                <div className="p-6">
                   {pending_approval_rentals?.data?.length > 0 ? (
                     <div className="space-y-4">
-                      {pending_approval_rentals.data.map(rental => {
+                      {pending_approval_rentals.data.map((rental, index) => {
                         const status = getStatusDisplay(rental.rental_status || '');
                         return (
-                          <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-blue-50 transition-colors">
-                            <div className="flex-shrink-0">
-                              <img 
-                                src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
-                                alt={rental.product?.title}
-                                className="w-16 h-16 object-cover rounded-lg border"
-                              />
+                          <motion.div
+                            key={rental.rental_uid}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: 0.9 + index * 0.1 }}
+                            whileHover={{ y: -2, scale: 1.02 }}
+                            className="bg-white rounded-xl shadow-md border border-gray-100 p-4 hover:shadow-lg transition-all duration-200"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="flex-shrink-0">
+                                <img 
+                                  src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
+                                  alt={rental.product?.title}
+                                  className="w-16 h-16 object-cover rounded-xl border-2 border-gray-100"
+                                />
+                              </div>
+                              <div className="flex-grow min-w-0">
+                                <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
+                                  <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors truncate">
+                                    {rental.product?.title}
+                                  </h3>
+                                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                    <div className="flex items-center gap-1">
+                                      <FaUser className="h-3 w-3" />
+                                      {rental.owner?.first_name}
+                                    </div>
+                                  </div>
+                                </Link>
+                              </div>
+                              <div className="flex-shrink-0 text-right">
+                                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${status.color}`}>
+                                  {status.icon}
+                                  {status.text}
+                                </span>
+                                <p className="text-sm font-bold text-blue-600 mt-2 flex items-center gap-1">
+                                  <FaMoneyBillWave className="h-3 w-3" />
+                                  ฿{rental.total_amount_due?.toLocaleString()}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex-grow">
-                              <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
-                                <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
-                                <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
-                              </Link>
-                            </div>
-                            <div className="flex-shrink-0 text-right">
-                              <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${status.color}`}>{status.text}</span>
-                              <p className="text-sm font-bold text-blue-700 mt-1">฿{rental.total_amount_due?.toLocaleString()}</p>
-                            </div>
-                          </div>
+                          </motion.div>
                         );
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <svg className="mx-auto h-12 w-12 text-blue-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01" /></svg>
-                      <p className="text-gray-500 mb-2">{t('renterDashboard.noPendingApproval', 'No pending approvals')}</p>
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 1.0 }}
+                      className="text-center py-12"
+                    >
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-4">
+                        <FaClock className="h-10 w-10 text-blue-500" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noPendingApproval', 'No pending approvals')}</h3>
+                      <p className="text-gray-500 mb-4">No rentals waiting for approval</p>
+                    </motion.div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </motion.div>
 
               {/* COMPLETED RENTALS */}
-              <Card className="bg-gray-50 border-gray-200">
-                <CardContent>
-                  <div className="flex items-center mb-4 gap-2">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                    <h2 className="text-xl font-semibold text-green-700 flex-1">{t('renterDashboard.completedRentals')}</h2>
-                    <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-bold">{completed_rentals?.total || 0}</span>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.9 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white/20 rounded-xl">
+                        <FaCheck className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.completedRentals')}</h2>
+                        <p className="text-gray-100 text-sm">Successfully completed rentals</p>
+                      </div>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <span className="text-white font-bold text-lg">{completed_rentals?.total || 0}</span>
+                    </div>
                   </div>
+                </div>
+                
+                <div className="p-6">
                   {completed_rentals?.data?.length > 0 ? (
                     <div className="space-y-4">
-                      {completed_rentals.data.map(rental => {
+                      {completed_rentals.data.map((rental, index) => {
                         const status = getStatusDisplay(rental.rental_status || '');
                         return (
-                          <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors">
-                            <div className="flex-shrink-0">
-                              <img 
-                                src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
-                                alt={rental.product?.title}
-                                className="w-16 h-16 object-cover rounded-lg border"
-                              />
+                          <motion.div
+                            key={rental.rental_uid}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: 1.0 + index * 0.1 }}
+                            whileHover={{ y: -2, scale: 1.02 }}
+                            className="bg-white rounded-xl shadow-md border border-gray-100 p-4 hover:shadow-lg transition-all duration-200"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="flex-shrink-0">
+                                <img 
+                                  src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
+                                  alt={rental.product?.title}
+                                  className="w-16 h-16 object-cover rounded-xl border-2 border-gray-100"
+                                />
+                              </div>
+                              <div className="flex-grow min-w-0">
+                                <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
+                                  <h3 className="text-lg font-semibold text-gray-900 hover:text-gray-600 transition-colors truncate">
+                                    {rental.product?.title}
+                                  </h3>
+                                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                    <div className="flex items-center gap-1">
+                                      <FaUser className="h-3 w-3" />
+                                      {rental.owner?.first_name}
+                                    </div>
+                                  </div>
+                                </Link>
+                              </div>
+                              <div className="flex-shrink-0 text-right">
+                                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${status.color}`}>
+                                  {status.icon}
+                                  {status.text}
+                                </span>
+                                <p className="text-sm font-bold text-gray-600 mt-2 flex items-center gap-1">
+                                  <FaMoneyBillWave className="h-3 w-3" />
+                                  ฿{rental.total_amount_due?.toLocaleString()}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex-grow">
-                              <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
-                                <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
-                                <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
-                              </Link>
-                            </div>
-                            <div className="flex-shrink-0 text-right">
-                              <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${status.color}`}>{status.text}</span>
-                              <p className="text-sm font-bold text-gray-700 mt-1">฿{rental.total_amount_due?.toLocaleString()}</p>
-                            </div>
-                          </div>
+                          </motion.div>
                         );
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <svg className="mx-auto h-12 w-12 text-gray-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                      <p className="text-gray-500 mb-2">{t('renterDashboard.noCompletedRentals', 'No completed rentals')}</p>
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 1.1 }}
+                      className="text-center py-12"
+                    >
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
+                        <FaCheck className="h-10 w-10 text-gray-500" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noCompletedRentals', 'No completed rentals')}</h3>
+                      <p className="text-gray-500 mb-4">No completed rentals yet</p>
+                    </motion.div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </motion.div>
 
               {/* CANCELLED RENTALS */}
-              <Card className="bg-red-50 border-red-200">
-                <CardContent>
-                  <div className="flex items-center mb-4 gap-2">
-                    <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                    <h2 className="text-xl font-semibold text-red-700 flex-1">{t('renterDashboard.cancelledRentals')}</h2>
-                    <span className="inline-block bg-red-100 text-red-700 px-3 py-1 rounded-full font-bold">{cancelled_rentals?.total || 0}</span>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.0 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-red-500 to-pink-500 p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white/20 rounded-xl">
+                        <FaTimes className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.cancelledRentals')}</h2>
+                        <p className="text-red-100 text-sm">Cancelled rental requests</p>
+                      </div>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <span className="text-white font-bold text-lg">{cancelled_rentals?.total || 0}</span>
+                    </div>
                   </div>
+                </div>
+                
+                <div className="p-6">
                   {cancelled_rentals?.data?.length > 0 ? (
                     <div className="space-y-4">
-                      {cancelled_rentals.data.map(rental => {
+                      {cancelled_rentals.data.map((rental, index) => {
                         const status = getStatusDisplay(rental.rental_status || '');
                         return (
-                          <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-red-50 transition-colors">
-                            <div className="flex-shrink-0">
-                              <img 
-                                src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
-                                alt={rental.product?.title}
-                                className="w-16 h-16 object-cover rounded-lg border"
-                              />
+                          <motion.div
+                            key={rental.rental_uid}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: 1.1 + index * 0.1 }}
+                            whileHover={{ y: -2, scale: 1.02 }}
+                            className="bg-white rounded-xl shadow-md border border-gray-100 p-4 hover:shadow-lg transition-all duration-200"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="flex-shrink-0">
+                                <img 
+                                  src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
+                                  alt={rental.product?.title}
+                                  className="w-16 h-16 object-cover rounded-xl border-2 border-gray-100"
+                                />
+                              </div>
+                              <div className="flex-grow min-w-0">
+                                <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
+                                  <h3 className="text-lg font-semibold text-gray-900 hover:text-red-600 transition-colors truncate">
+                                    {rental.product?.title}
+                                  </h3>
+                                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                    <div className="flex items-center gap-1">
+                                      <FaUser className="h-3 w-3" />
+                                      {rental.owner?.first_name}
+                                    </div>
+                                  </div>
+                                </Link>
+                              </div>
+                              <div className="flex-shrink-0 text-right">
+                                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${status.color}`}>
+                                  {status.icon}
+                                  {status.text}
+                                </span>
+                                <p className="text-sm font-bold text-red-600 mt-2 flex items-center gap-1">
+                                  <FaMoneyBillWave className="h-3 w-3" />
+                                  ฿{rental.total_amount_due?.toLocaleString()}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex-grow">
-                              <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
-                                <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
-                                <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
-                              </Link>
-                            </div>
-                            <div className="flex-shrink-0 text-right">
-                              <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${status.color}`}>{status.text}</span>
-                              <p className="text-sm font-bold text-red-700 mt-1">฿{rental.total_amount_due?.toLocaleString()}</p>
-                            </div>
-                          </div>
+                          </motion.div>
                         );
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <svg className="mx-auto h-12 w-12 text-red-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                      <p className="text-gray-500 mb-2">{t('renterDashboard.noCancelledRentals', 'No cancelled rentals')}</p>
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 1.2 }}
+                      className="text-center py-12"
+                    >
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-4">
+                        <FaTimes className="h-10 w-10 text-red-500" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noCancelledRentals', 'No cancelled rentals')}</h3>
+                      <p className="text-gray-500 mb-4">No cancelled rentals</p>
+                    </motion.div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </motion.div>
 
               {/* LATE RETURN RENTALS */}
-              <Card className="bg-orange-50 border-orange-200">
-                <CardContent>
-                  <div className="flex items-center mb-4 gap-2">
-                    <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /></svg>
-                    <h2 className="text-xl font-semibold text-orange-700 flex-1">{t('renterDashboard.lateReturnRentals')}</h2>
-                    <span className="inline-block bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-bold">{late_return_rentals?.total || 0}</span>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.1 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white/20 rounded-xl">
+                        <FaExclamationTriangle className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.lateReturnRentals')}</h2>
+                        <p className="text-orange-100 text-sm">Overdue return rentals</p>
+                      </div>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <span className="text-white font-bold text-lg">{late_return_rentals?.total || 0}</span>
+                    </div>
                   </div>
+                </div>
+                
+                <div className="p-6">
                   {late_return_rentals?.data?.length > 0 ? (
                     <div className="space-y-4">
-                      {late_return_rentals.data.map(rental => {
+                      {late_return_rentals.data.map((rental, index) => {
                         const status = getStatusDisplay(rental.rental_status || '');
                         return (
-                          <div key={rental.rental_uid} className="flex items-center space-x-4 p-4 border rounded-lg bg-white hover:bg-orange-50 transition-colors">
-                            <div className="flex-shrink-0">
-                              <img 
-                                src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
-                                alt={rental.product?.title}
-                                className="w-16 h-16 object-cover rounded-lg border"
-                              />
+                          <motion.div
+                            key={rental.rental_uid}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: 1.2 + index * 0.1 }}
+                            whileHover={{ y: -2, scale: 1.02 }}
+                            className="bg-white rounded-xl shadow-md border border-gray-100 p-4 hover:shadow-lg transition-all duration-200"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="flex-shrink-0">
+                                <img 
+                                  src={rental.product?.primary_image?.image_url || 'https://picsum.photos/seed/default/60'} 
+                                  alt={rental.product?.title}
+                                  className="w-16 h-16 object-cover rounded-xl border-2 border-gray-100"
+                                />
+                              </div>
+                              <div className="flex-grow min-w-0">
+                                <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
+                                  <h3 className="text-lg font-semibold text-gray-900 hover:text-orange-600 transition-colors truncate">
+                                    {rental.product?.title}
+                                  </h3>
+                                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                    <div className="flex items-center gap-1">
+                                      <FaUser className="h-3 w-3" />
+                                      {rental.owner?.first_name}
+                                    </div>
+                                  </div>
+                                </Link>
+                              </div>
+                              <div className="flex-shrink-0 text-right">
+                                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${status.color}`}>
+                                  {status.icon}
+                                  {status.text}
+                                </span>
+                                <p className="text-sm font-bold text-orange-600 mt-2 flex items-center gap-1">
+                                  <FaMoneyBillWave className="h-3 w-3" />
+                                  ฿{rental.total_amount_due?.toLocaleString()}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex-grow">
-                              <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id || rental.rental_uid))} className="block">
-                                <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">{rental.product?.title}</h3>
-                                <p className="text-sm text-gray-500">{t('renterDashboard.owner')}: {rental.owner?.first_name}</p>
-                              </Link>
-                            </div>
-                            <div className="flex-shrink-0 text-right">
-                              <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${status.color}`}>{status.text}</span>
-                              <p className="text-sm font-bold text-orange-700 mt-1">฿{rental.total_amount_due?.toLocaleString()}</p>
-                            </div>
-                          </div>
+                          </motion.div>
                         );
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <svg className="mx-auto h-12 w-12 text-orange-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
-                      <p className="text-gray-500 mb-2">{t('renterDashboard.noLateReturnRentals', 'No late return rentals')}</p>
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 1.3 }}
+                      className="text-center py-12"
+                    >
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-orange-100 rounded-full mb-4">
+                        <FaExclamationTriangle className="h-10 w-10 text-orange-500" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noLateReturnRentals', 'No late return rentals')}</h3>
+                      <p className="text-gray-500 mb-4">No overdue rentals</p>
+                    </motion.div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </motion.div>
+            </motion.div>
 
             {/* Quick Links Card */}
-            <Card>
-              <CardContent>
-                <h2 className="text-xl font-semibold text-gray-700 mb-4">{t('renterDashboard.quickLinks')}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Link to={ROUTE_PATHS.HOME} className="flex items-center p-4 border rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                    <svg className="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <div>
-                      <span className="text-blue-600 font-medium">{t('renterDashboard.browseItems')}</span>
-                      <p className="text-sm text-gray-500">ค้นหาสินค้าใหม่</p>
-                    </div>
-                  </Link>
-                  <Link to={ROUTE_PATHS.MY_RENTALS_RENTER} className="flex items-center p-4 border rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                    <svg className="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <div>
-                      <span className="text-blue-600 font-medium">{t('renterDashboard.rentalHistory')}</span>
-                      <p className="text-sm text-gray-500">ดูประวัติการเช่าทั้งหมด</p>
-                    </div>
-                  </Link>
-                  <Link to={ROUTE_PATHS.CHAT_INBOX} className="flex items-center p-4 border rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                    <svg className="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                    <div>
-                      <span className="text-blue-600 font-medium">{t('renterDashboard.messages')}</span>
-                      <p className="text-sm text-gray-500">ข้อความและการสนทนา</p>
-                    </div>
-                  </Link>
-                  <Link to={ROUTE_PATHS.PROFILE} className="flex items-center p-4 border rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                    <svg className="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <div>
-                      <span className="text-blue-600 font-medium">{t('navbar.profile')}</span>
-                      <p className="text-sm text-gray-500">จัดการโปรไฟล์</p>
-                    </div>
-                  </Link>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.2 }}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mt-8"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl">
+                  <FaShieldAlt className="h-6 w-6 text-white" />
                 </div>
-              </CardContent>
-            </Card>
+                <h2 className="text-2xl font-bold text-gray-800">{t('renterDashboard.quickLinks')}</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  className="group"
+                >
+                  <Link to={ROUTE_PATHS.HOME} className="flex items-center p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 border border-blue-200 hover:border-blue-300">
+                    <div className="p-3 bg-blue-500 rounded-xl mr-4 group-hover:bg-blue-600 transition-colors">
+                      <FaSearch className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-blue-600 font-semibold text-lg">{t('renterDashboard.browseItems')}</span>
+                      <p className="text-sm text-gray-600 mt-1">ค้นหาสินค้าใหม่</p>
+                    </div>
+                    <FaArrowRight className="h-4 w-4 text-blue-400 ml-auto group-hover:text-blue-600 transition-colors" />
+                  </Link>
+                </motion.div>
+                
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  className="group"
+                >
+                  <Link to={ROUTE_PATHS.MY_RENTALS_RENTER} className="flex items-center p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl hover:from-green-100 hover:to-emerald-100 transition-all duration-200 border border-green-200 hover:border-green-300">
+                    <div className="p-3 bg-green-500 rounded-xl mr-4 group-hover:bg-green-600 transition-colors">
+                      <FaHistory className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-green-600 font-semibold text-lg">{t('renterDashboard.rentalHistory')}</span>
+                      <p className="text-sm text-gray-600 mt-1">ดูประวัติการเช่าทั้งหมด</p>
+                    </div>
+                    <FaArrowRight className="h-4 w-4 text-green-400 ml-auto group-hover:text-green-600 transition-colors" />
+                  </Link>
+                </motion.div>
+                
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  className="group"
+                >
+                  <Link to={ROUTE_PATHS.CHAT_INBOX} className="flex items-center p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl hover:from-purple-100 hover:to-pink-100 transition-all duration-200 border border-purple-200 hover:border-purple-300">
+                    <div className="p-3 bg-purple-500 rounded-xl mr-4 group-hover:bg-purple-600 transition-colors">
+                      <FaComments className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-purple-600 font-semibold text-lg">{t('renterDashboard.messages')}</span>
+                      <p className="text-sm text-gray-600 mt-1">ข้อความและการสนทนา</p>
+                    </div>
+                    <FaArrowRight className="h-4 w-4 text-purple-400 ml-auto group-hover:text-purple-600 transition-colors" />
+                  </Link>
+                </motion.div>
+                
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  className="group"
+                >
+                  <Link to={ROUTE_PATHS.PROFILE} className="flex items-center p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl hover:from-orange-100 hover:to-red-100 transition-all duration-200 border border-orange-200 hover:border-orange-300">
+                    <div className="p-3 bg-orange-500 rounded-xl mr-4 group-hover:bg-orange-600 transition-colors">
+                      <FaUserCircle className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-orange-600 font-semibold text-lg">{t('navbar.profile')}</span>
+                      <p className="text-sm text-gray-600 mt-1">จัดการโปรไฟล์</p>
+                    </div>
+                    <FaArrowRight className="h-4 w-4 text-orange-400 ml-auto group-hover:text-orange-600 transition-colors" />
+                  </Link>
+                </motion.div>
+              </div>
+            </motion.div>
           </main>
         </div>
       </div>

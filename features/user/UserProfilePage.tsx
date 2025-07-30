@@ -1,34 +1,35 @@
 import React, { useEffect, useState, ChangeEvent, FormEvent, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getCurrentUser, updateProfile, updatePassword, updateAvatar, UpdateProfilePayload, UpdatePasswordPayload, getUserAddresses, createAddress, updateAddress } from '../../services/userService';
+import { getCurrentUser, updateProfile, updatePassword, updateAvatar, UpdateProfilePayload, UpdatePasswordPayload, getUserAddresses, createAddress, } from '../../services/userService';
 import { User, ApiError, UserAddress } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { Button } from '../../components/ui/Button';
-import { InputField } from '../../components/ui/InputField';
 import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
 import { getProvinces } from '../../services/productService';
-
-const EditIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block ml-1" viewBox="0 0 20 20" fill="currentColor">
-    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-  </svg>
-);
-
-const ShieldCheckIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block ml-1" viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944a11.954 11.954 0 007.834 3.055c.097 1.002-.052 2.006-.228 3.003-.176 1.001-.422 2.003-.693 3.002-.271 1-.579 1.999-.938 2.999-.36 1-.803 1.998-1.295 2.997A11.954 11.954 0 0110 18.056a11.954 11.954 0 01-7.834-3.055c-.492-.999-.935-1.998-1.295-2.997-.359-1-.667-1.999-.938-2.999-.271-1.001-.517-2.002-.693-3.002C2.218 6.997 2.069 5.993 2.166 4.999zM10 5a.75.75 0 01.75.75v2.5a.75.75 0 01-1.5 0v-2.5A.75.75 0 0110 5zm0 6.5a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-  </svg>
-);
-
-const CameraIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586A2 2 0 0116.414 3H15V2a1 1 0 10-2 0v1h-1.586A2 2 0 0110.414 3H4zm3 10a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-  </svg>
-);
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaEdit,
+  FaShieldAlt,
+  FaCamera,
+  FaUser,
+  FaEnvelope,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaCalendarAlt,
+  FaCheck,
+  FaTimes,
+  FaPlus,
+  FaEye,
+  FaEyeSlash,
+  FaLock,
+  FaHome,
+  FaCreditCard,
+  FaInfoCircle,
+  FaStar
+} from 'react-icons/fa';
 
 const compressImage = (file: File): Promise<File> => {
   return new Promise((resolve, reject) => {
@@ -102,6 +103,8 @@ export const UserProfilePage: React.FC = () => {
   const [addresses, setAddresses] = useState<UserAddress[]>([]);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
   const [showAddAddress, setShowAddAddress] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [newAddress, setNewAddress] = useState<Omit<UserAddress, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'province_name'>>({
     recipient_name: '',
     phone_number: '',
@@ -278,317 +281,722 @@ export const UserProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">{t('userProfilePage.title')}</h1>
-      
-      {error && <ErrorMessage message={error} onDismiss={() => setError(null)} title={t('general.error')} />}
-      {successMessage && (
-        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 my-4 rounded-md shadow" role="alert">
-          <p>{successMessage}</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-1 space-y-6">
-          <Card>
-            <CardContent className="text-center">
-              <div className="relative w-32 h-32 mx-auto mb-4 group">
-                <img 
-                  src={profileData.profile_picture_url || `https://picsum.photos/seed/${profileData.username}/200/200`} 
-                  alt={profileData.username} 
-                  className="w-32 h-32 rounded-full object-cover shadow-lg mx-auto border-2 border-gray-200"
-                />
-                <button
-                  onClick={handleAvatarClick}
-                  disabled={isUploadingAvatar}
-                  className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                >
-                  {isUploadingAvatar ? (
-                    <span className="text-white">{t('userProfilePage.uploadingAvatar')}</span>
-                  ) : (
-                    <CameraIcon />
-                  )}
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  className="hidden"
-                />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
+      <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="text-4xl font-bold text-gray-900 mb-2 text-center">
+            {t('userProfilePage.title')}
+          </h1>
+          <p className="text-gray-600 text-center mb-8">
+            {t('userProfilePage.subtitle')}
+          </p>
+        </motion.div>
+        
+        <AnimatePresence mode="wait">
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="mb-6"
+            >
+              <ErrorMessage message={error} onDismiss={() => setError(null)} title={t('general.error')} />
+            </motion.div>
+          )}
+          {successMessage && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-center gap-3"
+            >
+              <FaCheck className="h-5 w-5 text-green-500 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-green-800">{t('general.success')}</p>
+                <p className="text-green-700 text-sm">{successMessage}</p>
               </div>
-              <h2 className="text-2xl font-semibold text-gray-800 mt-2">{profileData.first_name} {profileData.last_name}</h2>
-              <p className="text-gray-600">@{profileData.username}</p>
-              <p className="text-sm text-gray-500 mt-1">
-                {profileData.email} 
-                {profileData.email_verified_at ? 
-                  <span title="Email verified" className="text-green-500">✓</span> : 
-                  <span title="Email not verified" className="text-red-500">!</span>
-                }
-              </p>
-              {profileData.phone_number && <p className="text-sm text-gray-500">{profileData.phone_number}</p>}
-              {profileData.created_at && (
-                <p className="text-xs text-gray-400 mt-2">
-                  {t('productDetailPage.memberSince', {date: new Date(profileData.created_at).toLocaleDateString()})}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardContent>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-gray-700">{t('userProfilePage.personalInfoTitle')}</h3>
-                <div className="flex space-x-2">
-                  {!isEditingProfile && (
-                    <>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => { setIsEditingProfile(true); setSuccessMessage(null); setError(null); }}
-                      >
-                        {t('userProfilePage.editProfileButton')} <EditIcon />
-                      </Button>
-                      <Link to={ROUTE_PATHS.ID_VERIFICATION}>
-                        <Button variant="ghost" size="sm">
-                          {t('userProfilePage.verifyIdButton')} <ShieldCheckIcon />
-                        </Button>
-                      </Link>
-                    </>
-                  )}
-                </div>
-              </div>
-              {!isEditingProfile ? (
-                <div className="space-y-3 text-gray-700">
-                  <dl className="divide-y divide-gray-200">
-                    <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
-                      <dt className="text-sm font-medium text-gray-500">{t('userProfilePage.fullNameLabel')}</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {profileData.first_name} {profileData.last_name}
-                      </dd>
-                    </div>
-                    <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
-                      <dt className="text-sm font-medium text-gray-500">{t('userProfilePage.phoneLabel')}</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {profileData.phone_number || t('userProfilePage.notApplicable')}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-              ) : (
-                <form onSubmit={handleProfileSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InputField 
-                      label={t('registerPage.firstNameLabel')} 
-                      name="first_name" 
-                      value={formData.first_name || ''} 
-                      onChange={handleInputChange} 
-                    />
-                    <InputField 
-                      label={t('registerPage.lastNameLabel')} 
-                      name="last_name" 
-                      value={formData.last_name || ''} 
-                      onChange={handleInputChange} 
-                    />
-                  </div>
-                  <InputField 
-                    label={t('registerPage.phoneLabel')} 
-                    name="phone_number" 
-                    type="tel" 
-                    value={formData.phone_number || ''} 
-                    onChange={handleInputChange} 
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Profile Card */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="lg:col-span-1"
+          >
+            <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+              <CardContent className="p-8 text-center">
+                <div className="relative w-40 h-40 mx-auto mb-6 group">
+                  <motion.img 
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.2 }}
+                    src={profileData.profile_picture_url || `https://picsum.photos/seed/${profileData.username}/200/200`} 
+                    alt={profileData.username} 
+                    className="w-40 h-40 rounded-full object-cover shadow-xl mx-auto border-4 border-white"
                   />
-                  <div className="flex space-x-3 pt-2">
-                    <Button type="submit" isLoading={isLoading} variant="primary">
-                      {t('userProfilePage.saveChangesButton')}
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="secondary" 
-                      onClick={() => {
-                        setIsEditingProfile(false);
-                        setError(null);
-                        setSuccessMessage(null);
-                      }}
-                    >
-                      {t('userProfilePage.cancelButton')}
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-gray-700">{t('userProfilePage.changePasswordTitle')}</h3>
-                {!isChangingPassword && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => {
-                      setIsChangingPassword(true);
-                      setSuccessMessage(null);
-                      setError(null);
-                    }}
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={handleAvatarClick}
+                    disabled={isUploadingAvatar}
+                    className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
                   >
-                    {t('userProfilePage.changePasswordButton')} <EditIcon />
-                  </Button>
-                )}
-              </div>
-              {isChangingPassword && (
-                <form onSubmit={handlePasswordChangeSubmit} className="space-y-4">
-                  <InputField 
-                    label={t('userProfilePage.currentPasswordLabel')} 
-                    name="current_password" 
-                    type="password" 
-                    required 
-                    value={passwordFormData.current_password} 
-                    onChange={handlePasswordInputChange} 
+                    {isUploadingAvatar ? (
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                    ) : (
+                      <FaCamera className="h-8 w-8 text-white" />
+                    )}
+                  </motion.button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
                   />
-                  <InputField 
-                    label={t('userProfilePage.newPasswordLabel')} 
-                    name="new_password" 
-                    type="password" 
-                    required 
-                    value={passwordFormData.new_password} 
-                    onChange={handlePasswordInputChange} 
-                  />
-                  <InputField 
-                    label={t('userProfilePage.confirmNewPasswordLabel')} 
-                    name="new_password_confirmation" 
-                    type="password" 
-                    required 
-                    value={passwordFormData.new_password_confirmation} 
-                    onChange={handlePasswordInputChange} 
-                  />
-                  <div className="flex space-x-3 pt-2">
-                    <Button type="submit" isLoading={isLoading} variant="primary">
-                      {t('userProfilePage.updatePasswordButton')}
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="secondary" 
-                      onClick={() => {
-                        setIsChangingPassword(false);
-                        setError(null);
-                        setSuccessMessage(null);
-                        setPasswordFormData({
-                          current_password: '',
-                          new_password: '',
-                          new_password_confirmation: '',
-                        });
-                      }}
-                    >
-                      {t('userProfilePage.cancelButton')}
-                    </Button>
+                </div>
+                
+                <motion.h2 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-2xl font-bold text-gray-900 mb-2"
+                >
+                  {profileData.first_name} {profileData.last_name}
+                </motion.h2>
+                
+                <motion.p 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-blue-600 font-medium mb-4"
+                >
+                  @{profileData.username}
+                </motion.p>
+                
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="space-y-3 text-sm"
+                >
+                  <div className="flex items-center justify-center gap-2 text-gray-600">
+                    <FaEnvelope className="h-4 w-4" />
+                    <span>{profileData.email}</span>
+                    {profileData.email_verified_at ? 
+                      <FaCheck className="h-4 w-4 text-green-500" title="Email verified" /> : 
+                      <FaTimes className="h-4 w-4 text-red-500" title="Email not verified" />
+                    }
                   </div>
-                </form>
-              )}
-            </CardContent>
-          </Card>
+                  
+                  {profileData.phone_number && (
+                    <div className="flex items-center justify-center gap-2 text-gray-600">
+                      <FaPhone className="h-4 w-4" />
+                      <span>{profileData.phone_number}</span>
+                    </div>
+                  )}
+                  
+                  {profileData.created_at && (
+                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                      <FaCalendarAlt className="h-4 w-4" />
+                      <span>{t('productDetailPage.memberSince', {date: new Date(profileData.created_at).toLocaleDateString()})}</span>
+                    </div>
+                  )}
+                </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card>
-            <CardContent>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-gray-700">{t('userProfilePage.addressSectionTitle', 'ที่อยู่สำหรับจัดส่ง/ออกบิล')}</h3>
-                <Button size="sm" variant="primary" onClick={() => setShowAddAddress(true)}>+ เพิ่มที่อยู่ใหม่</Button>
-              </div>
-              {isLoadingAddresses ? (
-                <div>กำลังโหลดที่อยู่...</div>
-              ) : addresses.length === 0 ? (
-                <div className="text-gray-500">ยังไม่มีที่อยู่ในระบบ</div>
-              ) : (
-                <ul className="divide-y divide-gray-200">
-                  {addresses.map(addr => (
-                    <li key={addr.id} className="py-3 flex flex-col md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <div className="font-medium">{addr.recipient_name} <span className="text-xs text-gray-500">({addr.address_type})</span></div>
-                        <div className="text-sm text-gray-700">{addr.address_line1}{addr.address_line2 || ''}, {addr.sub_district || ''}{addr.district}, {addr.province_name || addr.province_id}</div>
-                        <div className="text-xs text-gray-500">{addr.phone_number} {addr.is_default && <span className="text-green-600 ml-2">[ค่าเริ่มต้น]</span>}</div>
-                        {addr.notes || ''}
+          {/* Main Content */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="lg:col-span-2 space-y-6"
+          >
+            {/* Personal Information Card */}
+            <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+              <CardContent className="p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-100">
+                      <FaUser className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">{t('userProfilePage.personalInfoTitle')}</h3>
+                  </div>
+                  <div className="flex space-x-2">
+                    {!isEditingProfile && (
+                      <>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => { setIsEditingProfile(true); setSuccessMessage(null); setError(null); }}
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200"
+                        >
+                          <FaEdit className="h-4 w-4" />
+                          {t('userProfilePage.editProfileButton')}
+                        </motion.button>
+                        <Link to={ROUTE_PATHS.ID_VERIFICATION}>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200"
+                          >
+                            <FaShieldAlt className="h-4 w-4" />
+                            {t('userProfilePage.verifyIdButton')}
+                          </motion.button>
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
+                <AnimatePresence mode="wait">
+                  {!isEditingProfile ? (
+                    <motion.div
+                      key="view"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-4"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-gray-50 rounded-xl p-4">
+                          <p className="text-sm font-medium text-gray-500 mb-1">{t('userProfilePage.fullNameLabel')}</p>
+                          <p className="text-lg font-semibold text-gray-900">{profileData.first_name} {profileData.last_name}</p>
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-4">
+                          <p className="text-sm font-medium text-gray-500 mb-1">{t('userProfilePage.phoneLabel')}</p>
+                          <p className="text-lg font-semibold text-gray-900">{profileData.phone_number || t('userProfilePage.notApplicable')}</p>
+                        </div>
                       </div>
-                      {/* ปุ่มแก้ไข/ลบ address สามารถเพิ่มได้ภายหลัง */}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {showAddAddress && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                  <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-                    <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700" onClick={() => setShowAddAddress(false)}>&times;</button>
-                    <h3 className="text-xl font-bold mb-4">เพิ่มที่อยู่ใหม่</h3>
-                    {addAddressError && <div className="text-red-600 mb-2">{addAddressError}</div>}
-                    <form onSubmit={async e => {
-                      e.preventDefault();
-                      setAddingAddress(true);
-                      setAddAddressError(null);
-                      try {
-                        await createAddress({
-                          recipient_name: newAddress.recipient_name,
-                          phone_number: newAddress.phone_number,
-                          address_line1: newAddress.address_line1,
-                          address_line2: newAddress.address_line2 || '',
-                          sub_district: newAddress.sub_district || '',
-                          district: newAddress.district,
-                          province_id: newAddress.province_id,
-                          postal_code: newAddress.postal_code,
-                          address_type: newAddress.address_type,
-                          is_default: !!newAddress.is_default,
-                          notes: newAddress.notes || ''
-                        });
-                        const addrs = await getUserAddresses();
-                        setAddresses(addrs);
-                        setShowAddAddress(false);
-                        setNewAddress({
-                          recipient_name: '',
-                          phone_number: '',
-                          address_line1: '',
-                          address_line2: '',
-                          sub_district: '',
-                          district: '',
-                          province_id: 1,
-                          postal_code: '',
-                          address_type: 'shipping',
-                          is_default: true,
-                          notes: ''
-                        });
-                      } catch (err: any) {
-                        setAddAddressError(err?.response?.data?.message || 'เกิดข้อผิดพลาดในการเพิ่มที่อยู่');
-                      } finally {
-                        setAddingAddress(false);
-                      }
-                    }} className="space-y-2">
-                      <input className="block w-full border rounded p-2" placeholder="ชื่อผู้รับ" required value={newAddress.recipient_name} onChange={e => setNewAddress({...newAddress, recipient_name: e.target.value})} />
-                      <input className="block w-full border rounded p-2" placeholder="เบอร์โทรศัพท์" required value={newAddress.phone_number} onChange={e => setNewAddress({...newAddress, phone_number: e.target.value})} />
-                      <input className="block w-full border rounded p-2" placeholder="ที่อยู่ (บรรทัดที่ 1)" required value={newAddress.address_line1} onChange={e => setNewAddress({...newAddress, address_line1: e.target.value})} />
-                      <input className="block w-full border rounded p-2" placeholder="ที่อยู่ (บรรทัดที่ 2)" value={newAddress.address_line2 || ''} onChange={e => setNewAddress({...newAddress, address_line2: e.target.value})} />
-                      <input className="block w-full border rounded p-2" placeholder="แขวง/ตำบล (ถ้ามี)" value={newAddress.sub_district || ''} onChange={e => setNewAddress({...newAddress, sub_district: e.target.value})} />
-                      <input className="block w-full border rounded p-2" placeholder="เขต/อำเภอ" required value={newAddress.district} onChange={e => setNewAddress({...newAddress, district: e.target.value})} />
-                      <select className="block w-full border rounded p-2" required value={newAddress.province_id} onChange={e => setNewAddress({...newAddress, province_id: Number(e.target.value)})}>
+                    </motion.div>
+                  ) : (
+                    <motion.form
+                      key="edit"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      onSubmit={handleProfileSubmit}
+                      className="space-y-6"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            {t('registerPage.firstNameLabel')}
+                          </label>
+                          <input
+                            type="text"
+                            name="first_name"
+                            value={formData.first_name || ''}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            {t('registerPage.lastNameLabel')}
+                          </label>
+                          <input
+                            type="text"
+                            name="last_name"
+                            value={formData.last_name || ''}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          {t('registerPage.phoneLabel')}
+                        </label>
+                        <input
+                          type="tel"
+                          name="phone_number"
+                          value={formData.phone_number || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        />
+                      </div>
+                      <div className="flex space-x-3 pt-4">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="submit"
+                          disabled={isLoading}
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {isLoading ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          ) : (
+                            <>
+                              <FaCheck className="h-4 w-4" />
+                              {t('userProfilePage.saveChangesButton')}
+                            </>
+                          )}
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="button"
+                          onClick={() => {
+                            setIsEditingProfile(false);
+                            setError(null);
+                            setSuccessMessage(null);
+                          }}
+                          className="flex-1 bg-gray-200 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                          <FaTimes className="h-4 w-4" />
+                          {t('userProfilePage.cancelButton')}
+                        </motion.button>
+                      </div>
+                    </motion.form>
+                  )}
+                </AnimatePresence>
+              </CardContent>
+            </Card>
+
+            {/* Password Change Card */}
+            <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+              <CardContent className="p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-red-100">
+                      <FaLock className="h-5 w-5 text-red-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">{t('userProfilePage.changePasswordTitle')}</h3>
+                  </div>
+                  {!isChangingPassword && (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        setIsChangingPassword(true);
+                        setSuccessMessage(null);
+                        setError(null);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200"
+                    >
+                      <FaEdit className="h-4 w-4" />
+                      {t('userProfilePage.changePasswordButton')}
+                    </motion.button>
+                  )}
+                </div>
+                
+                <AnimatePresence mode="wait">
+                  {isChangingPassword && (
+                    <motion.form
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                      onSubmit={handlePasswordChangeSubmit}
+                      className="space-y-6"
+                    >
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          {t('userProfilePage.currentPasswordLabel')}
+                        </label>
+                        <input
+                          type="password"
+                          name="current_password"
+                          required
+                          value={passwordFormData.current_password}
+                          onChange={handlePasswordInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          {t('userProfilePage.newPasswordLabel')}
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showNewPassword ? "text" : "password"}
+                            name="new_password"
+                            required
+                            value={passwordFormData.new_password}
+                            onChange={handlePasswordInputChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            {showNewPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          {t('userProfilePage.confirmNewPasswordLabel')}
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            name="new_password_confirmation"
+                            required
+                            value={passwordFormData.new_password_confirmation}
+                            onChange={handlePasswordInputChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            {showConfirmPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex space-x-3 pt-4">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="submit"
+                          disabled={isLoading}
+                          className="flex-1 bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-red-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {isLoading ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          ) : (
+                            <>
+                              <FaLock className="h-4 w-4" />
+                              {t('userProfilePage.updatePasswordButton')}
+                            </>
+                          )}
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="button"
+                          onClick={() => {
+                            setIsChangingPassword(false);
+                            setError(null);
+                            setSuccessMessage(null);
+                            setPasswordFormData({
+                              current_password: '',
+                              new_password: '',
+                              new_password_confirmation: '',
+                            });
+                          }}
+                          className="flex-1 bg-gray-200 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                          <FaTimes className="h-4 w-4" />
+                          {t('userProfilePage.cancelButton')}
+                        </motion.button>
+                      </div>
+                    </motion.form>
+                  )}
+                </AnimatePresence>
+              </CardContent>
+            </Card>
+
+            {/* Addresses Card */}
+            <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+              <CardContent className="p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-green-100">
+                      <FaMapMarkerAlt className="h-5 w-5 text-green-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">{t('userProfilePage.addressSectionTitle', 'ที่อยู่สำหรับจัดส่ง/ออกบิล')}</h3>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowAddAddress(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200"
+                  >
+                    <FaPlus className="h-4 w-4" />
+                    เพิ่มที่อยู่ใหม่
+                  </motion.button>
+                </div>
+                
+                {isLoadingAddresses ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                    <span className="ml-3 text-gray-600">กำลังโหลดที่อยู่...</span>
+                  </div>
+                ) : addresses.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FaMapMarkerAlt className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">ยังไม่มีที่อยู่ในระบบ</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {addresses.map((addr, index) => (
+                      <motion.div
+                        key={addr.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-green-300 transition-all duration-200"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            {addr.address_type === 'shipping' ? (
+                              <FaHome className="h-4 w-4 text-blue-600" />
+                            ) : addr.address_type === 'billing' ? (
+                              <FaCreditCard className="h-4 w-4 text-purple-600" />
+                            ) : (
+                              <FaInfoCircle className="h-4 w-4 text-gray-600" />
+                            )}
+                            <span className="font-semibold text-gray-900">{addr.recipient_name}</span>
+                            <span className="text-xs text-gray-500">({addr.address_type})</span>
+                          </div>
+                          {addr.is_default && (
+                            <FaStar className="h-4 w-4 text-yellow-500" title="ที่อยู่เริ่มต้น" />
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-700 space-y-1">
+                          <p>{addr.address_line1}</p>
+                          {addr.address_line2 && <p>{addr.address_line2}</p>}
+                          <p>{addr.sub_district || ''}{addr.district}, {addr.province_name || addr.province_id}</p>
+                          <p className="text-gray-500">{addr.phone_number}</p>
+                        </div>
+                        {addr.notes && (
+                          <p className="text-xs text-gray-500 mt-2 italic">"{addr.notes}"</p>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Add Address Modal */}
+        <AnimatePresence>
+          {showAddAddress && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col"
+              >
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-green-100">
+                        <FaPlus className="h-5 w-5 text-green-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900">เพิ่มที่อยู่ใหม่</h3>
+                    </div>
+                    <button 
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      onClick={() => setShowAddAddress(false)}
+                    >
+                      <FaTimes className="h-6 w-6" />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-6">
+                  {addAddressError && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center gap-3">
+                      <FaTimes className="h-4 w-4 text-red-500" />
+                      <p className="text-red-700 text-sm">{addAddressError}</p>
+                    </div>
+                  )}
+                  
+                  <form onSubmit={async e => {
+                  e.preventDefault();
+                  setAddingAddress(true);
+                  setAddAddressError(null);
+                  try {
+                    await createAddress({
+                      recipient_name: newAddress.recipient_name,
+                      phone_number: newAddress.phone_number,
+                      address_line1: newAddress.address_line1,
+                      address_line2: newAddress.address_line2 || '',
+                      sub_district: newAddress.sub_district || '',
+                      district: newAddress.district,
+                      province_id: newAddress.province_id,
+                      postal_code: newAddress.postal_code,
+                      address_type: newAddress.address_type,
+                      is_default: !!newAddress.is_default,
+                      notes: newAddress.notes || ''
+                    });
+                    const addrs = await getUserAddresses();
+                    setAddresses(addrs);
+                    setShowAddAddress(false);
+                    setNewAddress({
+                      recipient_name: '',
+                      phone_number: '',
+                      address_line1: '',
+                      address_line2: '',
+                      sub_district: '',
+                      district: '',
+                      province_id: 1,
+                      postal_code: '',
+                      address_type: 'shipping',
+                      is_default: true,
+                      notes: ''
+                    });
+                  } catch (err: any) {
+                    setAddAddressError(err?.response?.data?.message || 'เกิดข้อผิดพลาดในการเพิ่มที่อยู่');
+                  } finally {
+                    setAddingAddress(false);
+                  }
+                }} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">ชื่อผู้รับ</label>
+                    <input 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200" 
+                      placeholder="ชื่อผู้รับ" 
+                      required 
+                      value={newAddress.recipient_name} 
+                      onChange={e => setNewAddress({...newAddress, recipient_name: e.target.value})} 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
+                    <input 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200" 
+                      placeholder="เบอร์โทรศัพท์" 
+                      required 
+                      value={newAddress.phone_number} 
+                      onChange={e => setNewAddress({...newAddress, phone_number: e.target.value})} 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">ที่อยู่ (บรรทัดที่ 1)</label>
+                    <input 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200" 
+                      placeholder="ที่อยู่ (บรรทัดที่ 1)" 
+                      required 
+                      value={newAddress.address_line1} 
+                      onChange={e => setNewAddress({...newAddress, address_line1: e.target.value})} 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">ที่อยู่ (บรรทัดที่ 2)</label>
+                    <input 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200" 
+                      placeholder="ที่อยู่ (บรรทัดที่ 2)" 
+                      value={newAddress.address_line2 || ''} 
+                      onChange={e => setNewAddress({...newAddress, address_line2: e.target.value})} 
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">แขวง/ตำบล</label>
+                      <input 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200" 
+                        placeholder="แขวง/ตำบล" 
+                        value={newAddress.sub_district || ''} 
+                        onChange={e => setNewAddress({...newAddress, sub_district: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">เขต/อำเภอ</label>
+                      <input 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200" 
+                        placeholder="เขต/อำเภอ" 
+                        required 
+                        value={newAddress.district} 
+                        onChange={e => setNewAddress({...newAddress, district: e.target.value})} 
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">จังหวัด</label>
+                      <select 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200" 
+                        required 
+                        value={newAddress.province_id} 
+                        onChange={e => setNewAddress({...newAddress, province_id: Number(e.target.value)})}
+                      >
                         <option value="">เลือกจังหวัด</option>
                         {provinces.map(prov => (
                           <option key={prov.id} value={prov.id}>{prov.name_th}</option>
                         ))}
                       </select>
-                      <input className="block w-full border rounded p-2" placeholder="รหัสไปรษณีย์" required value={newAddress.postal_code} onChange={e => setNewAddress({...newAddress, postal_code: e.target.value})} />
-                      <input className="block w-full border rounded p-2" placeholder="หมายเหตุ (ถ้ามี)" value={newAddress.notes || ''} onChange={e => setNewAddress({...newAddress, notes: e.target.value})} />
-                      <select className="block w-full border rounded p-2" value={newAddress.address_type} onChange={e => setNewAddress({...newAddress, address_type: e.target.value as 'shipping' | 'billing' | 'other'})}>
-                        <option value="shipping">ที่อยู่สำหรับจัดส่ง</option>
-                        <option value="billing">ที่อยู่สำหรับออกบิล</option>
-                        <option value="other">อื่นๆ</option>
-                      </select>
-                      <button type="submit" className="w-full bg-blue-600 text-white rounded p-2 mt-2" disabled={addingAddress}>{addingAddress ? 'กำลังบันทึก...' : 'บันทึกที่อยู่'}</button>
-                    </form>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">รหัสไปรษณีย์</label>
+                      <input 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200" 
+                        placeholder="รหัสไปรษณีย์" 
+                        required 
+                        value={newAddress.postal_code} 
+                        onChange={e => setNewAddress({...newAddress, postal_code: e.target.value})} 
+                      />
+                    </div>
                   </div>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">ประเภทที่อยู่</label>
+                    <select 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200" 
+                      value={newAddress.address_type} 
+                      onChange={e => setNewAddress({...newAddress, address_type: e.target.value as 'shipping' | 'billing' | 'other'})}
+                    >
+                      <option value="shipping">ที่อยู่สำหรับจัดส่ง</option>
+                      <option value="billing">ที่อยู่สำหรับออกบิล</option>
+                      <option value="other">อื่นๆ</option>
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">หมายเหตุ</label>
+                    <input 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200" 
+                      placeholder="หมายเหตุ (ถ้ามี)" 
+                      value={newAddress.notes || ''} 
+                      onChange={e => setNewAddress({...newAddress, notes: e.target.value})} 
+                    />
+                  </div>
+                  
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit" 
+                    disabled={addingAddress}
+                    className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-green-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {addingAddress ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    ) : (
+                      <>
+                        <FaPlus className="h-4 w-4" />
+                        บันทึกที่อยู่
+                      </>
+                    )}
+                  </motion.button>
+                </form>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

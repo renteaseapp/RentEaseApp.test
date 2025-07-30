@@ -50,6 +50,11 @@
   },
   "loginPage": {
     "title": "เข้าสู่ระบบ RentEase",
+    "subtitle": "เข้าสู่ระบบเพื่อเข้าถึงบริการของเรา",
+    "welcomeMessage": "ยินดีต้อนรับสู่ RentEase แพลตฟอร์มเช่าสินค้าที่ดีที่สุด",
+    "whyChooseUs": "ทำไมต้องเลือกเรา?",
+    "joinCommunity": "เข้าร่วมชุมชนของเรา",
+    "communityDescription": "เชื่อมต่อกับผู้คนและค้นพบสินค้าใหม่ๆ ทุกวัน",
     "emailOrUsernameLabel": "อีเมลหรือชื่อผู้ใช้",
     "emailOrUsernamePlaceholder": "you@example.com หรือชื่อผู้ใช้ของคุณ",
     "passwordLabel": "รหัสผ่าน",
@@ -59,10 +64,17 @@
     "signInButton": "เข้าสู่ระบบ",
     "notMember": "ยังไม่มีบัญชี?",
     "createAccountLink": "สมัครสมาชิก",
-    "loginFailedError": "เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
+    "loginFailedError": "เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+    "features": {
+      "secure": "ปลอดภัยและเชื่อถือได้",
+      "fast": "รวดเร็วและใช้งานง่าย",
+      "reliable": "เชื่อถือได้และมีคุณภาพ"
+    }
   },
   "registerPage": {
     "title": "สร้างบัญชี RentEase ของคุณ",
+    "subtitle": "เริ่มต้นการเดินทางกับ RentEase วันนี้",
+    "welcomeMessage": "ยินดีต้อนรับสู่ RentEase",
     "firstNameLabel": "ชื่อจริง",
     "firstNamePlaceholder": "สมชาย",
     "lastNameLabel": "นามสกุล",
@@ -81,7 +93,17 @@
     "signInLink": "เข้าสู่ระบบ",
     "registrationFailedError": "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
     "successMessage": "สมัครสมาชิกสำเร็จ กรุณาตรวจสอบอีเมลเพื่อยืนยันตัวตน",
-    "successMessageAutoLogin": "สมัครสมาชิกสำเร็จ"
+    "successMessageAutoLogin": "สมัครสมาชิกสำเร็จ",
+    "joinCommunity": "เข้าร่วมชุมชนของเรา",
+    "communityDescription": "เชื่อมต่อกับผู้คนและค้นพบสินค้าใหม่ๆ ทุกวัน",
+    "features": {
+      "community": "ชุมชนที่แข็งแกร่ง",
+      "communityDesc": "เข้าร่วมชุมชนผู้ใช้ที่เชื่อถือได้และเป็นมิตร",
+      "secure": "ปลอดภัยและเชื่อถือได้",
+      "secureDesc": "ข้อมูลของคุณได้รับการปกป้องด้วยมาตรการความปลอดภัยระดับสูง",
+      "fast": "รวดเร็วและใช้งานง่าย",
+      "fastDesc": "ประสบการณ์การใช้งานที่รวดเร็วและไม่ซับซ้อน"
+    }
   },
   "homePage": {
     "heroTitle": "เช่าอะไรก็ได้ ง่ายดาย",
@@ -191,6 +213,7 @@
   },
   "userProfilePage": {
     "title": "โปรไฟล์ของฉัน",
+    "subtitle": "จัดการข้อมูลส่วนตัวและตั้งค่าบัญชีของคุณ",
     "saveAvatar": "บันทึกรูปโปรไฟล์",
     "uploadingAvatar": "กำลังอัปโหลด...",
     "avatarUpdatedSuccess": "อัปเดตรูปโปรไฟล์สำเร็จ!",
@@ -257,6 +280,8 @@
   },
   "forgotPasswordPage": {
     "title": "ลืมรหัสผ่านใช่หรือไม่?",
+    "subtitle": "เราจะช่วยคุณกู้คืนรหัสผ่านอย่างปลอดภัย",
+    "welcomeMessage": "กู้คืนรหัสผ่าน",
     "instruction": "กรอกที่อยู่อีเมลของคุณ แล้วเราจะส่งรหัส OTP เพื่อรีเซ็ตรหัสผ่าน",
     "emailLabel": "ที่อยู่อีเมล",
     "emailPlaceholder": "you@example.com",
@@ -272,19 +297,48 @@
     "newPasswordPlaceholder": "กรอกรหัสผ่านใหม่",
     "confirmPasswordLabel": "ยืนยันรหัสผ่านใหม่",
     "confirmPasswordPlaceholder": "ยืนยันรหัสผ่านใหม่",
-    "resetPasswordButton": "รีเซ็ตรหัสผ่าน"
+    "resetPasswordButton": "รีเซ็ตรหัสผ่าน",
+    "securityNote": "ความปลอดภัยของคุณสำคัญที่สุด",
+    "securityDescription": "เราใช้มาตรการความปลอดภัยระดับสูงเพื่อปกป้องข้อมูลของคุณ",
+    "features": {
+      "secure": "ปลอดภัยและเชื่อถือได้",
+      "secureDesc": "กระบวนการกู้คืนรหัสผ่านที่ปลอดภัยด้วยการเข้ารหัส",
+      "protected": "ข้อมูลได้รับการปกป้อง",
+      "protectedDesc": "ข้อมูลส่วนตัวของคุณได้รับการปกป้องด้วยมาตรการความปลอดภัย",
+      "quick": "รวดเร็วและง่ายดาย",
+      "quickDesc": "กู้คืนรหัสผ่านได้ในไม่กี่ขั้นตอน"
+    }
   },
   "resetPasswordPage": {
     "title": "รีเซ็ตรหัสผ่านของคุณ",
+    "subtitle": "สร้างรหัสผ่านใหม่ที่ปลอดภัย",
+    "welcomeMessage": "รีเซ็ตรหัสผ่าน",
+    "instruction": "กรุณากรอกข้อมูลเพื่อรีเซ็ตรหัสผ่านของคุณ",
     "emailLabel": "ที่อยู่อีเมล",
     "emailPlaceholder": "you@example.com",
+    "otpLabel": "รหัส OTP",
+    "otpPlaceholder": "กรอกรหัส OTP ที่ได้รับทางอีเมล",
     "newPasswordLabel": "รหัสผ่านใหม่",
     "newPasswordPlaceholder": "••••••••",
     "confirmNewPasswordLabel": "ยืนยันรหัสผ่านใหม่",
     "resetPasswordButton": "รีเซ็ตรหัสผ่าน",
     "successMessage": "รีเซ็ตรหัสผ่านของคุณสำเร็จแล้ว ระบบจะนำคุณไปยังหน้าเข้าสู่ระบบในไม่ช้า",
+    "successTitle": "รีเซ็ตรหัสผ่านสำเร็จ!",
+    "successDescription": "รหัสผ่านใหม่ของคุณได้รับการอัปเดตแล้ว คุณสามารถเข้าสู่ระบบได้แล้ว",
     "proceedToLoginLink": "ไปยังหน้าเข้าสู่ระบบ",
-    "invalidTokenError": "ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้อง หรือโทเค็นหายไป"
+    "invalidTokenError": "ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้อง หรือโทเค็นหายไป",
+    "needHelp": "ต้องการความช่วยเหลือ?",
+    "backToLogin": "กลับไปหน้าเข้าสู่ระบบ",
+    "securityNote": "ความปลอดภัยของคุณสำคัญที่สุด",
+    "securityDescription": "เราใช้มาตรการความปลอดภัยระดับสูงเพื่อปกป้องข้อมูลของคุณ",
+    "features": {
+      "secure": "ปลอดภัยและเชื่อถือได้",
+      "secureDesc": "กระบวนการรีเซ็ตรหัสผ่านที่ปลอดภัยด้วยการเข้ารหัส",
+      "temporary": "โทเค็นชั่วคราว",
+      "temporaryDesc": "โทเค็นรีเซ็ตรหัสผ่านมีอายุการใช้งานจำกัดเพื่อความปลอดภัย",
+      "verified": "ยืนยันแล้ว",
+      "verifiedDesc": "ข้อมูลได้รับการยืนยันและตรวจสอบแล้ว"
+    }
   },
   "searchPage": {
     "title": "ค้นหาสินค้า",
@@ -295,15 +349,22 @@
     "allCategoriesOption": "ทุกหมวดหมู่",
     "provinceLabel": "จังหวัด",
     "allProvincesOption": "ทุกจังหวัด",
+    "priceRangeLabel": "ช่วงราคา",
     "minPriceLabel": "ราคาต่ำสุด",
     "minPricePlaceholder": "0",
     "maxPriceLabel": "ราคาสูงสุด",
     "maxPricePlaceholder": "ไม่จำกัด",
     "sortByLabel": "เรียงตาม",
     "sortNewest": "ใหม่ล่าสุด",
+    "sortOldest": "เก่าสุด",
     "sortPriceAsc": "ราคา: น้อยไปมาก",
     "sortPriceDesc": "ราคา: มากไปน้อย",
-    "sortRating": "คะแนนรีวิว",
+    "sortRatingHighToLow": "คะแนนรีวิว: สูงไปต่ำ",
+    "sortRatingLowToHigh": "คะแนนรีวิว: ต่ำไปสูง",
+    "sortMostViewed": "ดูมากที่สุด",
+    "sortLeastViewed": "ดูน้อยที่สุด",
+    "sortRecentlyUpdated": "อัปเดตล่าสุด",
+    "sortLeastRecentlyUpdated": "อัปเดตเก่าสุด",
     "applyFiltersButton": "ใช้ตัวกรอง",
     "clearFiltersButton": "ล้างตัวกรอง",
     "loadingProducts": "กำลังค้นหาสินค้า...",
@@ -1248,7 +1309,10 @@
     "products": "สินค้า",
     "categories": "หมวดหมู่",
     "complaints": "เรื่องร้องเรียน",
-    "reports": "รายงาน & สถิติ"
+    "reports": "รายงาน & สถิติ",
+    "toggleSidebar": "ซ่อน/แสดงแถบด้านข้าง",
+    "userProfile": "โปรไฟล์ผู้ใช้",
+    "logout": "ออกจากระบบ"
   },
   "wishlistPage": {
     "title": "รายการโปรดของฉัน",

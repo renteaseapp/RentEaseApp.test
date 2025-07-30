@@ -2,18 +2,35 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { Button } from '../../components/ui/Button';
-import { InputField } from '../../components/ui/InputField';
-import { Textarea } from '../../components/ui/Textarea';
 import { API_BASE_URL } from '../../constants';
 import { useTranslation } from 'react-i18next';
 import { getMyRentals } from '../../services/rentalService';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaExclamationTriangle, 
+  FaPlus, 
+  FaTimes, 
+  FaPaperclip, 
+  FaEye,
+  FaClock,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaSpinner,
+  FaFileAlt,
+  FaDownload,
+  FaArrowRight,
+  FaShieldAlt,
+  FaUser,
+  FaBox,
+  FaCalendarAlt,
+  FaTag
+} from 'react-icons/fa';
 
 // Complaint types could be fetched from API or defined here
 const COMPLAINT_TYPES = [
-  { value: 'user_behavior', label: 'complaints.type.user_behavior' },
-  { value: 'wrong_item', label: 'complaints.type.wrong_item' },
-  { value: 'ระเบิด', label: 'complaints.type.explosive' },
+  { value: 'user_behavior', label: 'complaints.type.user_behavior', icon: <FaUser className="h-4 w-4" /> },
+  { value: 'wrong_item', label: 'complaints.type.wrong_item', icon: <FaBox className="h-4 w-4" /> },
+  { value: 'ระเบิด', label: 'complaints.type.explosive', icon: <FaExclamationTriangle className="h-4 w-4" /> },
 ];
 
 function UserComplaintsPage() {
@@ -33,7 +50,7 @@ function UserComplaintsPage() {
     subject_user_id: '',
     attachments: [] as File[],
   });
-  const [newUpdate, setNewUpdate] = useState({ message: '', attachments: [] as File[] });
+  const [] = useState({ message: '', attachments: [] as File[] });
   const [submitting, setSubmitting] = useState(false);
   const [rentalOptions, setRentalOptions] = useState<any[]>([]);
 
@@ -113,35 +130,34 @@ function UserComplaintsPage() {
   };
 
   // Add update/message to complaint
-  const handleAddUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!selectedComplaint) return;
-    if (!newUpdate.message.trim()) {
-      setError(t('complaints.error.messageRequired'));
-      return;
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'submitted':
+        return <FaClock className="h-4 w-4" />;
+      case 'under_review':
+        return <FaSpinner className="h-4 w-4" />;
+      case 'resolved':
+        return <FaCheckCircle className="h-4 w-4" />;
+      case 'closed_no_action':
+        return <FaTimesCircle className="h-4 w-4" />;
+      default:
+        return <FaExclamationTriangle className="h-4 w-4" />;
     }
-    if (newUpdate.attachments.length === 0) {
-      setError(t('complaints.error.attachmentRequired'));
-      return;
-    }
-    setSubmitting(true);
-    setError(null);
-    const formData = new FormData();
-    formData.append('message', newUpdate.message.trim());
-    newUpdate.attachments.forEach(file => formData.append('attachments', file));
-    try {
-      const res = await fetch(`${API_BASE_URL}/complaints/${selectedComplaint.id}/updates`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Failed to add update');
-      handleSelectComplaint(selectedComplaint.id);
-      setNewUpdate({ message: '', attachments: [] });
-    } catch (err) {
-      setError(t('complaints.error.addUpdate'));
-    } finally {
-      setSubmitting(false);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'submitted':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'under_review':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'resolved':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'closed_no_action':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:
+        return 'bg-red-100 text-red-800 border-red-200';
     }
   };
 
@@ -149,166 +165,474 @@ function UserComplaintsPage() {
   if (error) return <ErrorMessage message={error} />;
 
   return (
-    <div className="container mx-auto max-w-5xl p-4 md:p-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-        <h1 className="text-3xl font-extrabold text-blue-800 tracking-tight flex items-center gap-3">
-          <svg className="h-8 w-8 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-1.414 1.414A9 9 0 105.636 18.364l1.414-1.414A7 7 0 1116.95 7.05l1.414-1.414z" /></svg>
-          {t('complaints.title')}
-        </h1>
-        <Button onClick={() => setShowNewForm(!showNewForm)} variant="primary" size="md">
-          {showNewForm ? t('complaints.cancel') : t('complaints.newComplaint')}
-        </Button>
-      </div>
-      {showNewForm && (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-blue-100">
-          <h2 className="text-xl font-semibold mb-4 text-blue-700">{t('complaints.submitNewTitle')}</h2>
-          <form onSubmit={handleNewComplaintSubmit} className="space-y-4">
-            <InputField
-              label={t('complaints.form.title')}
-              value={newComplaint.title}
-              onChange={e => setNewComplaint({ ...newComplaint, title: e.target.value })}
-              required
-            />
-            <Textarea
-              label={t('complaints.form.details')}
-              value={newComplaint.details}
-              onChange={e => setNewComplaint({ ...newComplaint, details: e.target.value })}
-              required
-            />
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('complaints.form.type')}</label>
-              <select
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                value={newComplaint.complaint_type}
-                onChange={e => setNewComplaint({ ...newComplaint, complaint_type: e.target.value })}
-                required
-              >
-                <option value="">{t('complaints.form.typeSelect')}</option>
-                {COMPLAINT_TYPES.map(type => (
-                  <option key={type.value} value={type.value}>{t(type.label)}</option>
-                ))}
-              </select>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('complaints.form.rental')}</label>
-                <select
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={newComplaint.related_rental_id}
-                  onChange={e => {
-                    const rentalId = e.target.value;
-                    const rental = rentalOptions.find(r => String(r.id) === rentalId);
-                    setNewComplaint(prev => ({
-                      ...prev,
-                      related_rental_id: rentalId,
-                      related_product_id: rentalId && rental?.product_id ? String(rental.product_id) : '',
-                      subject_user_id: rentalId && rental?.owner_id ? String(rental.owner_id) : '',
-                    }));
-                  }}
-                >
-                  <option value="">{t('complaints.form.noSelect')}</option>
-                  {rentalOptions.map(r => (
-                    <option key={r.id} value={r.id}>
-                      {r.id} - {r.product?.title || t('complaints.none')}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <InputField
-                label={t('complaints.form.product')}
-                value={newComplaint.related_product_id}
-                onChange={e => setNewComplaint({ ...newComplaint, related_product_id: e.target.value })}
-                type="number"
-              />
-              <InputField
-                label={t('complaints.form.user')}
-                value={newComplaint.subject_user_id}
-                onChange={e => setNewComplaint({ ...newComplaint, subject_user_id: e.target.value })}
-                type="number"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('complaints.form.attachments')}</label>
-              <input
-                type="file"
-                multiple
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                onChange={e => setNewComplaint({ ...newComplaint, attachments: e.target.files ? Array.from(e.target.files) : [] })}
-              />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={submitting} variant="primary" size="md">
-                {submitting ? t('complaints.submitting') : t('complaints.submitComplaint')}
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {complaints.length === 0 && (
-          <div className="col-span-full text-center text-gray-400 py-16 text-lg font-medium bg-white rounded-xl shadow border border-blue-50">{t('complaints.noComplaints')}</div>
-        )}
-        {complaints.map(c => (
-          <div
-            key={c.id}
-            className={`bg-white rounded-xl shadow-md p-6 border-2 transition transform duration-200 cursor-pointer group ${selectedComplaint?.id === c.id ? 'border-blue-500 shadow-2xl scale-[1.02]' : 'border-blue-50 hover:border-blue-300 hover:shadow-xl'}`}
-            onClick={() => handleSelectComplaint(c.id)}
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+      <div className="container mx-auto max-w-6xl p-4 md:p-8">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
+        >
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-500 to-orange-500 rounded-full mb-4 shadow-lg">
+            <FaShieldAlt className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+            {t('complaints.title')}
+          </h1>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Report issues and get support for your rental experiences
+          </p>
+        </motion.div>
+
+        {/* New Complaint Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-center mb-8"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowNewForm(!showNewForm)}
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-red-500 to-orange-500 text-white px-8 py-4 rounded-xl font-semibold hover:from-red-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${c.status === 'submitted' ? 'bg-yellow-100 text-yellow-800' : c.status === 'closed_no_action' ? 'bg-gray-200 text-gray-600' : c.status === 'resolved' ? 'bg-green-100 text-green-800' : c.status === 'under_review' ? 'bg-blue-100 text-blue-800' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>{t(`complaints.status.${c.status}`)}</span>
-                <span className="text-gray-400 text-xs">{new Date(c.created_at).toLocaleDateString()}</span>
-              </div>
-              <span className="text-xs text-gray-500 font-mono">ID: {c.complaint_uid}</span>
-            </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-1 truncate group-hover:text-blue-700 transition-colors">{c.title}</h3>
-            <div className="text-sm text-gray-600 mb-2 truncate">{c.details}</div>
-            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-              <span className="inline-block px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 font-medium">{t('complaints.form.type')}: {t(`complaints.type.${c.complaint_type}`)}</span>
-              {c.related_rental_id && <span className="inline-block px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-100 font-medium">{t('complaints.form.rental')}: {c.related_rental_id}</span>}
-              {c.related_product_id && <span className="inline-block px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100 font-medium">{t('complaints.form.product')}: {c.related_product_id}</span>}
-            </div>
-          </div>
-        ))}
-      </div>
-      {/* Complaint Details Side Panel/Modal */}
-      {selectedComplaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 p-8 relative animate-fadeIn">
-            <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-blue-600 text-2xl font-bold focus:outline-none"
-              onClick={() => setSelectedComplaint(null)}
-              aria-label={t('complaints.close')}
+            {showNewForm ? (
+              <>
+                <FaTimes className="h-5 w-5" />
+                {t('complaints.cancel')}
+              </>
+            ) : (
+              <>
+                <FaPlus className="h-5 w-5" />
+                {t('complaints.newComplaint')}
+                <FaArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </motion.button>
+        </motion.div>
+
+        {/* New Complaint Form */}
+        <AnimatePresence>
+          {showNewForm && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mb-8 overflow-hidden"
             >
-              &times;
-            </button>
-            <h3 className="text-2xl font-bold text-blue-700 mb-2">{t('complaints.detailTitle')}</h3>
-            <div className="mb-4">
-              <div className="flex flex-wrap gap-4 mb-2">
-                <span className="inline-block px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-800">{t(`complaints.status.${selectedComplaint.status}`)}</span>
-                <span className="text-gray-400 text-xs">{new Date(selectedComplaint.created_at).toLocaleString()}</span>
-                <span className="text-sm text-gray-500">ID: {selectedComplaint.complaint_uid}</span>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <FaExclamationTriangle className="h-6 w-6 text-red-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">{t('complaints.submitNewTitle')}</h2>
               </div>
-              <div className="mb-2"><b>{t('complaints.form.title')}:</b> {selectedComplaint.title}</div>
-              <div className="mb-2"><b>{t('complaints.form.type')}:</b> {t(`complaints.type.${selectedComplaint.complaint_type}`)}</div>
-              <div className="mb-2"><b>{t('complaints.form.details')}:</b> {selectedComplaint.details}</div>
-              <div className="mb-2"><b>{t('complaints.adminNotes')}:</b> {selectedComplaint.admin_notes || '-'}</div>
-              <div className="mb-2"><b>{t('complaints.resolutionNotes')}:</b> {selectedComplaint.resolution_notes || '-'}</div>
-              <div className="mb-2"><b>{t('complaints.form.attachments')}:</b> {selectedComplaint.complaint_attachments && selectedComplaint.complaint_attachments.length > 0 ? (
-                <ul className="list-disc ml-6">
-                  {selectedComplaint.complaint_attachments.map((a: any) => (
-                    <li key={a.id}><a href={a.file_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{a.description || a.file_url}</a></li>
-                  ))}
-                </ul>
-              ) : t('complaints.none')}
+              
+              <form onSubmit={handleNewComplaintSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('complaints.form.title')}
+                    </label>
+                    <input
+                      type="text"
+                      value={newComplaint.title}
+                      onChange={e => setNewComplaint({ ...newComplaint, title: e.target.value })}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('complaints.form.type')}
+                    </label>
+                    <select
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      value={newComplaint.complaint_type}
+                      onChange={e => setNewComplaint({ ...newComplaint, complaint_type: e.target.value })}
+                      required
+                    >
+                      <option value="">{t('complaints.form.typeSelect')}</option>
+                      {COMPLAINT_TYPES.map(type => (
+                        <option key={type.value} value={type.value}>
+                          {t(type.label)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    {t('complaints.form.details')}
+                  </label>
+                  <textarea
+                    value={newComplaint.details}
+                    onChange={e => setNewComplaint({ ...newComplaint, details: e.target.value })}
+                    rows={4}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all resize-none"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('complaints.form.rental')}
+                    </label>
+                    <select
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      value={newComplaint.related_rental_id}
+                      onChange={e => {
+                        const rentalId = e.target.value;
+                        const rental = rentalOptions.find(r => String(r.id) === rentalId);
+                        setNewComplaint(prev => ({
+                          ...prev,
+                          related_rental_id: rentalId,
+                          related_product_id: rentalId && rental?.product_id ? String(rental.product_id) : '',
+                          subject_user_id: rentalId && rental?.owner_id ? String(rental.owner_id) : '',
+                        }));
+                      }}
+                    >
+                      <option value="">{t('complaints.form.noSelect')}</option>
+                      {rentalOptions.map(r => (
+                        <option key={r.id} value={r.id}>
+                          {r.id} - {r.product?.title || t('complaints.none')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('complaints.form.product')}
+                    </label>
+                    <input
+                      type="number"
+                      value={newComplaint.related_product_id}
+                      onChange={e => setNewComplaint({ ...newComplaint, related_product_id: e.target.value })}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('complaints.form.user')}
+                    </label>
+                    <input
+                      type="number"
+                      value={newComplaint.subject_user_id}
+                      onChange={e => setNewComplaint({ ...newComplaint, subject_user_id: e.target.value })}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    {t('complaints.form.attachments')}
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-red-400 transition-colors">
+                    <input
+                      type="file"
+                      multiple
+                      className="hidden"
+                      id="file-upload"
+                      onChange={e => setNewComplaint({ ...newComplaint, attachments: e.target.files ? Array.from(e.target.files) : [] })}
+                    />
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <FaPaperclip className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-600">Click to upload files or drag and drop</p>
+                      <p className="text-sm text-gray-400 mt-1">Support for images, PDFs, and documents</p>
+                    </label>
+                  </div>
+                  {newComplaint.attachments.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-600">Selected files: {newComplaint.attachments.length}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end">
+                  <motion.button
+                    type="submit"
+                    disabled={submitting}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-8 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-orange-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {submitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        {t('complaints.submitting')}
+                      </>
+                    ) : (
+                      <>
+                        <FaExclamationTriangle className="h-4 w-4" />
+                        {t('complaints.submitComplaint')}
+                      </>
+                    )}
+                  </motion.button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Complaints Grid */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          {complaints.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16"
+            >
+              <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-12 max-w-md mx-auto">
+                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full mb-6">
+                  <FaCheckCircle className="h-12 w-12 text-green-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                  {t('complaints.noComplaints')}
+                </h3>
+                <p className="text-gray-500 leading-relaxed">
+                  Great! You have no complaints to report. Keep enjoying your rental experience.
+                </p>
               </div>
-              <div className="mb-2"><b>{t('complaints.form.rental')}:</b> {selectedComplaint.related_rental_id}</div>
-              <div className="mb-2"><b>{t('complaints.form.product')}:</b> {selectedComplaint.related_product_id}</div>
-              <div className="mb-2"><b>{t('complaints.form.user')}:</b> {selectedComplaint.subject_user_id}</div>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <AnimatePresence>
+                {complaints.map((complaint, index) => (
+                  <motion.div
+                    key={complaint.id}
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                    transition={{ 
+                      duration: 0.4, 
+                      delay: index * 0.1,
+                      type: "spring",
+                      stiffness: 100
+                    }}
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    className={`bg-white rounded-2xl shadow-lg border-2 p-6 cursor-pointer transition-all duration-300 group ${
+                      selectedComplaint?.id === complaint.id 
+                        ? 'border-red-500 shadow-2xl scale-[1.02]' 
+                        : 'border-gray-100 hover:border-red-300 hover:shadow-xl'
+                    }`}
+                    onClick={() => handleSelectComplaint(complaint.id)}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(complaint.status)}`}>
+                          {getStatusIcon(complaint.status)}
+                          {t(`complaints.status.${complaint.status}`)}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500 font-mono">#{complaint.complaint_uid}</span>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2 group-hover:text-red-600 transition-colors">
+                      {complaint.title}
+                    </h3>
+
+                    {/* Details */}
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed">
+                      {complaint.details}
+                    </p>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-xs font-medium">
+                        <FaTag className="h-3 w-3" />
+                        {t(`complaints.type.${complaint.complaint_type}`)}
+                      </span>
+                      {complaint.related_rental_id && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 text-purple-700 border border-purple-100 text-xs font-medium">
+                          <FaBox className="h-3 w-3" />
+                          Rental #{complaint.related_rental_id}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <FaCalendarAlt className="h-3 w-3" />
+                        {new Date(complaint.created_at).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center gap-1 text-red-500">
+                        <FaEye className="h-3 w-3" />
+                        View Details
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+        </motion.div>
+
+        {/* Complaint Details Modal */}
+        <AnimatePresence>
+          {selectedComplaint && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+              onClick={() => setSelectedComplaint(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-red-100 rounded-lg">
+                        <FaExclamationTriangle className="h-6 w-6 text-red-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-800">{t('complaints.detailTitle')}</h3>
+                        <p className="text-sm text-gray-500">Complaint #{selectedComplaint.complaint_uid}</p>
+                      </div>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      onClick={() => setSelectedComplaint(null)}
+                    >
+                      <FaTimes className="h-6 w-6" />
+                    </motion.button>
+                  </div>
+                </div>
+
+                {/* Modal Content */}
+                <div className="p-6 space-y-6">
+                  {/* Status and Date */}
+                  <div className="flex items-center gap-4">
+                    <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(selectedComplaint.status)}`}>
+                      {getStatusIcon(selectedComplaint.status)}
+                      {t(`complaints.status.${selectedComplaint.status}`)}
+                    </span>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <FaCalendarAlt className="h-4 w-4" />
+                      {new Date(selectedComplaint.created_at).toLocaleString()}
+                    </div>
+                  </div>
+
+                  {/* Complaint Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-2">{t('complaints.form.title')}</h4>
+                      <p className="text-gray-600">{selectedComplaint.title}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-2">{t('complaints.form.type')}</h4>
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-sm">
+                        <FaTag className="h-3 w-3" />
+                        {t(`complaints.type.${selectedComplaint.complaint_type}`)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">{t('complaints.form.details')}</h4>
+                    <p className="text-gray-600 leading-relaxed">{selectedComplaint.details}</p>
+                  </div>
+
+                  {/* Related Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                        <FaBox className="h-4 w-4" />
+                        {t('complaints.form.rental')}
+                      </h4>
+                      <p className="text-gray-600">{selectedComplaint.related_rental_id || 'N/A'}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                        <FaTag className="h-4 w-4" />
+                        {t('complaints.form.product')}
+                      </h4>
+                      <p className="text-gray-600">{selectedComplaint.related_product_id || 'N/A'}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                        <FaUser className="h-4 w-4" />
+                        {t('complaints.form.user')}
+                      </h4>
+                      <p className="text-gray-600">{selectedComplaint.subject_user_id || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  {/* Admin Notes */}
+                  {selectedComplaint.admin_notes && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <h4 className="font-semibold text-blue-800 mb-2">{t('complaints.adminNotes')}</h4>
+                      <p className="text-blue-700">{selectedComplaint.admin_notes}</p>
+                    </div>
+                  )}
+
+                  {/* Resolution Notes */}
+                  {selectedComplaint.resolution_notes && (
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                      <h4 className="font-semibold text-green-800 mb-2">{t('complaints.resolutionNotes')}</h4>
+                      <p className="text-green-700">{selectedComplaint.resolution_notes}</p>
+                    </div>
+                  )}
+
+                  {/* Attachments */}
+                  {selectedComplaint.complaint_attachments && selectedComplaint.complaint_attachments.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <FaPaperclip className="h-4 w-4" />
+                        {t('complaints.form.attachments')}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {selectedComplaint.complaint_attachments.map((attachment: any) => (
+                          <motion.a
+                            key={attachment.id}
+                            href={attachment.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            whileHover={{ scale: 1.02 }}
+                            className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <FaFileAlt className="h-5 w-5 text-gray-500" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-700 truncate">
+                                {attachment.description || 'Attachment'}
+                              </p>
+                              <p className="text-xs text-gray-500">Click to download</p>
+                            </div>
+                            <FaDownload className="h-4 w-4 text-gray-400" />
+                          </motion.a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

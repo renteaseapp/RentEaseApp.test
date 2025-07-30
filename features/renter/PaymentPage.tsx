@@ -6,11 +6,30 @@ import { getPayoutMethodsByOwnerId } from '../../services/ownerService';
 import { Rental, ApiError, PaymentStatus, PaymentProofPayload, RentalStatus, PayoutMethod, Product } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
 import { getProductByID } from '../../services/productService';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaCreditCard, 
+  FaUpload, 
+  FaCheckCircle, 
+  FaExclamationTriangle, 
+  FaClock, 
+  FaUser, 
+  FaStar, 
+  FaMapMarkerAlt, 
+  FaMoneyBillWave,
+  FaShieldAlt,
+  FaBox,
+  FaArrowRight,
+  FaDownload,
+  FaInfoCircle,
+  FaQrcode,
+  FaEye,
+  FaHistory,
+  FaCalendarAlt
+} from 'react-icons/fa';
 
 export const PaymentPage: React.FC = () => {
   const { rentalId } = useParams<{ rentalId: string }>();
@@ -125,45 +144,133 @@ export const PaymentPage: React.FC = () => {
   // --- Modern Layout ---
   if (rental.payment_status === PaymentStatus.PAID) {
       return (
-          <div className="container mx-auto p-4 md:p-8 text-center">
-              <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                <div className="rounded-full bg-green-100 w-20 h-20 flex items-center justify-center mb-4">
-                  <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                </div>
-                <h1 className="text-2xl font-bold text-green-600 mb-2">{t('paymentPage.paymentSuccessTitle', 'Payment Successful!')}</h1>
-                <p className="mb-4">{t('paymentPage.paymentSuccessDesc', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })}</p>
-                <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id))} className="mt-2">
-                  <Button variant="primary" size="lg">{t('paymentPage.viewRentalDetailBtn', 'View Rental Details')}</Button>
-                </Link>
-              </div>
+          <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+            <div className="container mx-auto p-4 md:p-8">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6 }}
+                className="flex flex-col items-center justify-center min-h-[60vh]"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="rounded-full bg-green-100 w-24 h-24 flex items-center justify-center mb-6 shadow-lg"
+                >
+                  <FaCheckCircle className="w-12 h-12 text-green-600" />
+                </motion.div>
+                <motion.h1
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="text-3xl font-bold text-green-600 mb-4"
+                >
+                  {t('paymentPage.paymentSuccessTitle', 'Payment Successful!')}
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                  className="text-lg text-gray-600 mb-8"
+                >
+                  {t('paymentPage.paymentSuccessDesc', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })}
+                </motion.p>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.8 }}
+                >
+                  <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id))}>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      <FaEye className="h-5 w-5" />
+                      {t('paymentPage.viewRentalDetailBtn', 'View Rental Details')}
+                    </motion.button>
+                  </Link>
+                </motion.div>
+              </motion.div>
+            </div>
           </div>
       );
   }
 
   if (rental.rental_status === RentalStatus.PENDING_OWNER_APPROVAL) {
     return (
-      <div className="container mx-auto p-4 md:p-8 flex flex-col items-center min-h-[60vh]">
-        <div className="max-w-lg w-full">
-          <div className="flex items-center justify-center mb-4">
-            <svg className="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01" /></svg>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">{t('paymentPage.title')}</h1>
-          <Card className="mb-6">
-            <CardContent>
-              <h2 className="text-xl font-semibold mb-2">{t('paymentPage.rentalIdLabel', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })} {t('paymentPage.forProduct', { title: rental.product?.title || '-' })}</h2>
-              <p className="text-lg font-bold mb-4">{t('paymentPage.totalAmountDueLabel')}: ฿{Number.isFinite(rental.total_amount_due) ? rental.total_amount_due.toLocaleString() : '-'}</p>
-              <p><strong>{t('paymentPage.totalPaidLabel')}:</strong> ฿{Number.isFinite(rental.final_amount_paid ?? rental.total_amount_due) ? (rental.final_amount_paid ?? rental.total_amount_due).toLocaleString() : '-'}</p>
-              <p><strong>{t('paymentPage.rentalPeriodLabel')}:</strong> {rental.start_date} - {rental.end_date}</p>
-              <p><strong>{t('paymentPage.statusLabel')}:</strong> {rental.rental_status ? rental.rental_status.replace('_', ' ').toUpperCase() : '-'}</p>
-              <p><strong>{t('paymentPage.paymentStatusLabel')}:</strong> {rental.payment_status ? rental.payment_status.replace('_', ' ').toUpperCase() : '-'}</p>
-            </CardContent>
-          </Card>
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded flex items-center gap-2">
-            <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01" /></svg>
-            <div>
-              <strong>{t('paymentPage.waitingApprovalTitle')}</strong> {t('paymentPage.waitingApprovalDesc')}
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-orange-50">
+        <div className="container mx-auto p-4 md:p-8">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col items-center min-h-[60vh]"
+          >
+            <div className="max-w-lg w-full">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="flex items-center justify-center mb-6"
+              >
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl shadow-lg">
+                  <FaClock className="h-10 w-10 text-white" />
+                </div>
+              </motion.div>
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="text-3xl font-bold text-gray-800 mb-6 text-center"
+              >
+                {t('paymentPage.title')}
+              </motion.h1>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mb-6"
+              >
+                <h2 className="text-xl font-semibold mb-4">{t('paymentPage.rentalIdLabel', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })} {t('paymentPage.forProduct', { title: rental.product?.title || '-' })}</h2>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-gray-600">{t('paymentPage.totalAmountDueLabel')}:</span>
+                    <span className="font-bold text-lg text-blue-600">฿{Number.isFinite(rental.total_amount_due) ? rental.total_amount_due.toLocaleString() : '-'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-gray-600">{t('paymentPage.totalPaidLabel')}:</span>
+                    <span className="font-semibold">฿{Number.isFinite(rental.final_amount_paid ?? rental.total_amount_due) ? (rental.final_amount_paid ?? rental.total_amount_due).toLocaleString() : '-'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-gray-600">{t('paymentPage.rentalPeriodLabel')}:</span>
+                    <span className="font-semibold">{rental.start_date} - {rental.end_date}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-gray-600">{t('paymentPage.statusLabel')}:</span>
+                    <span className="font-semibold">{rental.rental_status ? rental.rental_status.replace('_', ' ').toUpperCase() : '-'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-600">{t('paymentPage.paymentStatusLabel')}:</span>
+                    <span className="font-semibold">{rental.payment_status ? rental.payment_status.replace('_', ' ').toUpperCase() : '-'}</span>
+                  </div>
+                </div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.8 }}
+                className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-6 rounded-xl flex items-center gap-3"
+              >
+                <FaExclamationTriangle className="w-6 h-6 text-yellow-400 flex-shrink-0" />
+                <div>
+                  <strong className="block mb-1">{t('paymentPage.waitingApprovalTitle')}</strong>
+                  <span>{t('paymentPage.waitingApprovalDesc')}</span>
+                </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     );
@@ -171,112 +278,253 @@ export const PaymentPage: React.FC = () => {
 
   // --- Main Modern Layout ---
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-        {/* Product Summary */}
-        <div>
-          {isLoadingProduct ? (
-            <LoadingSpinner message={t('productDetailPage.loadingDetails')} />
-          ) : product && (
-            <Card className="mb-6">
-              <CardContent>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="container mx-auto p-4 md:p-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-4 mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl shadow-lg">
+              <FaCreditCard className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                {t('paymentPage.title')}
+              </h1>
+              <p className="text-gray-600 text-lg">ชำระเงินสำหรับการเช่า</p>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto"
+        >
+          {/* Product Summary */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            {isLoadingProduct ? (
+              <LoadingSpinner message={t('productDetailPage.loadingDetails')} />
+            ) : product && (
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mb-6">
                 <div className="flex flex-col items-center md:items-start">
                   {mainImage ? (
-                    <img src={mainImage} alt={product.title} className="object-cover w-48 h-48 rounded-lg border mb-4" />
+                    <img src={mainImage} alt={product.title} className="object-cover w-48 h-48 rounded-xl border-2 border-gray-200 mb-4 shadow-lg" />
                   ) : (
-                    <div className="w-48 h-48 bg-gray-100 flex items-center justify-center rounded-lg mb-4">{t('productDetailPage.noImage')}</div>
+                    <div className="w-48 h-48 bg-gray-100 flex items-center justify-center rounded-xl mb-4 border-2 border-gray-200">
+                      <FaBox className="w-16 h-16 text-gray-300" />
+                    </div>
                   )}
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1">{product.title || '-'}</h2>
-                  {product.category && <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full mb-2">{product.category.name}</span>}
-                  <div className="flex items-center gap-2 mb-2">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{product.title || '-'}</h2>
+                  {product.category && (
+                    <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full mb-3 border border-blue-200">
+                      {product.category.name}
+                    </span>
+                  )}
+                  <div className="flex items-center gap-2 mb-3">
                     {[...Array(5)].map((_, i) => (
-                      <svg key={i} xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${i < Math.round(product.average_rating || 0) ? 'text-yellow-400' : 'text-gray-300'}`} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                      <FaStar key={i} className={`h-4 w-4 ${i < Math.round(product.average_rating || 0) ? 'text-yellow-400' : 'text-gray-300'}`} />
                     ))}
-                    <span className="text-xs text-gray-600">{t('productDetailPage.reviewsCount', { count: product.total_reviews || 0 })}</span>
+                    <span className="text-xs text-gray-600">({t('productDetailPage.reviewsCount', { count: product.total_reviews || 0 })})</span>
                   </div>
-                  <div className="text-blue-700 font-bold text-lg mb-1">฿{(product.rental_price_per_day ?? 0).toLocaleString()} <span className="text-sm font-normal text-gray-500">{t('productCard.pricePerDay')}</span></div>
-                  {product.security_deposit && <div className="text-sm text-gray-600 mb-1">{t('productDetailPage.securityDeposit')}: <span className="font-semibold text-gray-700">฿{product.security_deposit.toLocaleString()}</span></div>}
-                  {product.min_rental_duration_days && product.max_rental_duration_days && (
-                    <div className="text-sm text-gray-600 mb-1">{t('productDetailPage.rentalDuration')}: <span className="font-semibold text-gray-700">{product.min_rental_duration_days} - {product.max_rental_duration_days} {t('productDetailPage.days')}</span></div>
+                  <div className="text-blue-700 font-bold text-lg mb-2 flex items-center gap-2">
+                    <FaMoneyBillWave className="h-5 w-5" />
+                    ฿{(product.rental_price_per_day ?? 0).toLocaleString()} <span className="text-sm font-normal text-gray-500">{t('productCard.pricePerDay')}</span>
+                  </div>
+                  {product.security_deposit && (
+                    <div className="text-sm text-gray-600 mb-2 flex items-center gap-2">
+                      <FaShieldAlt className="h-4 w-4" />
+                      {t('productDetailPage.securityDeposit')}: <span className="font-semibold text-gray-700">฿{product.security_deposit.toLocaleString()}</span>
+                    </div>
                   )}
-                  {product.province && <div className="text-sm text-gray-600 flex items-center mb-1"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>{t('productDetailPage.location', { locationName: product.province.name_th })}</div>}
-                  {product.address_details && <div className="text-sm text-gray-600 mb-1">{t('productDetailPage.pickupLocation')}: {product.address_details}</div>}
-                  {product.description && <div className="text-sm text-gray-700 mt-2 mb-1">{product.description}</div>}
+                  {product.min_rental_duration_days && product.max_rental_duration_days && (
+                    <div className="text-sm text-gray-600 mb-2 flex items-center gap-2">
+                      <FaClock className="h-4 w-4" />
+                      {t('productDetailPage.rentalDuration')}: <span className="font-semibold text-gray-700">{product.min_rental_duration_days} - {product.max_rental_duration_days} {t('productDetailPage.days')}</span>
+                    </div>
+                  )}
+                  {product.province && (
+                    <div className="text-sm text-gray-600 flex items-center mb-2">
+                      <FaMapMarkerAlt className="h-4 w-4 mr-2 text-gray-500" />
+                      {t('productDetailPage.location', { locationName: product.province.name_th })}
+                    </div>
+                  )}
+                  {product.address_details && (
+                    <div className="text-sm text-gray-600 mb-2">{t('productDetailPage.pickupLocation')}: {product.address_details}</div>
+                  )}
+                  {product.description && (
+                    <div className="text-sm text-gray-700 mt-3 mb-2">{product.description}</div>
+                  )}
                   {product.specifications && Object.keys(product.specifications).length > 0 && (
-                    <div className="text-xs text-gray-500 mt-1 mb-1">{t('productDetailPage.specificationsLabel')}: {Object.entries(product.specifications).map(([k,v]) => `${k}: ${v}`).join(', ')}</div>
+                    <div className="text-xs text-gray-500 mt-2 mb-2">{t('productDetailPage.specificationsLabel')}: {Object.entries(product.specifications).map(([k,v]) => `${k}: ${v}`).join(', ')}</div>
                   )}
                   {product.owner && (
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-2 mt-3 p-3 bg-gray-50 rounded-xl">
                       {product.owner.profile_picture_url ? (
                         <img src={product.owner.profile_picture_url} alt={product.owner.first_name || 'Owner'} className="w-8 h-8 rounded-full object-cover" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">{(product.owner.first_name || 'O')[0].toUpperCase()}</div>
+                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                          <FaUser className="h-4 w-4" />
+                        </div>
                       )}
                       <span className="text-sm text-gray-800 font-medium">{product.owner.first_name}</span>
                       {product.owner.average_owner_rating !== undefined && product.owner.average_owner_rating !== null && (
-                        <span className="flex items-center text-xs text-gray-500 ml-1">{[...Array(5)].map((_, i) => (
-                          <svg key={i} xmlns="http://www.w3.org/2000/svg" className={`h-3 w-3 ${i < Math.round(product.owner?.average_owner_rating || 0) ? 'text-yellow-400' : 'text-gray-300'}`} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                        ))} <span className="ml-1">({product.owner.average_owner_rating.toFixed(1)})</span></span>
+                        <span className="flex items-center text-xs text-gray-500 ml-1">
+                          {[...Array(5)].map((_, i) => (
+                            <FaStar key={i} className={`h-3 w-3 ${i < Math.round(product.owner?.average_owner_rating || 0) ? 'text-yellow-400' : 'text-gray-300'}`} />
+                          ))} <span className="ml-1">({product.owner.average_owner_rating.toFixed(1)})</span>
+                        </span>
                       )}
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-        {/* Payment/Proof Section */}
-        <div>
-          <Card>
-            <CardContent>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /></svg>
-                {t('paymentPage.title')}
-              </h2>
-              <div className="mb-2 flex flex-wrap gap-2 items-center">
-                <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">{t('paymentPage.rentalIdLabel', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })}</span>
-                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{t('paymentPage.forProduct', { title: rental.product?.title || '-' })}</span>
-                <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">{t('paymentPage.totalAmountDueLabel')}: ฿{Number.isFinite(rental.total_amount_due) ? rental.total_amount_due.toLocaleString() : '-'}</span>
               </div>
-              <div className="mb-4">
-                <span className="font-semibold text-gray-700">{t('paymentPage.rentalPeriodLabel')}:</span> {rental.start_date} - {rental.end_date}
+            )}
+          </motion.div>
+          
+          {/* Payment/Proof Section */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-blue-100 rounded-xl">
+                  <FaCreditCard className="h-6 w-6 text-blue-600" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-800">{t('paymentPage.title')}</h2>
               </div>
-              {error && <ErrorMessage message={error} onDismiss={() => setError(null)} />}
-              {successMessage && <div className="bg-green-100 text-green-700 p-3 rounded my-3">{successMessage}</div>}
+              
+              <div className="mb-4 flex flex-wrap gap-2 items-center">
+                <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">{t('paymentPage.rentalIdLabel', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })}</span>
+                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">{t('paymentPage.forProduct', { title: rental.product?.title || '-' })}</span>
+                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">{t('paymentPage.totalAmountDueLabel')}: ฿{Number.isFinite(rental.total_amount_due) ? rental.total_amount_due.toLocaleString() : '-'}</span>
+              </div>
+              
+              <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <FaCalendarAlt className="h-4 w-4 text-blue-600" />
+                  <span className="font-semibold text-blue-800">{t('paymentPage.rentalPeriodLabel')}:</span>
+                </div>
+                <span className="text-blue-700">{rental.start_date} - {rental.end_date}</span>
+              </div>
+              
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl"
+                >
+                  <ErrorMessage message={error} onDismiss={() => setError(null)} />
+                </motion.div>
+              )}
+              
+              {successMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl"
+                >
+                  <div className="flex items-center gap-2 text-green-700">
+                    <FaCheckCircle className="h-4 w-4" />
+                    <span>{successMessage}</span>
+                  </div>
+                </motion.div>
+              )}
 
               {rental.payment_status === PaymentStatus.PENDING_VERIFICATION ? (
-                <div className="text-center py-4">
-                  <p className="text-yellow-700 font-semibold">{t('paymentPage.pendingVerificationMessage')}</p>
-                  <p className="text-sm text-gray-600">{t('paymentPage.pendingVerificationNotify')}</p>
-                  <Link to={ROUTE_PATHS.MY_RENTALS_RENTER} className="mt-4 inline-block">
-                    <Button variant="secondary" size="lg">{t('paymentPage.goToPaymentHistory')}</Button>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-8"
+                >
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
+                    <FaClock className="h-8 w-8 text-yellow-600" />
+                  </div>
+                  <p className="text-yellow-700 font-semibold mb-2">{t('paymentPage.pendingVerificationMessage')}</p>
+                  <p className="text-sm text-gray-600 mb-6">{t('paymentPage.pendingVerificationNotify')}</p>
+                  <Link to={ROUTE_PATHS.MY_RENTALS_RENTER}>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl font-semibold hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      <FaHistory className="h-4 w-4" />
+                      {t('paymentPage.goToPaymentHistory')}
+                    </motion.button>
                   </Link>
-                </div>
+                </motion.div>
               ) : (rental.payment_status === PaymentStatus.UNPAID || rental.rental_status === RentalStatus.PENDING_PAYMENT) ? (
                 <>
-                  <div className="my-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-                    <h3 className="font-semibold text-blue-700 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a5 5 0 00-10 0v2a2 2 0 00-2 2v7a2 2 0 002 2h10a2 2 0 002-2v-7a2 2 0 00-2-2z" /></svg>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.8 }}
+                    className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-xl"
+                  >
+                    <h3 className="font-semibold text-blue-700 flex items-center gap-2 mb-4">
+                      <FaShieldAlt className="h-5 w-5 text-blue-400" />
                       {t('paymentPage.bankTransferTitle')}
                     </h3>
                     {isLoadingPayout ? (
-                      <p className="text-sm text-blue-600">{t('paymentPage.loadingPayout')}</p>
+                      <div className="flex items-center gap-2 text-blue-600">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <span className="text-sm">{t('paymentPage.loadingPayout')}</span>
+                      </div>
                     ) : payoutMethods.length > 0 ? (
                       (() => {
                         const primary = payoutMethods.find(m => m.is_primary) || payoutMethods[0];
                         if (primary.method_type === 'bank_account') {
-                          return <>
-                            <p className="text-sm text-blue-600">{t('paymentPage.bankLabel')}: {primary.bank_name || '-'}</p>
-                            <p className="text-sm text-blue-600">{t('paymentPage.accountNameLabel')}: {primary.account_name}</p>
-                            <p className="text-sm text-blue-600">{t('paymentPage.accountNumberLabel')}: {primary.account_number}</p>
-                            <p className="text-sm text-blue-600">{t('paymentPage.includeRentalIdNote', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })}</p>
-                          </>;
+                          return (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <FaCreditCard className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm text-blue-600">{t('paymentPage.bankLabel')}: <strong>{primary.bank_name || '-'}</strong></span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <FaUser className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm text-blue-600">{t('paymentPage.accountNameLabel')}: <strong>{primary.account_name}</strong></span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <FaCreditCard className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm text-blue-600">{t('paymentPage.accountNumberLabel')}: <strong>{primary.account_number}</strong></span>
+                              </div>
+                              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <div className="flex items-center gap-2 text-sm text-yellow-700">
+                                  <FaInfoCircle className="h-4 w-4" />
+                                  <span>{t('paymentPage.includeRentalIdNote', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
                         } else if (primary.method_type === 'promptpay') {
-                          return <>
-                            <p className="text-sm text-blue-600">{t('paymentPage.promptpayLabel')}: {primary.account_number}</p>
-                            <p className="text-sm text-blue-600">{t('paymentPage.accountNameLabel')}: {primary.account_name}</p>
-                            <p className="text-sm text-blue-600">{t('paymentPage.includeRentalIdNote', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })}</p>
-                          </>;
+                          return (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <FaQrcode className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm text-blue-600">{t('paymentPage.promptpayLabel')}: <strong>{primary.account_number}</strong></span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <FaUser className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm text-blue-600">{t('paymentPage.accountNameLabel')}: <strong>{primary.account_name}</strong></span>
+                              </div>
+                              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <div className="flex items-center gap-2 text-sm text-yellow-700">
+                                  <FaInfoCircle className="h-4 w-4" />
+                                  <span>{t('paymentPage.includeRentalIdNote', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
                         } else {
                           return <p className="text-sm text-blue-600">{t('paymentPage.unknownPayoutMethod')}</p>;
                         }
@@ -284,17 +532,30 @@ export const PaymentPage: React.FC = () => {
                     ) : (
                       <p className="text-sm text-red-600">{t('paymentPage.noPayoutMethod')}</p>
                     )}
-                  </div>
+                  </motion.div>
+                  
                   {/* Modern Upload Proof */}
-                  <form onSubmit={handleSubmitProof} className="space-y-6">
+                  <motion.form
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 1.0 }}
+                    onSubmit={handleSubmitProof}
+                    className="space-y-6"
+                  >
                     <div>
-                      <label htmlFor="payment_proof_image" className="block text-sm font-medium text-gray-700 mb-1">
-                        <span className="flex items-center gap-1">
-                          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10V6a5 5 0 0110 0v4" /></svg>
+                      <label htmlFor="payment_proof_image" className="block text-sm font-semibold text-gray-700 mb-3">
+                        <span className="flex items-center gap-2">
+                          <FaUpload className="h-5 w-5 text-blue-400" />
                           {t('paymentPage.uploadProofLabel', 'Upload Payment Proof (e.g., transfer slip)')}
                         </span>
                       </label>
-                      <div className="relative border-2 border-dashed border-blue-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition" tabIndex={0} aria-label={t('paymentPage.uploadProofLabel')} onClick={() => document.getElementById('payment_proof_image')?.click()} onKeyDown={e => { if (e.key === 'Enter') document.getElementById('payment_proof_image')?.click(); }}>
+                      <div 
+                        className="relative border-2 border-dashed border-blue-300 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition-all duration-200" 
+                        tabIndex={0} 
+                        aria-label={t('paymentPage.uploadProofLabel')} 
+                        onClick={() => document.getElementById('payment_proof_image')?.click()} 
+                        onKeyDown={e => { if (e.key === 'Enter') document.getElementById('payment_proof_image')?.click(); }}
+                      >
                         <input 
                           type="file" 
                           id="payment_proof_image" 
@@ -304,22 +565,59 @@ export const PaymentPage: React.FC = () => {
                           required
                           className="hidden"
                         />
-                        <svg className="w-10 h-10 text-blue-300 mb-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4a1 1 0 011-1h8a1 1 0 011 1v12M7 16l5 5 5-5" /></svg>
-                        <span className="text-blue-500 font-medium">{t('paymentPage.dragDropOrClick', 'Drag & drop or click to select image')}</span>
-                        {imagePreview && <img src={imagePreview} alt="Payment proof preview" className="mt-2 h-40 rounded border shadow" />}
+                        <FaUpload className="w-12 h-12 text-blue-300 mb-4" />
+                        <span className="text-blue-500 font-medium text-center">{t('paymentPage.dragDropOrClick', 'Drag & drop or click to select image')}</span>
+                        {imagePreview && (
+                          <motion.img 
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            src={imagePreview} 
+                            alt="Payment proof preview" 
+                            className="mt-4 h-40 rounded-lg border shadow-lg" 
+                          />
+                        )}
                       </div>
                     </div>
-                    <Button type="submit" isLoading={isSubmitting} fullWidth variant="primary" size="lg">
-                      {t('paymentPage.submitProofBtn', 'Submit Payment Proof')}
-                    </Button>
-                  </form>
+                    <motion.button
+                      type="submit"
+                      disabled={isSubmitting}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`w-full py-4 px-6 rounded-xl font-semibold text-white transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 ${
+                        isSubmitting
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600'
+                      }`}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <FaUpload className="h-5 w-5" />
+                          {t('paymentPage.submitProofBtn', 'Submit Payment Proof')}
+                        </>
+                      )}
+                    </motion.button>
+                  </motion.form>
                 </>
               ) : (
-                <p className="text-gray-600">{t('paymentPage.currentPaymentStatus', { status: rental.payment_status ? rental.payment_status.replace('_', ' ').toUpperCase() : '-' })}</p>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-8"
+                >
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <FaInfoCircle className="h-8 w-8 text-gray-600" />
+                  </div>
+                  <p className="text-gray-600">{t('paymentPage.currentPaymentStatus', { status: rental.payment_status ? rental.payment_status.replace('_', ' ').toUpperCase() : '-' })}</p>
+                </motion.div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );

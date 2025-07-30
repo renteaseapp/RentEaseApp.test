@@ -51,6 +51,11 @@
   },
   "loginPage": {
     "title": "Sign in to RentEase",
+    "subtitle": "Sign in to access our services",
+    "welcomeMessage": "Welcome to RentEase, the best rental platform",
+    "whyChooseUs": "Why Choose Us?",
+    "joinCommunity": "Join Our Community",
+    "communityDescription": "Connect with people and discover new items every day",
     "emailOrUsernameLabel": "Email or Username",
     "emailOrUsernamePlaceholder": "you@example.com or your_username",
     "passwordLabel": "Password",
@@ -60,10 +65,17 @@
     "signInButton": "Sign in",
     "notMember": "Not a member?",
     "createAccountLink": "Create an account",
-    "loginFailedError": "Login failed. Please try again."
+    "loginFailedError": "Login failed. Please try again.",
+    "features": {
+      "secure": "Secure and Trusted",
+      "fast": "Fast and Easy to Use",
+      "reliable": "Reliable and Quality"
+    }
   },
   "registerPage": {
     "title": "Create your RentEase Account",
+    "subtitle": "Start your journey with RentEase today",
+    "welcomeMessage": "Welcome to RentEase",
     "firstNameLabel": "First Name",
     "firstNamePlaceholder": "John",
     "lastNameLabel": "Last Name",
@@ -82,7 +94,17 @@
     "signInLink": "Sign in",
     "registrationFailedError": "Registration failed. Please try again.",
     "successMessage": "Registration successful. Please check your email for verification.",
-    "successMessageAutoLogin": "Registration successful."
+    "successMessageAutoLogin": "Registration successful!",
+    "joinCommunity": "Join Our Community",
+    "communityDescription": "Connect with people and discover new items every day",
+    "features": {
+      "community": "Strong Community",
+      "communityDesc": "Join a trusted and friendly user community",
+      "secure": "Secure and Trusted",
+      "secureDesc": "Your data is protected with high-level security measures",
+      "fast": "Fast and Easy to Use",
+      "fastDesc": "Quick and uncomplicated user experience"
+    }
   },
   "homePage": {
     "heroTitle": "Rent Anything, Effortlessly",
@@ -192,6 +214,7 @@
   },
   "userProfilePage": {
     "title": "My Profile",
+    "subtitle": "Manage your personal information and account settings",
     "saveAvatar": "Save Avatar",
     "uploadingAvatar": "Uploading...",
     "avatarUpdatedSuccess": "Avatar updated successfully!",
@@ -258,6 +281,8 @@
   },
   "forgotPasswordPage": {
     "title": "Forgot Your Password?",
+    "subtitle": "We'll help you recover your password securely",
+    "welcomeMessage": "Password Recovery",
     "instruction": "Enter your email address and we'll send you an OTP to reset your password.",
     "emailLabel": "Email Address",
     "emailPlaceholder": "you@example.com",
@@ -273,19 +298,48 @@
     "newPasswordPlaceholder": "Enter new password",
     "confirmPasswordLabel": "Confirm New Password",
     "confirmPasswordPlaceholder": "Confirm new password",
-    "resetPasswordButton": "Reset Password"
+    "resetPasswordButton": "Reset Password",
+    "securityNote": "Your security is our priority",
+    "securityDescription": "We use high-level security measures to protect your data",
+    "features": {
+      "secure": "Secure and Trusted",
+      "secureDesc": "Secure password recovery process with encryption",
+      "protected": "Data is Protected",
+      "protectedDesc": "Your personal data is protected with security measures",
+      "quick": "Quick and Easy",
+      "quickDesc": "Recover your password in just a few steps"
+    }
   },
   "resetPasswordPage": {
     "title": "Reset Your Password",
+    "subtitle": "Create a new secure password",
+    "welcomeMessage": "Reset Password",
+    "instruction": "Please enter your information to reset your password",
     "emailLabel": "Email Address",
     "emailPlaceholder": "you@example.com",
+    "otpLabel": "OTP Code",
+    "otpPlaceholder": "Enter OTP code received via email",
     "newPasswordLabel": "New Password",
     "newPasswordPlaceholder": "••••••••",
     "confirmNewPasswordLabel": "Confirm New Password",
     "resetPasswordButton": "Reset Password",
     "successMessage": "Your password has been successfully reset. You will be redirected to login shortly.",
+    "successTitle": "Password Reset Successful!",
+    "successDescription": "Your new password has been updated. You can now sign in to your account.",
     "proceedToLoginLink": "Proceed to Login",
-    "invalidTokenError": "Invalid password reset link. Token is missing."
+    "invalidTokenError": "Invalid password reset link. Token is missing.",
+    "needHelp": "Need help?",
+    "backToLogin": "Back to Login",
+    "securityNote": "Your security is our priority",
+    "securityDescription": "We use high-level security measures to protect your data",
+    "features": {
+      "secure": "Secure and Trusted",
+      "secureDesc": "Secure password reset process with encryption",
+      "temporary": "Temporary Token",
+      "temporaryDesc": "Reset tokens have limited lifespan for security",
+      "verified": "Verified",
+      "verifiedDesc": "Information has been verified and validated"
+    }
   },
   "searchPage": {
     "title": "Search Products",
@@ -296,15 +350,22 @@
     "allCategoriesOption": "All Categories",
     "provinceLabel": "Province",
     "allProvincesOption": "All Provinces",
+    "priceRangeLabel": "Price Range",
     "minPriceLabel": "Min Price",
     "minPricePlaceholder": "0",
     "maxPriceLabel": "Max Price",
     "maxPricePlaceholder": "Any",
     "sortByLabel": "Sort By",
     "sortNewest": "Newest",
+    "sortOldest": "Oldest",
     "sortPriceAsc": "Price: Low to High",
     "sortPriceDesc": "Price: High to Low",
-    "sortRating": "Rating",
+    "sortRatingHighToLow": "Rating: High to Low",
+    "sortRatingLowToHigh": "Rating: Low to High",
+    "sortMostViewed": "Most Viewed",
+    "sortLeastViewed": "Least Viewed",
+    "sortRecentlyUpdated": "Recently Updated",
+    "sortLeastRecentlyUpdated": "Least Recently Updated",
     "applyFiltersButton": "Apply Filters",
     "clearFiltersButton": "Clear Filters",
     "loadingProducts": "Searching for products...",
@@ -1250,7 +1311,10 @@
     "products": "Products",
     "categories": "Categories",
     "complaints": "Complaints",
-    "reports": "Reports & Analytics"
+    "reports": "Reports & Analytics",
+    "toggleSidebar": "Toggle Sidebar",
+    "userProfile": "User Profile",
+    "logout": "Logout"
   },
   "wishlistPage": {
     "title": "My Wishlist",

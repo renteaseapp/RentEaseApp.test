@@ -22,6 +22,13 @@
   "systemHealth": "System Health",
   "noData": "No data available.",
   "overviewComingSoon": "Detailed statistics and charts will be displayed here. (Coming Soon)",
+  "adminFeatures": "Admin Features",
+  "adminFeaturesSubtitle": "Access all management tools",
+  "accessFeature": "Access Feature",
+  "quickActions": "Quick Actions",
+  "viewUsers": "View Users",
+  "handleComplaints": "Handle Complaints",
+  "viewReports": "View Reports",
   "features": {
     "User Management": {
       "title": "User Management",
@@ -35,15 +42,15 @@
       "title": "Category Management",
       "description": "Add, edit, or remove product categories."
     },
-    "Static Content": {
-      "title": "Static Content",
-      "description": "Manage informational pages like About Us, ToS."
+    "Complaints System": {
+      "title": "Complaints System",
+      "description": "Handle user complaints and dispute resolution."
     },
     "System Settings": {
       "title": "System Settings",
       "description": "Configure global application settings."
     },
-    "Reports": {
+    "Reports & Analytics": {
       "title": "Reports & Analytics",
       "description": "View system-wide reports and analytics."
     }

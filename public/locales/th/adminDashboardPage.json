@@ -22,6 +22,13 @@
   "unresolvedComplaints": "ข้อร้องเรียนที่ยังไม่แก้ไข",
   "systemHealth": "สถานะระบบ",
   "noData": "ไม่มีข้อมูล",
+  "adminFeatures": "ฟีเจอร์ผู้ดูแลระบบ",
+  "adminFeaturesSubtitle": "เข้าถึงเครื่องมือการจัดการทั้งหมด",
+  "accessFeature": "เข้าถึงฟีเจอร์",
+  "quickActions": "การดำเนินการด่วน",
+  "viewUsers": "ดูผู้ใช้",
+  "handleComplaints": "จัดการข้อร้องเรียน",
+  "viewReports": "ดูรายงาน",
   "features": {
     "User Management": {
       "title": "จัดการผู้ใช้",
@@ -35,15 +42,15 @@
       "title": "จัดการหมวดหมู่",
       "description": "เพิ่ม แก้ไข หรือลบหมวดหมู่สินค้า"
     },
-    "Static Content": {
-      "title": "เนื้อหาคงที่",
-      "description": "จัดการหน้าเนื้อหาข้อมูล เช่น เกี่ยวกับเรา ข้อกำหนดการใช้บริการ"
+    "Complaints System": {
+      "title": "ระบบข้อร้องเรียน",
+      "description": "จัดการข้อร้องเรียนและการแก้ไขข้อพิพาท"
     },
     "System Settings": {
       "title": "ตั้งค่าระบบ",
       "description": "ตั้งค่าระบบและการทำงานของแอปพลิเคชัน"
     },
-    "Reports": {
+    "Reports & Analytics": {
       "title": "รายงาน & สถิติ",
       "description": "ดูรายงานและสถิติของระบบทั้งหมด"
     }

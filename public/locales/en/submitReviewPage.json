@@ -1,0 +1,40 @@
+{
+  "title": "Share Your Experience",
+  "subtitle": "Help others by leaving a review for your rental",
+  "reviewingRental": "Reviewing Your Rental",
+  "owner": "Owner",
+  "error": "Error",
+  "success": "Success!",
+  "rentalNotFound": "Rental Not Found",
+  "rentalNotAccessible": "This rental is not accessible for review.",
+  "loadingRental": "Loading rental for review...",
+  "rateProduct": "Rate the Product",
+  "rateProductDescription": "How was your experience with the product?",
+  "rateOwner": "Rate the Owner",
+  "rateOwnerDescription": "How was your interaction with the owner?",
+  "shareExperience": "Share Your Experience",
+  "shareExperienceDescription": "Tell others about your rental experience (optional)",
+  "commentPlaceholder": "Share your thoughts about the product quality, owner communication, delivery experience, and any other details that would help other renters...",
+  "reviewHelpsCommunity": "Your review helps the community",
+  "submitReview": "Submit Review",
+  "submittingReview": "Submitting Review...",
+  "reviewSubmitted": "Review Submitted!",
+  "thankYouMessage": "Thank you for sharing your experience with the community.",
+  "redirectingToRentals": "Redirecting to your rentals...",
+  "securePrivate": "Secure & Private",
+  "helpOthers": "Help Others",
+  "communityDriven": "Community Driven",
+  "ratings": {
+    "poor": "Poor",
+    "fair": "Fair",
+    "good": "Good",
+    "veryGood": "Very Good",
+    "excellent": "Excellent"
+  },
+  "errors": {
+    "provideRatings": "Please provide ratings for both product and owner.",
+    "loadFailed": "Failed to load rental details for review.",
+    "submitFailed": "Failed to submit review.",
+    "submitSuccess": "Review submitted successfully! Thank you."
+  }
+} 
