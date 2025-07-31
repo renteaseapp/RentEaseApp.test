@@ -615,62 +615,127 @@
       "sortApplied": "ใช้การเรียงลำดับสำเร็จ!"
     }
   },
+  "ownerReportPage": {
+    "title": "รายงานเจ้าของ",
+    "subtitle": "การวิเคราะห์และข้อมูลเชิงลึกสำหรับธุรกิจการเช่าของคุณ",
+    "backButton": "กลับ",
+    "loadingReport": "กำลังโหลดรายงาน...",
+    "noReportData": "ไม่มีข้อมูลรายงาน",
+    "noDataForChart": "ไม่มีข้อมูลสำหรับกราฟ",
+    "error": {
+      "notLoggedIn": "คุณต้องเข้าสู่ระบบเพื่อดูรายงานนี้",
+      "sessionExpired": "เซสชันของคุณหมดอายุแล้ว กรุณาเข้าสู่ระบบอีกครั้ง",
+      "loadFailed": "ไม่สามารถโหลดข้อมูลรายงานได้"
+    },
+    "metrics": {
+      "totalProducts": "สินค้าทั้งหมด",
+      "totalRentals": "การเช่าทั้งหมด",
+      "totalRevenue": "รายได้รวม",
+      "revenueThisMonth": "เดือนนี้",
+      "averageRating": "คะแนนเฉลี่ย",
+      "totalReviews": "รีวิวทั้งหมด",
+      "totalRenters": "ผู้เช่าทั้งหมด",
+      "uniqueCustomers": "ลูกค้าไม่ซ้ำ",
+      "totalProductsViewed": "การดูทั้งหมด",
+      "overallViews": "การดูสินค้าทั้งหมด"
+    },
+    "chartLabels": {
+      "available": "พร้อมเช่า",
+      "rentedOut": "ถูกเช่า",
+      "completed": "เสร็จสมบูรณ์",
+      "cancelled": "ยกเลิก",
+      "totalRentals": "การเช่าทั้งหมด",
+      "totalRevenue": "รายได้รวม",
+      "currentMonthRevenue": "รายได้เดือนนี้"
+    },
+    "charts": {
+      "productStatus": "ภาพรวมสถานะสินค้า",
+      "rentalStatusOverview": "ภาพรวมสถานะการเช่า",
+      "revenueOverview": "ภาพรวมรายได้"
+    },
+    "tables": {
+      "recentPayouts": "การจ่ายเงินล่าสุด",
+      "topProducts": "สินค้าประสิทธิภาพสูงสุด",
+      "amount": "จำนวนเงิน",
+      "status": "สถานะ",
+      "transactionTime": "เวลาธุรกรรม",
+      "productName": "ชื่อสินค้า",
+      "rentalCount": "จำนวนการเช่า",
+      "totalRevenue": "รายได้รวม"
+    },
+    "payoutStatus": {
+      "completed": "เสร็จสมบูรณ์",
+      "pending": "รอดำเนินการ",
+      "failed": "ล้มเหลว"
+    },
+    "noRecentPayouts": "ไม่มีการจ่ายเงินล่าสุด",
+    "noTopProducts": "ไม่มีข้อมูลสินค้าประสิทธิภาพสูงสุด"
+  },
+
   "ownerRentalHistoryPage": {
-    "title": "ประวัติการเช่าของฉัน (ในฐานะผู้ให้เช่า)",
+    "title": "ประวัติการเช่า",
+    "subtitle": "จัดการและติดตามธุรกรรมการเช่าทั้งหมดของคุณ",
+    "backToDashboard": "กลับไปที่แดชบอร์ด",
     "loadingHistory": "กำลังโหลดประวัติการเช่า...",
-    "loadingRentals": "กำลังโหลดรายการเช่า...",
+    "viewMode": "โหมดการแสดงผล",
+    "activeFilters": "ตัวกรองที่ใช้งาน {{count}} รายการ",
     "error": {
       "loadFailed": "ไม่สามารถโหลดประวัติการเช่าได้"
     },
     "filters": {
-      "title": "ตัวกรอง",
-      "searchProducts": "ค้นหาสินค้า",
-      "searchPlaceholder": "ค้นหาจากชื่อสินค้า...",
+      "searchPlaceholder": "ค้นหาตามชื่อสินค้า, ชื่อผู้เช่า, หรือรหัสการเช่า...",
+      "advancedFilters": "ตัวกรองขั้นสูง",
+      "searchProducts": "ค้นหา",
       "status": "สถานะ",
-      "allStatus": "ทุกสถานะ",
+      "allStatus": "สถานะทั้งหมด",
       "fromDate": "จากวันที่",
       "toDate": "ถึงวันที่",
-      "applyFilters": "ใช้ตัวกรอง",
-      "clearFilters": "ล้างตัวกรอง"
+      "clearFilters": "ล้างตัวกรอง",
+      "applyFilters": "ใช้ตัวกรอง"
     },
     "status": {
+      "completed": "เสร็จสมบูรณ์",
+      "active": "กำลังเช่า",
       "pending_owner_approval": "รอการอนุมัติ",
       "pending_payment": "รอการชำระเงิน",
       "confirmed": "ยืนยันแล้ว",
-      "active": "กำลังเช่า",
-      "return_pending": "รอการยืนยันคืนสินค้า",
-      "completed": "เสร็จสมบูรณ์",
+      "return_pending": "รอการคืน",
       "cancelled_by_renter": "ยกเลิกโดยผู้เช่า",
-      "cancelled_by_owner": "ยกเลิกโดยผู้ให้เช่า",
-      "rejected_by_owner": "ปฏิเสธโดยผู้ให้เช่า",
+      "cancelled_by_owner": "ยกเลิกโดยเจ้าของ",
+      "rejected_by_owner": "ปฏิเสธโดยเจ้าของ",
       "dispute": "มีข้อพิพาท",
       "expired": "หมดอายุ",
       "late_return": "คืนล่าช้า"
     },
+    "view": {
+      "grid": "ตาราง",
+      "list": "รายการ"
+    },
     "results": {
-      "showing": "กำลังแสดง {{from}} ถึง {{to}} จากทั้งหมด {{total}} รายการ",
-      "noResults": "ไม่พบประวัติการเช่า",
-      "noResultsDescription": "เมื่อมีผู้ใช้เช่าสินค้าของคุณ ข้อมูลจะปรากฏที่นี่"
+      "showing": "แสดง {{from}} ถึง {{to}} จาก {{total}} การเช่า",
+      "totalRentals": "การเช่าทั้งหมด {{count}} รายการ",
+      "noResults": "ไม่พบการเช่า",
+      "noResultsDescription": "ลองปรับตัวกรองหรือคำค้นหาเพื่อหาสิ่งที่คุณต้องการ",
+      "clearFiltersAndTryAgain": "ล้างตัวกรองและลองใหม่"
     },
     "rentalCard": {
-      "rentalId": "รหัสการเช่า: {{id}}...",
-      "renter": "ผู้เช่า:",
-      "dates": "วันที่:",
-      "totalAmount": "ยอดรวม:",
-      "bookedOn": "จองเมื่อ:",
+      "rentalId": "รหัสการเช่า",
+      "renter": "ผู้เช่า",
+      "dates": "ระยะเวลาเช่า",
+      "totalAmount": "ยอดรวม",
+      "bookedOn": "จองเมื่อ"
+    },
+    "actions": {
       "viewDetails": "ดูรายละเอียด"
     },
     "pagination": {
       "previous": "ก่อนหน้า",
       "next": "ถัดไป"
     },
-    "actions": {
-      "viewDetails": "ดูรายละเอียด",
-      "processReturn": "ดำเนินการคืนสินค้า"
-    },
-    "view": {
-      "grid": "ตาราง",
-      "list": "รายการ"
+    "notifications": {
+      "returnPending": "คุณมีสินค้าที่รอการคืน",
+      "lateReturn": "คุณมีการคืนล่าช้าที่ต้องให้ความสนใจ",
+      "pendingApproval": "คุณมีคำขอเช่าที่รอการอนุมัติ"
     }
   },
   "ownerRentalDetailPage": {
@@ -692,7 +757,8 @@
       "actions": "การดำเนินการ",
       "timeline": "ไทม์ไลน์",
       "returnProcessing": "การดำเนินการคืนสินค้า",
-      "returnProcessingDesc": "เมื่อผู้เช่าคืนสินค้า กรุณาตรวจสอบและยืนยันการคืนที่นี่ ซึ่งจะอัปเดตสถานะการเช่าและแจ้งเตือนผู้เช่า"
+      "returnProcessingDesc": "เมื่อผู้เช่าคืนสินค้า กรุณาตรวจสอบและยืนยันการคืนที่นี่ ซึ่งจะอัปเดตสถานะการเช่าและแจ้งเตือนผู้เช่า",
+      "deliveryStatusUpdate": "อัปเดตสถานะการจัดส่ง"
     },
     "labels": {
       "rentalStatus": "สถานะการเช่า:",
@@ -715,7 +781,19 @@
       "ownerNote": "หมายเหตุจากเจ้าของ",
       "returnConditionImages": "รูปภาพสภาพสินค้าตอนคืน",
       "paymentVerifiedAt": "ยืนยันการชำระเงินเมื่อ",
-      "paymentVerificationNotes": "หมายเหตุการยืนยันการชำระเงิน"
+      "paymentVerificationNotes": "หมายเหตุการยืนยันการชำระเงิน",
+      "deliveryStatus": "สถานะการจัดส่ง",
+      "trackingNumber": "เลขพัสดุ",
+      "carrierCode": "รหัสผู้ให้บริการ",
+      "notes": "หมายเหตุ",
+      "accountName": "ชื่อบัญชี",
+      "bankName": "ธนาคาร",
+      "accountNumber": "เลขบัญชี",
+      "amount": "จำนวนเงิน",
+      "transferDate": "วันที่โอน",
+      "noReturnImages": "ไม่มีรูปภาพสภาพสินค้าตอนคืน",
+      "returnConditionImageAlt": "รูปภาพสภาพสินค้าตอนคืน {{idx}}",
+      "deliveryAddress": "ที่อยู่จัดส่ง"
     },
     "actions": {
       "approveRequest": "อนุมัติคำขอ",
@@ -723,7 +801,8 @@
       "confirmReject": "ยืนยันการปฏิเสธ",
       "cancel": "ยกเลิก",
       "processReturn": "ดำเนินการคืนสินค้า",
-      "rejectReasonPlaceholder": "เหตุผลในการปฏิเสธ (จำเป็น)"
+      "rejectReasonPlaceholder": "เหตุผลในการปฏิเสธ (จำเป็น)",
+      "saveDeliveryStatus": "บันทึกสถานะการจัดส่ง"
     },
     "timeline": {
       "created": "สร้างเมื่อ:",
@@ -750,9 +829,24 @@
       "payment": {
         "paid": "ชำระแล้ว",
         "pending": "รอการชำระเงิน",
+        "pending_verification": "รอการตรวจสอบ",
         "unpaid": "ยังไม่ได้ชำระ",
         "failed": "ล้มเหลว",
         "refunded": "คืนเงินแล้ว"
+      },
+      "delivery": {
+        "pending": "รอจัดส่ง",
+        "shipped": "จัดส่งแล้ว",
+        "delivered": "ถึงมือผู้เช่าแล้ว",
+        "failed": "ส่งไม่สำเร็จ",
+        "returned": "ส่งคืน"
+      },
+      "returnCondition": {
+        "as_rented": "สภาพเดิม",
+        "minor_wear": "สึกหรอเล็กน้อย",
+        "damaged": "เสียหาย",
+        "lost": "สูญหาย",
+        "not_yet_returned": "ยังไม่ได้คืน"
       }
     },
     "invalidSlip": {
@@ -764,7 +858,8 @@
       "confirm": "ยืนยัน",
       "reasonRequired": "กรุณาระบุเหตุผล",
       "success": "แจ้งสลิปไม่ถูกต้องสำเร็จ ผู้เช่าได้รับการแจ้งเตือนแล้ว",
-      "error": "ไม่สามารถแจ้งสลิปไม่ถูกต้องได้ กรุณาลองใหม่อีกครั้ง"
+      "error": "ไม่สามารถแจ้งสลิปไม่ถูกต้องได้ กรุณาลองใหม่อีกครั้ง",
+      "saving": "กำลังบันทึก..."
     },
     "backToMyRentals": "← กลับไปที่รายการเช่าของฉัน",
     "rentalDetailsTitle": "รายละเอียดการเช่า",
@@ -790,6 +885,18 @@
     "viewDownloadSlip": "ดู/ดาวน์โหลดสลิป",
     "loading": "กำลังโหลดรายละเอียดการเช่า...",
     "notFound": "ไม่พบการเช่า",
+    "subtitle": "รายละเอียดการเช่า - {{uid}}",
+    "approveSuccess": "อนุมัติคำขอเช่าสำเร็จ!",
+    "rejectSuccess": "ปฏิเสธคำขอเช่าสำเร็จ!",
+    "paymentConfirmSuccess": "ยืนยันการชำระเงินสำเร็จ!",
+    "deliveryStatusUpdateSuccess": "อัปเดตสถานะการจัดส่งสำเร็จ!",
+    "claimChatSuccess": "ส่งข้อมูลการเช่าไปที่แชทสำเร็จ!",
+    "error": {
+      "paymentConfirmFailed": "ไม่สามารถยืนยันการชำระเงินได้ กรุณาลองใหม่อีกครั้ง",
+      "deliveryStatusUpdateFailed": "ไม่สามารถอัปเดตสถานะการจัดส่งได้ กรุณาลองใหม่อีกครั้ง",
+      "claimChatFailed": "ไม่สามารถส่งข้อมูลการเช่าไปที่แชทได้ กรุณาลองใหม่อีกครั้ง",
+      "slipVerificationFailed": "ไม่สามารถตรวจสอบสลิปการชำระเงินได้ กรุณาลองใหม่อีกครั้ง"
+    },
     "statusMessages": {
       "pending_owner_approval_title": "รอการอนุมัติจากเจ้าของ",
       "pending_owner_approval_desc": "คำขอเช่าของคุณถูกส่งแล้ว กรุณารอให้เจ้าของอนุมัติก่อนดำเนินการชำระเงิน",
@@ -829,53 +936,187 @@
       "cancelError": "ไม่สามารถยกเลิกการเช่าได้",
       "cancelReasonRequired": "กรุณาระบุเหตุผลในการยกเลิก",
       "fetchError": "ไม่สามารถโหลดรายละเอียดการเช่าได้"
+    },
+    "sidebar": {
+      "statusActions": "สถานะ & การดำเนินการ",
+      "rentalStatus": "สถานะการเช่า",
+      "paymentStatus": "สถานะการชำระเงิน",
+      "deliveryStatus": "สถานะการจัดส่ง",
+      "approveRequest": "อนุมัติคำขอเช่า",
+      "approving": "กำลังอนุมัติ...",
+      "rejectRequest": "ปฏิเสธคำขอ",
+      "confirmingReject": "กำลังยืนยันการปฏิเสธ...",
+      "confirmReject": "ยืนยันการปฏิเสธ",
+      "confirmPayment": "ยืนยันการชำระเงิน",
+      "confirmingPayment": "กำลังยืนยันการชำระเงิน...",
+      "confirmReturn": "ยืนยันการคืนสินค้า",
+      "claim": "แจ้งปัญหา/เคลม",
+      "sendingToChat": "กำลังส่งไปที่แชท...",
+      "paymentSlip": "สลิปการชำระเงิน",
+      "paymentSlipAlt": "สลิปการชำระเงิน",
+      "verifySlip": "ตรวจสอบสลิปอัตโนมัติ",
+      "verifyingSlip": "กำลังตรวจสอบ...",
+      "invalidSlip": "แจ้งสลิปไม่ถูกต้อง",
+      "noActionForStatus": "ไม่มี Action สำหรับสถานะนี้",
+      "noReturnInfo": "ยังไม่มีข้อมูลการคืนสินค้า",
+      "slipComparisonResult": "ผลการเปรียบเทียบข้อมูลสลิปกับบัญชีเจ้าของ",
+      "slipMismatchWarning": "ข้อมูลในสลิปไม่ตรงกับข้อมูลบัญชีเจ้าของหรือยอดเงิน กรุณาตรวจสอบอีกครั้ง",
+      "slipMatchSuccess": "ข้อมูลตรงกับบัญชีเจ้าของและยอดเงิน"
+    },
+    "pickupMethod": {
+      "pickup": "รับเอง",
+      "delivery": "จัดส่ง",
+      "self_pickup": "รับเอง"
+    },
+    "returnMethod": {
+      "pickup": "รับเอง",
+      "delivery": "จัดส่ง",
+      "self_return": "คืนเอง"
+    },
+    "placeholders": {
+      "rejectReason": "กรอกเหตุผลในการปฏิเสธ...",
+      "trackingNumber": "กรอกเลขพัสดุ (ถ้ามี)",
+      "carrierCode": "เช่น thailand_post, flash, kerry ฯลฯ",
+      "returnNotes": "กรอกหมายเหตุเกี่ยวกับสภาพการคืน..."
+    },
+    "returnForm": {
+      "title": "ยืนยันการคืนสินค้า",
+      "actualReturnTime": "เวลาที่คืนจริง",
+      "conditionStatus": "สภาพสินค้า",
+      "conditionStatusOptions": {
+        "as_rented": "สภาพเดิม",
+        "minor_wear": "สึกหรอเล็กน้อย",
+        "damaged": "เสียหาย",
+        "lost": "สูญหาย"
+      },
+      "notes": "หมายเหตุ (ไม่บังคับ)",
+      "images": "แนบรูปภาพการคืน (ไม่บังคับ)",
+      "initiateClaim": "เปิดเคลม (หากสินค้ามีปัญหา)",
+      "submit": "ยืนยันการคืน",
+      "saving": "กำลังบันทึก...",
+      "success": "ยืนยันการคืนสำเร็จ!",
+      "error": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
+    },
+    "claimMessageTemplate": "แจ้งปัญหา/เคลมเกี่ยวกับการเช่า\nรหัสเช่า: {{rentalUid}}\nสินค้า: {{productName}}\nผู้เช่า: {{renterName}}\nช่วงวันที่เช่า: {{rentalPeriod}}",
+    "common": {
+      "cancel": "ยกเลิก"
     }
   },
   "payoutInfoPage": {
-    "title": "ช่องทางการรับเงิน",
+    "title": "วิธีการรับเงิน",
+    "subtitle": "จัดการวิธีการรับเงินจากการเช่าสินค้า",
     "loading": "กำลังโหลดข้อมูลการรับเงิน...",
-    "addNewMethod": "เพิ่มช่องทางการรับเงินใหม่",
-    "yourMethods": "ช่องทางการรับเงินของคุณ",
+    "addNewMethod": "เพิ่มวิธีการรับเงินใหม่",
+    "yourMethods": "วิธีการรับเงินของคุณ",
     "primary": "หลัก",
     "type": "ประเภท",
     "account": "บัญชี",
     "bank": "ธนาคาร",
     "noMethods": {
-      "title": "ไม่มีช่องทางการรับเงิน",
-      "description": "คุณยังไม่ได้เพิ่มช่องทางการรับเงิน เพิ่มช่องทางแรกของคุณเพื่อรับเงินจากการเช่า"
+      "title": "ไม่มีวิธีการรับเงิน",
+      "description": "คุณยังไม่ได้เพิ่มวิธีการรับเงินใดๆ เพิ่มวิธีการรับเงินแรกของคุณเพื่อรับเงินจากการเช่า"
     },
     "methodTypes": {
       "bankAccount": "บัญชีธนาคาร",
-      "promptpay": "พร้อมเพย์"
+      "promptpay": "PromptPay"
     },
     "form": {
-      "methodType": "ประเภทช่องทาง",
+      "methodType": "ประเภทวิธีการ",
       "accountName": "ชื่อเจ้าของบัญชี",
-      "accountNumber": "หมายเลขบัญชี",
+      "accountNamePlaceholder": "กรอกชื่อเจ้าของบัญชี",
+      "accountNumber": "เลขที่บัญชี",
+      "accountNumberPlaceholder": "กรอกเลขที่บัญชี",
       "bankName": "ชื่อธนาคาร",
       "selectBank": "เลือกธนาคาร",
-      "setAsPrimary": "ตั้งเป็นช่องทางหลัก"
+      "setAsPrimary": "ตั้งเป็นวิธีการหลัก"
     },
     "actions": {
-      "addNew": "เพิ่มช่องทางการรับเงินใหม่",
-      "cancelAdd": "ยกเลิกการเพิ่ม",
-      "addMethod": "เพิ่มช่องทาง",
+      "addNew": "เพิ่มใหม่",
+      "cancelAdd": "ยกเลิก",
+      "addMethod": "เพิ่มวิธีการ",
+      "adding": "กำลังเพิ่ม...",
       "setPrimary": "ตั้งเป็นหลัก",
       "delete": "ลบ",
       "backToDashboard": "กลับไปที่แดชบอร์ด"
     },
     "success": {
-      "added": "เพิ่มช่องทางการรับเงินสำเร็จ!",
-      "deleted": "ลบช่องทางการรับเงินสำเร็จ!",
-      "setPrimary": "ตั้งเป็นช่องทางหลักสำเร็จ!"
+      "added": "เพิ่มวิธีการรับเงินสำเร็จ!",
+      "deleted": "ลบวิธีการรับเงินสำเร็จ!",
+      "setPrimary": "ตั้งวิธีการรับเงินเป็นหลักสำเร็จ!"
     },
     "error": {
-      "loadFailed": "ไม่สามารถโหลดช่องทางการรับเงินได้",
-      "addFailed": "ไม่สามารถเพิ่มช่องทางการรับเงินได้",
-      "deleteFailed": "ไม่สามารถลบช่องทางการรับเงินได้",
-      "setPrimaryFailed": "ไม่สามารถตั้งเป็นช่องทางหลักได้"
+      "loadFailed": "ไม่สามารถโหลดวิธีการรับเงินได้",
+      "addFailed": "ไม่สามารถเพิ่มวิธีการรับเงินได้",
+      "deleteFailed": "ไม่สามารถลบวิธีการรับเงินได้",
+      "setPrimaryFailed": "ไม่สามารถตั้งวิธีการรับเงินเป็นหลักได้"
     },
-    "deleteConfirmation": "คุณแน่ใจหรือไม่ว่าต้องการลบช่องทางการรับเงินของ {{name}}? การกระทำนี้ไม่สามารถย้อนกลับได้"
+    "deleteConfirmation": "คุณแน่ใจหรือไม่ว่าต้องการลบวิธีการรับเงินสำหรับ {{name}}? การกระทำนี้ไม่สามารถย้อนกลับได้"
+  },
+  "ownerRentalHistoryPage": {
+    "title": "ประวัติการเช่า",
+    "subtitle": "จัดการและติดตามธุรกรรมการเช่าทั้งหมดของคุณ",
+    "backToDashboard": "กลับไปที่แดชบอร์ด",
+    "loadingHistory": "กำลังโหลดประวัติการเช่า...",
+    "viewMode": "โหมดการแสดงผล",
+    "activeFilters": "ตัวกรองที่ใช้งาน {{count}} รายการ",
+    "error": {
+      "loadFailed": "ไม่สามารถโหลดประวัติการเช่าได้"
+    },
+    "filters": {
+      "searchPlaceholder": "ค้นหาตามชื่อสินค้า, ชื่อผู้เช่า, หรือรหัสการเช่า...",
+      "advancedFilters": "ตัวกรองขั้นสูง",
+      "searchProducts": "ค้นหา",
+      "status": "สถานะ",
+      "allStatus": "สถานะทั้งหมด",
+      "fromDate": "จากวันที่",
+      "toDate": "ถึงวันที่",
+      "clearFilters": "ล้างตัวกรอง",
+      "applyFilters": "ใช้ตัวกรอง"
+    },
+    "status": {
+      "completed": "เสร็จสมบูรณ์",
+      "active": "กำลังเช่า",
+      "pending_owner_approval": "รอการอนุมัติ",
+      "pending_payment": "รอการชำระเงิน",
+      "confirmed": "ยืนยันแล้ว",
+      "return_pending": "รอการคืน",
+      "cancelled_by_renter": "ยกเลิกโดยผู้เช่า",
+      "cancelled_by_owner": "ยกเลิกโดยเจ้าของ",
+      "rejected_by_owner": "ปฏิเสธโดยเจ้าของ",
+      "dispute": "ข้อพิพาท",
+      "expired": "หมดอายุ",
+      "late_return": "คืนล่าช้า"
+    },
+    "view": {
+      "grid": "ตาราง",
+      "list": "รายการ"
+    },
+    "results": {
+      "showing": "แสดง {{from}} ถึง {{to}} จาก {{total}} รายการเช่า",
+      "totalRentals": "รายการเช่าทั้งหมด {{count}} รายการ",
+      "noResults": "ไม่พบรายการเช่า",
+      "noResultsDescription": "ลองปรับตัวกรองหรือคำค้นหาเพื่อหาสิ่งที่คุณต้องการ",
+      "clearFiltersAndTryAgain": "ล้างตัวกรองและลองใหม่"
+    },
+    "rentalCard": {
+      "rentalId": "รหัสการเช่า",
+      "renter": "ผู้เช่า",
+      "dates": "ระยะเวลาเช่า",
+      "totalAmount": "ยอดรวม",
+      "bookedOn": "จองเมื่อ"
+    },
+    "actions": {
+      "viewDetails": "ดูรายละเอียด"
+    },
+    "pagination": {
+      "previous": "ก่อนหน้า",
+      "next": "ถัดไป"
+    },
+    "notifications": {
+      "returnPending": "คุณมีสินค้าที่รอการคืน",
+      "lateReturn": "คุณมีการคืนล่าช้าที่ต้องดูแล",
+      "pendingApproval": "คุณมีคำขอเช่าที่รอการอนุมัติ"
+    }
   },
   "renterDashboard": {
     "title": "แดชบอร์ดผู้เช่า",

@@ -2,27 +2,45 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getOwnerDashboardData } from '../../services/ownerService';
-import { getOwnerRentals, approveRentalRequest, rejectRentalRequest } from '../../services/rentalService';
 import { OwnerDashboardData } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
-import { useAlert } from '../../contexts/AlertContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaBox,
+  FaClipboardList,
+  FaUndo,
+  FaMoneyBillWave,
+  FaChartBar,
+  FaUserCog,
+  FaClock,
+  FaArrowRight,
+  FaShieldAlt,
+  FaShoppingCart,
+} from 'react-icons/fa';
 
-const StatCard: React.FC<{ title: string; value: string | number; icon?: React.ReactNode }> = ({ title, value, icon }) => (
-    <Card>
-        <CardContent>
-            <div className="flex items-center">
-                {icon && <div className="mr-4 text-blue-500">{icon}</div>}
-                <div>
-                    <p className="text-sm font-medium text-gray-500 truncate">{title}</p>
-                    <p className="mt-1 text-3xl font-semibold text-gray-900">{value}</p>
-                </div>
-            </div>
-        </CardContent>
-    </Card>
+const StatCard: React.FC<{ title: string; value: string | number; icon?: React.ReactNode; color: string }> = ({ title, value, icon, color }) => (
+  <motion.div
+    whileHover={{ scale: 1.05, y: -5 }}
+    whileTap={{ scale: 0.95 }}
+    className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300 overflow-hidden group"
+  >
+    <div className="p-6">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-500 truncate mb-1">{title}</p>
+          <p className="text-3xl font-bold text-gray-900">{value}</p>
+        </div>
+        {icon && (
+          <div className={`p-3 rounded-xl ${color} group-hover:scale-110 transition-transform duration-300`}>
+            {icon}
+          </div>
+        )}
+      </div>
+    </div>
+  </motion.div>
 );
 
 const dashboardMenu = [
@@ -30,37 +48,55 @@ const dashboardMenu = [
     title: 'สินค้าของฉัน',
     description: 'จัดการสินค้า เพิ่ม/แก้ไข/ลบ',
     to: ROUTE_PATHS.MY_LISTINGS,
-    icon: <svg className="w-7 h-7 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7" /><path strokeLinecap="round" strokeLinejoin="round" d="M16 3v4M8 3v4M4 11h16" /></svg>
+    icon: <FaBox className="w-7 h-7" />,
+    color: 'text-blue-500',
+    bgColor: 'bg-blue-100',
+    gradient: 'from-blue-500 to-indigo-500'
   },
   {
     title: 'การเช่าทั้งหมด',
     description: 'ดูและจัดการรายการเช่าทั้งหมด',
     to: ROUTE_PATHS.OWNER_RENTAL_HISTORY,
-    icon: <svg className="w-7 h-7 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2m-6 4h6a2 2 0 002-2v-5a2 2 0 00-2-2h-6a2 2 0 00-2 2v5a2 2 0 002 2z" /></svg>
+    icon: <FaClipboardList className="w-7 h-7" />,
+    color: 'text-green-500',
+    bgColor: 'bg-green-100',
+    gradient: 'from-green-500 to-emerald-500'
   },
   {
     title: 'รับคืนสินค้า',
     description: 'จัดการการคืนสินค้าแต่ละรายการ',
     to: ROUTE_PATHS.OWNER_RENTAL_HISTORY + '?returnOnly=1',
-    icon: <svg className="w-7 h-7 text-indigo-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7v4a2 2 0 01-2 2H7a2 2 0 01-2-2V7m14 0V5a2 2 0 00-2-2H7a2 2 0 00-2 2v2m14 0H5" /></svg>
+    icon: <FaUndo className="w-7 h-7" />,
+    color: 'text-indigo-500',
+    bgColor: 'bg-indigo-100',
+    gradient: 'from-indigo-500 to-purple-500'
   },
   {
     title: 'วิธีการรับเงิน',
     description: 'ตั้งค่าช่องทางรับเงินจากการเช่า',
     to: ROUTE_PATHS.PAYOUT_INFO,
-    icon: <svg className="w-7 h-7 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 0V4m0 8v8m8-8a8 8 0 11-16 0 8 8 0 0116 0z" /></svg>
+    icon: <FaMoneyBillWave className="w-7 h-7" />,
+    color: 'text-yellow-500',
+    bgColor: 'bg-yellow-100',
+    gradient: 'from-yellow-500 to-orange-500'
   },
   {
     title: 'รายงาน/สถิติ',
     description: 'ดูสถิติและรายงานภาพรวม',
     to: ROUTE_PATHS.OWNER_REPORT,
-    icon: <svg className="w-7 h-7 text-purple-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 17a4 4 0 01-4-4V5a4 4 0 018 0v8a4 4 0 01-4 4zm0 0v4m0 0h2m-2 0H9" /></svg>
+    icon: <FaChartBar className="w-7 h-7" />,
+    color: 'text-purple-500',
+    bgColor: 'bg-purple-100',
+    gradient: 'from-purple-500 to-pink-500'
   },
   {
     title: 'ตั้งค่าบัญชี',
     description: 'แก้ไขข้อมูลส่วนตัวและยืนยันตัวตน',
     to: ROUTE_PATHS.PROFILE,
-    icon: <svg className="w-7 h-7 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+    icon: <FaUserCog className="w-7 h-7" />,
+    color: 'text-gray-500',
+    bgColor: 'bg-gray-100',
+    gradient: 'from-gray-500 to-gray-600'
   },
 ];
 
@@ -71,16 +107,8 @@ export const OwnerDashboardPage: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<OwnerDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
-  const [isLoadingPending, setIsLoadingPending] = useState(true);
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState('');
-  const [rejectingRentalId, setRejectingRentalId] = useState<number | null>(null);
-  const [actionLoading, setActionLoading] = useState<{[id:number]:boolean}>({});
-  const { showSuccess, showError } = useAlert();
 
   // For active menu highlighting
-  const currentPath = window.location.pathname;
 
   useEffect(() => {
     if (!user?.id) {
@@ -112,77 +140,140 @@ export const OwnerDashboardPage: React.FC = () => {
       }
     };
 
-    const fetchPendingRequests = async () => {
-      setIsLoadingPending(true);
-      try {
-        const res = await getOwnerRentals({ status: 'pending_owner_approval', limit: 5 });
-        setPendingRequests(res.data || []);
-      } catch (e) {
-        setPendingRequests([]);
-      } finally {
-        setIsLoadingPending(false);
-      }
-    };
-
     fetchDashboardData();
-    fetchPendingRequests();
   }, [user, navigate, t]);
 
-  // Quick Action Handlers
-  const handleApprove = async (rentalId: number) => {
-    setActionLoading((prev) => ({ ...prev, [rentalId]: true }));
-    try {
-      await approveRentalRequest(rentalId);
-      showSuccess(t('ownerDashboardPage.quickActions.approveSuccess'));
-      setPendingRequests((prev) => prev.filter((r) => r.id !== rentalId));
-    } catch (e) {
-      showError(t('ownerDashboardPage.quickActions.approveError'));
-    } finally {
-      setActionLoading((prev) => ({ ...prev, [rentalId]: false }));
-    }
-  };
-  const handleReject = (rentalId: number) => {
-    setRejectingRentalId(rentalId);
-    setRejectDialogOpen(true);
-  };
-  const confirmReject = async () => {
-    if (!rejectingRentalId) return;
-    setActionLoading((prev) => ({ ...prev, [rejectingRentalId]: true }));
-    try {
-      await rejectRentalRequest(rejectingRentalId, rejectReason);
-      showSuccess(t('ownerDashboardPage.quickActions.rejectSuccess'));
-      setPendingRequests((prev) => prev.filter((r) => r.id !== rejectingRentalId));
-    } catch (e) {
-      showError(t('ownerDashboardPage.quickActions.rejectError'));
-    } finally {
-      setActionLoading((prev) => ({ ...prev, [rejectingRentalId!]: false }));
-      setRejectDialogOpen(false);
-      setRejectReason('');
-      setRejectingRentalId(null);
-    }
-  };
-  const handleChat = (rental: any) => {
-    navigate(`/chat/${rental.renter?.id}`);
-  };
+
 
   if (isLoading) return <LoadingSpinner message={t('navbar.loading')} />;
   if (error) return <ErrorMessage message={error} />;
   if (!dashboardData) return <div className="p-4">{t('ownerDashboardPage.noData')}</div>;
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">แดชบอร์ดเจ้าของสินค้า</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {dashboardMenu.map((item, idx) => (
-          <Link to={item.to} key={idx} className="block bg-white rounded-lg shadow hover:shadow-lg transition p-6 group border border-gray-100 hover:border-blue-400">
-            <div className="flex items-center gap-4 mb-3">
-              {item.icon}
-              <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600">{item.title}</span>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Header Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
+              <FaShieldAlt className="h-10 w-10 text-white" />
             </div>
-            <div className="text-gray-500 text-sm">{item.description}</div>
-          </Link>
-        ))}
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">แดชบอร์ดเจ้าของสินค้า</h1>
+            <p className="text-blue-100 text-xl max-w-2xl mx-auto">
+              จัดการสินค้า การเช่า และดูสถิติการใช้งานของคุณ
+            </p>
+          </div>
+        </div>
+      </motion.div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mb-12"
+        >
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">ภาพรวมการใช้งาน</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+              title="สินค้าทั้งหมด"
+              value={dashboardData.total_my_products || 0}
+              icon={<FaBox className="w-6 h-6 text-white" />}
+              color="bg-blue-500"
+            />
+            <StatCard
+              title="การเช่าที่ยังไม่เสร็จสิ้น"
+              value={dashboardData.active_rentals_count || 0}
+              icon={<FaShoppingCart className="w-6 h-6 text-white" />}
+              color="bg-green-500"
+            />
+            <StatCard
+              title="รายได้ต่อเดือน (ประมาณ)"
+              value={`฿${(dashboardData.estimated_monthly_revenue || 0).toLocaleString()}`}
+              icon={<FaMoneyBillWave className="w-6 h-6 text-white" />}
+              color="bg-yellow-500"
+            />
+            <StatCard
+              title="คำขอเช่าที่รอการอนุมัติ"
+              value={dashboardData.pending_rental_requests_count || 0}
+              icon={<FaClock className="w-6 h-6 text-white" />}
+              color="bg-purple-500"
+            />
+          </div>
+        </motion.div>
+
+
+
+        {/* Menu Grid */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center">เมนูการจัดการ</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {dashboardMenu.map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  transition={{ 
+                    duration: 0.4, 
+                    delay: index * 0.1,
+                    type: "spring",
+                    stiffness: 100
+                  }}
+                  whileHover={{ y: -8, scale: 1.02 }}
+                  className="group"
+                >
+                  <Link to={item.to} className="block">
+                    <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 p-8 h-full group-hover:bg-gradient-to-br group-hover:from-blue-50 group-hover:to-indigo-50">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className={`p-4 rounded-xl ${item.bgColor} group-hover:scale-110 transition-transform duration-300`}>
+                          <div className={item.color}>
+                            {item.icon}
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
+                            {item.title}
+                          </h3>
+                          <p className="text-gray-600 text-sm mt-1">
+                            {item.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="w-full bg-gray-200 rounded-full h-1">
+                          <motion.div
+                            className={`h-1 bg-gradient-to-r ${item.gradient} rounded-full`}
+                            initial={{ width: 0 }}
+                            animate={{ width: "100%" }}
+                            transition={{ duration: 0.8, delay: index * 0.1 }}
+                          />
+                        </div>
+                        <FaArrowRight className={`h-4 w-4 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300 ml-2`} />
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+
       </div>
+
+
     </div>
   );
 };

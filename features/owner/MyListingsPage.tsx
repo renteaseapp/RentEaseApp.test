@@ -6,10 +6,31 @@ import { getOwnerListings, updateProductStatus, deleteProduct } from '../../serv
 import { Product, ApiError, PaginatedResponse, ProductAvailabilityStatus, } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
-import { InputField } from '../../components/ui/InputField';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaSearch, 
+  FaPlus, 
+  FaTimes, 
+
+  FaEdit,
+  FaTrash,
+  FaFilter,
+  FaTh,
+  FaList,
+  FaBox,
+  FaMapMarkerAlt,
+  FaTag,
+  FaCalendarAlt,
+  FaEye as FaViews,
+  FaMoneyBillWave,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaClock,
+  FaExclamationTriangle,
+  FaArrowRight,
+} from 'react-icons/fa';
 
 // Debounce hook for search
 const useDebounce = (value: string, delay: number) => {
@@ -27,39 +48,6 @@ const useDebounce = (value: string, delay: number) => {
 
   return debouncedValue;
 };
-
-// Enhanced Icons with better styling
-const SearchIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-  </svg>
-);
-
-
-
-const ClearIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-  </svg>
-);
-
-const PlusIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-  </svg>
-);
-
-const GridIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-    <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-  </svg>
-);
-
-const ListIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-  </svg>
-);
 
 // Highlight search term in text
 const HighlightText: React.FC<{ text: string; searchTerm: string }> = ({ text, searchTerm }) => {
@@ -148,6 +136,24 @@ const StatusBadge: React.FC<{ status: string; type: 'availability' | 'admin' }> 
     }
   };
 
+  const getStatusIcon = () => {
+    if (type === 'availability') {
+      switch (status) {
+        case 'available': return <FaCheckCircle className="h-3 w-3" />;
+        case 'unavailable': return <FaTimesCircle className="h-3 w-3" />;
+        case 'hidden': return <FaClock className="h-3 w-3" />;
+        default: return <FaExclamationTriangle className="h-3 w-3" />;
+      }
+    } else {
+      switch (status) {
+        case 'approved': return <FaCheckCircle className="h-3 w-3" />;
+        case 'rejected': return <FaTimesCircle className="h-3 w-3" />;
+        case 'pending': return <FaClock className="h-3 w-3" />;
+        default: return <FaExclamationTriangle className="h-3 w-3" />;
+      }
+    }
+  };
+
   const getStatusText = () => {
     if (type === 'availability') {
       return t(`myListingsPage.status.${status.toLowerCase()}`);
@@ -157,7 +163,8 @@ const StatusBadge: React.FC<{ status: string; type: 'availability' | 'admin' }> 
   };
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor()}`}>
+    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor()}`}>
+      {getStatusIcon()}
       {getStatusText()}
     </span>
   );
@@ -179,6 +186,7 @@ export const MyListingsPage: React.FC = () => {
   const [priceRangeFilter, setPriceRangeFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Debounced search term
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -366,7 +374,7 @@ export const MyListingsPage: React.FC = () => {
   // Loading state
   if (isLoading && !listingsResponse) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
         <LoadingSpinner message={t('myListingsPage.loadingListings')} />
       </div>
     );
@@ -379,401 +387,536 @@ export const MyListingsPage: React.FC = () => {
   const hasNoSearchResults = (searchTerm.trim() || categoryFilter || provinceFilter || priceRangeFilter) && filteredProducts.length === 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Header Section */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('myListingsPage.title')}</h1>
-              <p className="text-sm text-gray-600 mt-1">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+            <div className="text-center sm:text-left">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
+                <FaBox className="h-8 w-8 text-white" />
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{t('myListingsPage.title')}</h1>
+              <p className="text-blue-100 text-lg">
                 {t('myListingsPage.subtitle')}
               </p>
             </div>
-        <Link to={ROUTE_PATHS.CREATE_PRODUCT}>
-              <Button variant="primary" className="w-full sm:w-auto">
-                <PlusIcon />
-                <span className="ml-2">{t('myListingsPage.addNewListing')}</span>
-              </Button>
-        </Link>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link to={ROUTE_PATHS.CREATE_PRODUCT}>
+                <Button variant="primary" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl font-semibold shadow-lg">
+                  <FaPlus className="h-5 w-5 mr-2" />
+                  {t('myListingsPage.addNewListing')}
+                </Button>
+              </Link>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
       
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search and Filter Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-8"
+        >
           <div className="space-y-6">
-            {/* Search and Filter Controls */}
-            <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-              {/* Search Input */}
-              <div className="lg:col-span-2">
-                <InputField
-                  label={t('general.search')}
-            type="text" 
-            placeholder={t('myListingsPage.searchPlaceholder')} 
-            value={searchTerm} 
-                  onChange={handleSearchChange}
-                  icon={<SearchIcon />}
-                  className="mb-0"
-                />
+            {/* Search Bar */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaSearch className="h-5 w-5 text-gray-400" />
               </div>
+              <input
+                type="text"
+                placeholder={t('myListingsPage.searchPlaceholder')}
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="block w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg"
+              />
+            </div>
 
-              {/* Status Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('myListingsPage.filterByStatus')}
-                </label>
-                <select
-                  value={statusFilter}
-                  onChange={handleStatusFilterChange}
-                  className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                <option value="">{t('myListingsPage.allStatuses')}</option>
-                  <option value="available">{t('myListingsPage.status.available')}</option>
-                  <option value="unavailable">{t('myListingsPage.status.unavailable')}</option>
-                  <option value="hidden">{t('myListingsPage.status.hidden')}</option>
-                  <option value="draft">{t('myListingsPage.status.draft')}</option>
-                  <option value="pending_approval">{t('myListingsPage.status.pending_approval')}</option>
-                  <option value="rented_out">{t('myListingsPage.status.rented_out')}</option>
-                </select>
-              </div>
+            {/* Filter Toggle */}
+            <div className="flex items-center justify-between">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowFilters(!showFilters)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
+              >
+                <FaFilter className="h-4 w-4" />
+                {t('myListingsPage.filterByStatus')}
+                <FaArrowRight className={`h-4 w-4 transition-transform duration-200 ${showFilters ? 'rotate-90' : ''}`} />
+              </motion.button>
 
-              {/* Category Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('myListingsPage.labels.category')}
-                </label>
-                <select
-                  value={categoryFilter}
-                  onChange={handleCategoryFilterChange}
-                  className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">{t('myListingsPage.allCategories')}</option>
-                  {getUniqueCategories().map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Province Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('myListingsPage.labels.location')}
-                </label>
-                <select
-                  value={provinceFilter}
-                  onChange={handleProvinceFilterChange}
-                  className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">{t('myListingsPage.allProvinces')}</option>
-                  {getUniqueProvinces().map(province => (
-                    <option key={province} value={province}>{province}</option>
-                  ))}
-           </select>
-      </div>
-
-              {/* Price Range Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('myListingsPage.labels.price')}
-                </label>
-                <select
-                  value={priceRangeFilter}
-                  onChange={handlePriceRangeFilterChange}
-                  className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">{t('myListingsPage.allPrices')}</option>
-                  <option value="0-100">฿0 - ฿100</option>
-                  <option value="100-500">฿100 - ฿500</option>
-                  <option value="500-1000">฿500 - ฿1,000</option>
-                  <option value="1000-5000">฿1,000 - ฿5,000</option>
-                  <option value="5000-">฿5,000+</option>
-                </select>
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700 font-medium">{t('myListingsPage.viewMode')}:</span>
+                <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setViewMode('list')}
+                    className={`p-3 ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
+                  >
+                    <FaList className="h-4 w-4" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setViewMode('grid')}
+                    className={`p-3 ${viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
+                  >
+                    <FaTh className="h-4 w-4" />
+                  </motion.button>
+                </div>
               </div>
             </div>
 
-            {/* Filter Actions */}
-            <div className="flex flex-wrap gap-3 items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={clearFilters}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            {/* Advanced Filters */}
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="grid grid-cols-1 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-200"
                 >
-                  <ClearIcon />
-                  <span className="ml-1">{t('myListingsPage.clearFiltersButton')}</span>
-                </button>
-                
-                {(searchTerm || statusFilter || categoryFilter || provinceFilter || priceRangeFilter) && (
-                  <span className="text-sm text-gray-500">
+                  {/* Status Filter */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('myListingsPage.filterByStatus')}
+                    </label>
+                    <select
+                      value={statusFilter}
+                      onChange={handleStatusFilterChange}
+                      className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    >
+                      <option value="">{t('myListingsPage.allStatuses')}</option>
+                      <option value="available">{t('myListingsPage.status.available')}</option>
+                      <option value="unavailable">{t('myListingsPage.status.unavailable')}</option>
+                      <option value="hidden">{t('myListingsPage.status.hidden')}</option>
+                      <option value="draft">{t('myListingsPage.status.draft')}</option>
+                      <option value="pending_approval">{t('myListingsPage.status.pending_approval')}</option>
+                      <option value="rented_out">{t('myListingsPage.status.rented_out')}</option>
+                    </select>
+                  </div>
+
+                  {/* Category Filter */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('myListingsPage.labels.category')}
+                    </label>
+                    <select
+                      value={categoryFilter}
+                      onChange={handleCategoryFilterChange}
+                      className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    >
+                      <option value="">{t('myListingsPage.allCategories')}</option>
+                      {getUniqueCategories().map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Province Filter */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('myListingsPage.labels.location')}
+                    </label>
+                    <select
+                      value={provinceFilter}
+                      onChange={handleProvinceFilterChange}
+                      className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    >
+                      <option value="">{t('myListingsPage.allProvinces')}</option>
+                      {getUniqueProvinces().map(province => (
+                        <option key={province} value={province}>{province}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Price Range Filter */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('myListingsPage.labels.price')}
+                    </label>
+                    <select
+                      value={priceRangeFilter}
+                      onChange={handlePriceRangeFilterChange}
+                      className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    >
+                      <option value="">{t('myListingsPage.allPrices')}</option>
+                      <option value="0-100">฿0 - ฿100</option>
+                      <option value="100-500">฿100 - ฿500</option>
+                      <option value="500-1000">฿500 - ฿1,000</option>
+                      <option value="1000-5000">฿1,000 - ฿5,000</option>
+                      <option value="5000-">฿5,000+</option>
+                    </select>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Filter Actions */}
+            {(searchTerm || statusFilter || categoryFilter || provinceFilter || priceRangeFilter) && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-wrap gap-3 items-center justify-between pt-4 border-t border-gray-200"
+              >
+                <div className="flex items-center gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={clearFilters}
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+                  >
+                    <FaTimes className="h-4 w-4" />
+                    {t('myListingsPage.clearFiltersButton')}
+                  </motion.button>
+                  
+                  <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                     {t('myListingsPage.activeFilters', { 
                       count: [searchTerm, statusFilter, categoryFilter, provinceFilter, priceRangeFilter].filter(Boolean).length 
                     })}
                   </span>
-                )}
-              </div>
-
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700">{t('myListingsPage.viewMode')}:</span>
-                <div className="flex border border-gray-300 rounded-md">
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`p-2 ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-                  >
-                    <ListIcon />
-                  </button>
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`p-2 ${viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-                  >
-                    <GridIcon />
-                  </button>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Listings Section */}
         {displayProducts.length > 0 ? (
-        <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="space-y-6"
+          >
             {/* Grid View */}
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {displayProducts.map(product => (
-                  <Card key={product.id} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
-                    {/* Product Image */}
-                    <div className="aspect-w-16 aspect-h-9 overflow-hidden rounded-t-lg">
-                      <img 
-                        src={product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url || 'https://picsum.photos/400/225?grayscale'} 
-                alt={product.title}
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
-                      />
-                    </div>
-
-                    {/* Product Info */}
-                    <CardContent className="p-4">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
-                        <HighlightText text={product.title} searchTerm={searchTerm} />
-                      </h3>
-                      
-                      {/* Status Badges */}
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {product.availability_status && (
-                          <StatusBadge status={product.availability_status} type="availability" />
-                        )}
-                        {product.admin_approval_status && (
-                          <StatusBadge status={product.admin_approval_status} type="admin" />
-                        )}
+                <AnimatePresence>
+                  {displayProducts.map((product, index) => (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: index * 0.1,
+                        type: "spring",
+                        stiffness: 100
+                      }}
+                      whileHover={{ y: -8, scale: 1.02 }}
+                      className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 group overflow-hidden"
+                    >
+                      {/* Product Image */}
+                      <div className="relative overflow-hidden">
+                        <img 
+                          src={product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url || 'https://picsum.photos/400/225?grayscale'} 
+                          alt={product.title}
+                          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute top-3 right-3 flex flex-col gap-2">
+                          {product.availability_status && (
+                            <StatusBadge status={product.availability_status} type="availability" />
+                          )}
+                          {product.admin_approval_status && (
+                            <StatusBadge status={product.admin_approval_status} type="admin" />
+                          )}
+                        </div>
                       </div>
 
-                      {/* Quick Info */}
-                      <div className="space-y-2 text-sm text-gray-600 mb-4">
-                        <div className="flex justify-between">
-                          <span>{t('myListingsPage.labels.price')}:</span>
-                          <span className="font-semibold text-blue-600">฿{product.rental_price_per_day?.toLocaleString()}/{t('myListingsPage.labels.day')}</span>
+                      {/* Product Info */}
+                      <div className="p-6">
+                        <h3 className="text-lg font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                          <HighlightText text={product.title} searchTerm={searchTerm} />
+                        </h3>
+                        
+                        {/* Quick Info */}
+                        <div className="space-y-3 text-sm text-gray-600 mb-4">
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1">
+                              <FaMoneyBillWave className="h-3 w-3 text-green-500" />
+                              {t('myListingsPage.labels.price')}:
+                            </span>
+                            <span className="font-bold text-green-600">฿{product.rental_price_per_day?.toLocaleString()}/{t('myListingsPage.labels.day')}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1">
+                              <FaTag className="h-3 w-3 text-blue-500" />
+                              {t('myListingsPage.labels.category')}:
+                            </span>
+                            <span className="truncate">
+                              <HighlightText text={product.category?.name || t('myListingsPage.labels.unknown')} searchTerm={searchTerm} />
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1">
+                              <FaViews className="h-3 w-3 text-purple-500" />
+                              {t('myListingsPage.labels.views')}:
+                            </span>
+                            <span>{product.view_count || 0}</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span>{t('myListingsPage.labels.category')}:</span>
-                          <span className="truncate">
-                            <HighlightText text={product.category?.name || t('myListingsPage.labels.unknown')} searchTerm={searchTerm} />
-                          </span>
-                  </div>
-                        <div className="flex justify-between">
-                          <span>{t('myListingsPage.labels.views')}:</span>
-                          <span>{product.view_count || 0}</span>
-                  </div>
-                </div>
 
-                      {/* Actions */}
-                      <div className="flex flex-wrap gap-2">
-                        <Link to={ROUTE_PATHS.EDIT_PRODUCT.replace(':productId', String(product.id))} className="flex-1">
-                          <Button size="sm" variant="outline" className="w-full">
-                            {t('myListingsPage.actions.edit')}
-                          </Button>
-                  </Link>
-                        <Button 
-                          size="sm" 
-                          variant="danger" 
-                          onClick={() => handleDelete(product.id, product.title)}
-                          className="flex-1"
-                        >
-                          {t('myListingsPage.actions.delete')}
-                        </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                        {/* Actions */}
+                        <div className="flex flex-col gap-2">
+                          <Link to={ROUTE_PATHS.EDIT_PRODUCT.replace(':productId', String(product.id))}>
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center justify-center gap-2"
+                            >
+                              <FaEdit className="h-4 w-4" />
+                              {t('myListingsPage.actions.edit')}
+                            </motion.button>
+                          </Link>
+                          <motion.button 
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleDelete(product.id, product.title)}
+                            className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-2 px-4 rounded-lg font-medium hover:from-red-600 hover:to-pink-600 transition-all duration-200 flex items-center justify-center gap-2"
+                          >
+                            <FaTrash className="h-4 w-4" />
+                            {t('myListingsPage.actions.delete')}
+                          </motion.button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             ) : (
               /* List View */
               <div className="space-y-4">
-                {displayProducts.map(product => (
-                  <Card key={product.id} className="group hover:shadow-lg transition-all duration-200">
-                    <div className="flex flex-col lg:flex-row">
-                      {/* Product Image */}
-                      <div className="w-full lg:w-64 h-48 lg:h-auto flex-shrink-0">
-                        <img 
-                          src={product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url || 'https://picsum.photos/400/225?grayscale'} 
-                          alt={product.title}
-                          className="w-full h-full object-cover rounded-t-lg lg:rounded-l-lg lg:rounded-t-none"
-                        />
-                      </div>
-
-                      {/* Product Details */}
-                      <CardContent className="flex-grow p-6">
-                        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
-                          <div className="flex-grow">
-                            <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                              <HighlightText text={product.title} searchTerm={searchTerm} />
-                            </h3>
-                            
-                            {/* Status Badges */}
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {product.availability_status && (
-                                <StatusBadge status={product.availability_status} type="availability" />
-                              )}
-                              {product.admin_approval_status && (
-                                <StatusBadge status={product.admin_approval_status} type="admin" />
-                              )}
-                            </div>
-
-                            {/* Product Info Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
-                              <div className="flex justify-between">
-                                <span className="font-medium">{t('myListingsPage.labels.price')}:</span>
-                                <span className="font-semibold text-blue-600">฿{product.rental_price_per_day?.toLocaleString()}/{t('myListingsPage.labels.day')}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="font-medium">{t('myListingsPage.labels.views')}:</span>
-                                <span>{product.view_count || 0}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="font-medium">{t('myListingsPage.labels.category')}:</span>
-                                <span className="truncate">
-                                  <HighlightText text={product.category?.name || t('myListingsPage.labels.unknown')} searchTerm={searchTerm} />
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="font-medium">{t('myListingsPage.labels.location')}:</span>
-                                <span className="truncate">
-                                  <HighlightText text={product.province?.name_th || t('myListingsPage.labels.unknown')} searchTerm={searchTerm} />
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="font-medium">{t('myListingsPage.labels.created')}:</span>
-                                <span>{product.created_at ? new Date(product.created_at).toLocaleDateString() : t('myListingsPage.labels.unknown')}</span>
-                              </div>
-                            </div>
-
-                            {/* Show description if it matches search */}
-                            {product.description && searchTerm.trim() && 
-                             product.description.toLowerCase().includes(searchTerm.toLowerCase()) && (
-                              <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
-                                <strong className="text-gray-700">{t('myListingsPage.labels.description')}:</strong>
-                                <div className="mt-1 text-gray-600">
-                                  <HighlightText text={product.description} searchTerm={searchTerm} />
-                                </div>
-                              </div>
+                <AnimatePresence>
+                  {displayProducts.map((product, index) => (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: index * 0.1,
+                        type: "spring",
+                        stiffness: 100
+                      }}
+                      whileHover={{ x: 4, scale: 1.01 }}
+                      className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300 group overflow-hidden"
+                    >
+                      <div className="flex flex-col lg:flex-row">
+                        {/* Product Image */}
+                        <div className="w-full lg:w-64 h-48 lg:h-auto flex-shrink-0 relative">
+                          <img 
+                            src={product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url || 'https://picsum.photos/400/225?grayscale'} 
+                            alt={product.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute top-3 right-3 flex flex-col gap-2">
+                            {product.availability_status && (
+                              <StatusBadge status={product.availability_status} type="availability" />
+                            )}
+                            {product.admin_approval_status && (
+                              <StatusBadge status={product.admin_approval_status} type="admin" />
                             )}
                           </div>
+                        </div>
 
-                          {/* Actions */}
-                          <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col gap-2 min-w-[200px]">
-                            <Link to={ROUTE_PATHS.EDIT_PRODUCT.replace(':productId', String(product.id))}>
-                              <Button variant="outline" className="w-full">
-                                {t('myListingsPage.actions.edit')}
-                              </Button>
-                            </Link>
-                            
-                            <select 
-                              value={product.availability_status || ''} 
-                              onChange={(e) => handleChangeStatus(product.id, e.target.value as ProductAvailabilityStatus)}
-                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                            >
-                              <option value="available">{t('myListingsPage.status.available')}</option>
-                              <option value="unavailable">{t('myListingsPage.status.unavailable')}</option>
-                              <option value="hidden">{t('myListingsPage.status.hidden')}</option>
-                            </select>
-                            
-                            <Button 
-                              variant="danger" 
-                              onClick={() => handleDelete(product.id, product.title)}
-                              className="w-full"
-                            >
-                              {t('myListingsPage.actions.delete')}
-                            </Button>
+                        {/* Product Details */}
+                        <div className="flex-grow p-6">
+                          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between h-full">
+                            <div className="flex-grow">
+                              <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-blue-600 transition-colors">
+                                <HighlightText text={product.title} searchTerm={searchTerm} />
+                              </h3>
+
+                              {/* Product Info Grid */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1 font-medium">
+                                    <FaMoneyBillWave className="h-3 w-3 text-green-500" />
+                                    {t('myListingsPage.labels.price')}:
+                                  </span>
+                                  <span className="font-bold text-green-600">฿{product.rental_price_per_day?.toLocaleString()}/{t('myListingsPage.labels.day')}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1 font-medium">
+                                    <FaViews className="h-3 w-3 text-purple-500" />
+                                    {t('myListingsPage.labels.views')}:
+                                  </span>
+                                  <span>{product.view_count || 0}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1 font-medium">
+                                    <FaTag className="h-3 w-3 text-blue-500" />
+                                    {t('myListingsPage.labels.category')}:
+                                  </span>
+                                  <span className="truncate">
+                                    <HighlightText text={product.category?.name || t('myListingsPage.labels.unknown')} searchTerm={searchTerm} />
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1 font-medium">
+                                    <FaMapMarkerAlt className="h-3 w-3 text-red-500" />
+                                    {t('myListingsPage.labels.location')}:
+                                  </span>
+                                  <span className="truncate">
+                                    <HighlightText text={product.province?.name_th || t('myListingsPage.labels.unknown')} searchTerm={searchTerm} />
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1 font-medium">
+                                    <FaCalendarAlt className="h-3 w-3 text-gray-500" />
+                                    {t('myListingsPage.labels.created')}:
+                                  </span>
+                                  <span>{product.created_at ? new Date(product.created_at).toLocaleDateString() : t('myListingsPage.labels.unknown')}</span>
+                                </div>
+                              </div>
+
+                              {/* Show description if it matches search */}
+                              {product.description && searchTerm.trim() && 
+                               product.description.toLowerCase().includes(searchTerm.toLowerCase()) && (
+                                <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
+                                  <strong className="text-gray-700">{t('myListingsPage.labels.description')}:</strong>
+                                  <div className="mt-1 text-gray-600">
+                                    <HighlightText text={product.description} searchTerm={searchTerm} />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col gap-3 min-w-[200px]">
+                              <Link to={ROUTE_PATHS.EDIT_PRODUCT.replace(':productId', String(product.id))}>
+                                <motion.button
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center justify-center gap-2"
+                                >
+                                  <FaEdit className="h-4 w-4" />
+                                  {t('myListingsPage.actions.edit')}
+                                </motion.button>
+                              </Link>
+                              
+                              <select 
+                                value={product.availability_status || ''} 
+                                onChange={(e) => handleChangeStatus(product.id, e.target.value as ProductAvailabilityStatus)}
+                                className="px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all"
+                              >
+                                <option value="available">{t('myListingsPage.status.available')}</option>
+                                <option value="unavailable">{t('myListingsPage.status.unavailable')}</option>
+                                <option value="hidden">{t('myListingsPage.status.hidden')}</option>
+                              </select>
+                              
+                              <motion.button 
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => handleDelete(product.id, product.title)}
+                                className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-4 rounded-lg font-medium hover:from-red-600 hover:to-pink-600 transition-all duration-200 flex items-center justify-center gap-2"
+                              >
+                                <FaTrash className="h-4 w-4" />
+                                {t('myListingsPage.actions.delete')}
+                              </motion.button>
+                            </div>
                           </div>
                         </div>
-                      </CardContent>
-                    </div>
-                  </Card>
-                ))}
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             )}
 
             {/* Pagination - Only show if not searching */}
             {!searchTerm.trim() && listingsResponse && listingsResponse.meta.last_page > 1 && (
-                <div className="mt-8 flex justify-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-8 flex justify-center"
+              >
                 <div className="flex items-center space-x-2">
                   {/* Previous Button */}
                   {listingsResponse.meta.current_page > 1 && (
-                    <Button 
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => handlePageChange(listingsResponse.meta.current_page - 1)}
-                      variant="ghost"
-                      size="sm"
+                      className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200"
                     >
                       {t('myListingsPage.pagination.previous')}
-                    </Button>
+                    </motion.button>
                   )}
 
                   {/* Page Numbers */}
                   {Array.from({ length: Math.min(5, listingsResponse.meta.last_page) }, (_, i) => {
                     const page = i + 1;
                     return (
-                        <Button 
-                            key={page}
+                      <motion.button
+                        key={page}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => handlePageChange(page)}
-                            variant={page === listingsResponse.meta.current_page ? 'primary' : 'ghost'}
-                            size="sm"
-                        >
-                            {page}
-                        </Button>
+                        className={`px-4 py-2 rounded-lg transition-all duration-200 ${
+                          page === listingsResponse.meta.current_page 
+                            ? 'bg-blue-500 text-white shadow-lg' 
+                            : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </motion.button>
                     );
                   })}
 
                   {/* Next Button */}
                   {listingsResponse.meta.current_page < listingsResponse.meta.last_page && (
-                    <Button 
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => handlePageChange(listingsResponse.meta.current_page + 1)}
-                      variant="ghost"
-                      size="sm"
+                      className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200"
                     >
                       {t('myListingsPage.pagination.next')}
-                    </Button>
+                    </motion.button>
                   )}
                 </div>
-                </div>
+              </motion.div>
             )}
-        </div>
-      ) : (
+          </motion.div>
+        ) : (
           /* No Results */
-          <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="max-w-md mx-auto">
-              <div className="text-gray-400 mb-6">
-                <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center py-16"
+          >
+            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-12 max-w-md mx-auto">
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full mb-6">
+                <FaBox className="h-12 w-12 text-blue-500" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">
                 {hasNoSearchResults 
                   ? t('myListingsPage.noSearchResults', { term: searchTerm })
                   : t('myListingsPage.noListingsFound')
                 }
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-gray-500 leading-relaxed mb-6">
                 {hasNoSearchResults 
                   ? t('myListingsPage.searchSuggestions')
                   : t('myListingsPage.createFirstListing')
@@ -781,20 +924,29 @@ export const MyListingsPage: React.FC = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 {(searchTerm || statusFilter || categoryFilter || provinceFilter || priceRangeFilter) && (
-                  <Button onClick={clearFilters} variant="outline">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={clearFilters}
+                    className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 font-medium"
+                  >
                     {t('searchPage.clearFiltersButton')}
-                  </Button>
+                  </motion.button>
                 )}
                 <Link to={ROUTE_PATHS.CREATE_PRODUCT}>
-                  <Button variant="primary">
-                    <PlusIcon />
-                    <span className="ml-2">{t('myListingsPage.addNewListing')}</span>
-                  </Button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center gap-2"
+                  >
+                    <FaPlus className="h-4 w-4" />
+                    {t('myListingsPage.addNewListing')}
+                  </motion.button>
                 </Link>
               </div>
             </div>
-        </div>
-      )}
+          </motion.div>
+        )}
       </div>
     </div>
   );

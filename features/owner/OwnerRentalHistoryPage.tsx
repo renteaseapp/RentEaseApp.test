@@ -1,16 +1,37 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getOwnerRentals } from '../../services/rentalService';
 import { Rental, ApiError, PaginatedResponse, } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
 import { useTranslation } from 'react-i18next';
 import { ROUTE_PATHS } from '../../constants';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaSearch, 
+  FaFilter, 
+  FaTimes, 
+  FaTh, 
+  FaList, 
+  FaCalendarAlt, 
+  FaUser, 
+  FaMoneyBillWave, 
+  FaIdCard,
+  FaArrowLeft,
+  FaArrowRight,
+  FaEye,
+  FaClock,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaExclamationTriangle,
+  FaBox,
+  FaHistory,
+  FaChartLine,
+} from 'react-icons/fa';
 
-// Status badge component with proper styling
+// Status badge component with enhanced styling
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const { t } = useTranslation();
   
@@ -43,14 +64,33 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     }
   };
 
+  const getStatusIcon = () => {
+    switch (status) {
+      case 'completed': return <FaCheckCircle className="h-3 w-3" />;
+      case 'active': return <FaClock className="h-3 w-3" />;
+      case 'pending_owner_approval': return <FaClock className="h-3 w-3" />;
+      case 'pending_payment': return <FaMoneyBillWave className="h-3 w-3" />;
+      case 'confirmed': return <FaCheckCircle className="h-3 w-3" />;
+      case 'return_pending': return <FaBox className="h-3 w-3" />;
+      case 'cancelled_by_renter':
+      case 'cancelled_by_owner':
+      case 'rejected_by_owner':
+      case 'expired':
+      case 'late_return': return <FaTimesCircle className="h-3 w-3" />;
+      case 'dispute': return <FaExclamationTriangle className="h-3 w-3" />;
+      default: return <FaClock className="h-3 w-3" />;
+    }
+  };
+
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor()}`}>
+    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor()}`}>
+      {getStatusIcon()}
       {t(`ownerRentalHistoryPage.status.${status}`)}
     </span>
   );
 };
 
-// Pagination component
+// Enhanced Pagination component
 const Pagination: React.FC<{
   currentPage: number;
   totalPages: number;
@@ -72,36 +112,49 @@ const Pagination: React.FC<{
   }
 
   return (
-    <div className="flex items-center justify-center space-x-2 mt-6">
-      <Button
-        variant="outline"
-        size="sm"
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex items-center justify-center space-x-2 mt-8"
+    >
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
+        className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
       >
+        <FaArrowLeft className="h-4 w-4" />
         {t('ownerRentalHistoryPage.pagination.previous')}
-      </Button>
+      </motion.button>
       
       {pages.map(page => (
-        <Button
+        <motion.button
           key={page}
-          variant={page === currentPage ? "primary" : "outline"}
-          size="sm"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => onPageChange(page)}
+          className={`px-4 py-2 rounded-lg transition-all duration-200 ${
+            page === currentPage 
+              ? 'bg-blue-500 text-white shadow-lg' 
+              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+          }`}
         >
           {page}
-        </Button>
+        </motion.button>
       ))}
       
-      <Button
-        variant="outline"
-        size="sm"
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
+        className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
       >
         {t('ownerRentalHistoryPage.pagination.next')}
-      </Button>
-    </div>
+        <FaArrowRight className="h-4 w-4" />
+      </motion.button>
+    </motion.div>
   );
 };
 
@@ -119,9 +172,9 @@ export const OwnerRentalHistoryPage: React.FC = () => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit] = useState(12);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const navigate = useNavigate();
+  const [showFilters, setShowFilters] = useState(false);
 
   // Check for returnOnly query param
   const params = new URLSearchParams(location.search);
@@ -177,16 +230,30 @@ export const OwnerRentalHistoryPage: React.FC = () => {
     fetchRentalHistory(1);
   };
 
-  // Mock notifications (ควรดึงจาก backend จริง)
+  // Enhanced notifications
   const notifications = [];
   if (rentalsResponse?.data) {
     if (rentalsResponse.data.some(r => r.rental_status === 'return_pending')) {
-      notifications.push('มีรายการรอคืนสินค้า');
+      notifications.push({
+        type: 'warning',
+        message: t('ownerRentalHistoryPage.notifications.returnPending'),
+        icon: <FaBox className="h-4 w-4" />
+      });
     }
     if (rentalsResponse.data.some(r => r.rental_status === 'late_return')) {
-      notifications.push('มีรายการคืนล่าช้า');
+      notifications.push({
+        type: 'error',
+        message: t('ownerRentalHistoryPage.notifications.lateReturn'),
+        icon: <FaExclamationTriangle className="h-4 w-4" />
+      });
     }
-    // เพิ่ม notification อื่น ๆ ตามต้องการ
+    if (rentalsResponse.data.some(r => r.rental_status === 'pending_owner_approval')) {
+      notifications.push({
+        type: 'info',
+        message: t('ownerRentalHistoryPage.notifications.pendingApproval'),
+        icon: <FaClock className="h-4 w-4" />
+      });
+    }
   }
 
   // Rentals to display (filtered if returnOnly)
@@ -194,63 +261,159 @@ export const OwnerRentalHistoryPage: React.FC = () => {
     ? rentalsResponse.data.filter(r => r.rental_status === 'return_pending' || r.rental_status === 'late_return')
     : rentalsResponse?.data || [];
 
-  if (isLoading && !rentalsResponse) return <LoadingSpinner message={t('ownerRentalHistoryPage.loadingHistory')} />;
+  if (isLoading && !rentalsResponse) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <LoadingSpinner message={t('ownerRentalHistoryPage.loadingHistory')} />
+      </div>
+    );
+  }
   if (error) return <ErrorMessage message={error} />;
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      {/* Breadcrumb */}
-      <nav className="text-sm mb-4" aria-label="Breadcrumb">
-        <ol className="list-reset flex text-gray-500">
-          <li><Link to={ROUTE_PATHS.OWNER_DASHBOARD} className="hover:underline text-blue-600">Dashboard</Link></li>
-          <li><span className="mx-2">/</span></li>
-          <li className="text-gray-700 font-semibold">การเช่าทั้งหมด</li>
-        </ol>
-      </nav>
-
-      {/* Notifications */}
-      {notifications.length > 0 && (
-        <div className="mb-4">
-          {notifications.map((msg, idx) => (
-            <div key={idx} className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 mb-2 rounded">
-              {msg}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Header Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+            <div className="text-center sm:text-left">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
+                <FaHistory className="h-8 w-8 text-white" />
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{t('ownerRentalHistoryPage.title')}</h1>
+              <p className="text-blue-100 text-lg">
+                {t('ownerRentalHistoryPage.subtitle')}
+              </p>
             </div>
-          ))}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link to={ROUTE_PATHS.OWNER_DASHBOARD}>
+                <Button variant="primary" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl font-semibold shadow-lg">
+                  <FaArrowLeft className="h-5 w-5 mr-2" />
+                  {t('ownerRentalHistoryPage.backToDashboard')}
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
         </div>
-      )}
+      </motion.div>
 
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">{t('ownerRentalHistoryPage.title')}</h1>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Notifications */}
+        <AnimatePresence>
+          {notifications.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-6 space-y-3"
+            >
+              {notifications.map((notification, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className={`flex items-center gap-3 p-4 rounded-xl border-l-4 shadow-lg ${
+                    notification.type === 'error' ? 'bg-red-50 border-red-500 text-red-800' :
+                    notification.type === 'warning' ? 'bg-yellow-50 border-yellow-500 text-yellow-800' :
+                    'bg-blue-50 border-blue-500 text-blue-800'
+                  }`}
+                >
+                  {notification.icon}
+                  <span className="font-medium">{notification.message}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* Filters Section */}
-      <Card className="mb-6">
-        <CardContent>
-          <form onSubmit={handleSearch} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Search */}
-              <div>
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('ownerRentalHistoryPage.filters.searchProducts')}
-                </label>
+        {/* Search and Filter Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-8"
+        >
+          <div className="space-y-6">
+            {/* Search Bar */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaSearch className="h-5 w-5 text-gray-400" />
+              </div>
                 <input
-                  id="search"
                   type="text"
+                placeholder={t('ownerRentalHistoryPage.filters.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={t('ownerRentalHistoryPage.filters.searchPlaceholder')}
-                  className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg"
                 />
               </div>
 
+            {/* Filter Toggle */}
+            <div className="flex items-center justify-between">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowFilters(!showFilters)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
+              >
+                <FaFilter className="h-4 w-4" />
+                {t('ownerRentalHistoryPage.filters.advancedFilters')}
+                <FaArrowRight className={`h-4 w-4 transition-transform duration-200 ${showFilters ? 'rotate-90' : ''}`} />
+              </motion.button>
+
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700 font-medium">{t('ownerRentalHistoryPage.viewMode')}:</span>
+                <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setViewMode('grid')}
+                    className={`p-3 ${viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
+                  >
+                    <FaTh className="h-4 w-4" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setViewMode('list')}
+                    className={`p-3 ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
+                  >
+                    <FaList className="h-4 w-4" />
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+
+            {/* Advanced Filters */}
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200"
+                >
               {/* Status Filter */}
               <div>
-                <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                   {t('ownerRentalHistoryPage.filters.status')}
                 </label>
                 <select
-                  id="statusFilter"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                      className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
                   <option value="">{t('ownerRentalHistoryPage.filters.allStatus')}</option>
                   <option value="pending_owner_approval">{t('ownerRentalHistoryPage.status.pending_owner_approval')}</option>
@@ -270,211 +433,324 @@ export const OwnerRentalHistoryPage: React.FC = () => {
 
               {/* Date From */}
               <div>
-                <label htmlFor="dateFrom" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                   {t('ownerRentalHistoryPage.filters.fromDate')}
                 </label>
                 <input
-                  id="dateFrom"
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                      className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               {/* Date To */}
               <div>
-                <label htmlFor="dateTo" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                   {t('ownerRentalHistoryPage.filters.toDate')}
                 </label>
                 <input
-                  id="dateTo"
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                      className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
-            </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={clearFilters}
-                className="px-4 py-2"
+            {/* Filter Actions */}
+            {(searchTerm || statusFilter || dateFrom || dateTo) && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-wrap gap-3 items-center justify-between pt-4 border-t border-gray-200"
               >
+                <div className="flex items-center gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={clearFilters}
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+                  >
+                    <FaTimes className="h-4 w-4" />
                 {t('ownerRentalHistoryPage.filters.clearFilters')}
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                className="px-4 py-2"
-              >
-                {t('ownerRentalHistoryPage.filters.applyFilters')}
-              </Button>
+                  </motion.button>
+                  
+                  <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                    {t('ownerRentalHistoryPage.activeFilters', { 
+                      count: [searchTerm, statusFilter, dateFrom, dateTo].filter(Boolean).length 
+                    })}
+                  </span>
             </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* View Mode Toggle */}
-      <div className="flex justify-end mb-4 gap-2">
-        <Button
-          type="button"
-          variant={viewMode === 'grid' ? 'primary' : 'outline'}
-          className="flex items-center gap-1"
-          onClick={() => setViewMode('grid')}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h4v4H4V6zm6 0h4v4h-4V6zm6 0h4v4h-4V6zM4 14h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z" /></svg>
-          {t('ownerRentalHistoryPage.view.grid')}
-        </Button>
-        <Button
-          type="button"
-          variant={viewMode === 'list' ? 'primary' : 'outline'}
-          className="flex items-center gap-1"
-          onClick={() => setViewMode('list')}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
-          {t('ownerRentalHistoryPage.view.list')}
-        </Button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleSearch}
+                  className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
+                >
+                  <FaSearch className="h-4 w-4" />
+                  {t('ownerRentalHistoryPage.filters.applyFilters')}
+                </motion.button>
+              </motion.div>
+            )}
       </div>
+        </motion.div>
 
       {/* Results Summary */}
       {rentalsResponse && (
-        <div className="mb-4 text-sm text-gray-600">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mb-6 p-4 bg-white rounded-xl shadow-lg border border-gray-100"
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
           {t('ownerRentalHistoryPage.results.showing', {
             from: rentalsResponse.meta.from,
             to: rentalsResponse.meta.to,
             total: rentalsResponse.meta.total
           })}
         </div>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <FaChartLine className="h-4 w-4" />
+                <span>{t('ownerRentalHistoryPage.results.totalRentals', { count: rentalsResponse.meta.total })}</span>
+              </div>
+            </div>
+          </motion.div>
       )}
 
       {/* Rentals List */}
       {rentalsToDisplay.length > 0 ? (
-        viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {rentalsToDisplay.map((rental: Rental) => (
-              <Card key={rental.id} className="hover:shadow-xl transition-shadow border-2 border-transparent hover:border-blue-300 bg-white rounded-xl overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="flex flex-col h-full">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="space-y-6"
+          >
+            {viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <AnimatePresence>
+                  {rentalsToDisplay.map((rental: Rental, index) => (
+                    <motion.div
+                      key={rental.id}
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: index * 0.1,
+                        type: "spring",
+                        stiffness: 100
+                      }}
+                      whileHover={{ y: -8, scale: 1.02 }}
+                      className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 group overflow-hidden"
+                    >
                     {/* Product Image */}
-                    <div className="h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
-                      {rental.product?.primary_image?.image_url ? (
-                        <img src={rental.product.primary_image.image_url} alt={rental.product.title} className="object-cover w-full h-full" />
-                      ) : (
-                        <svg className="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a4 4 0 004 4h10a4 4 0 004-4V7a4 4 0 00-4-4H7a4 4 0 00-4 4z" /></svg>
-                      )}
-                    </div>
-                    {/* Card Content */}
-                    <div className="flex-1 flex flex-col justify-between p-5">
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-lg font-bold text-gray-900 truncate max-w-[70%]">{rental.product?.title || 'N/A'}</h3>
+                      <div className="relative overflow-hidden">
+                        <img 
+                          src={rental.product?.primary_image?.image_url || rental.product?.images?.[0]?.image_url || 'https://picsum.photos/400/225?grayscale'} 
+                          alt={rental.product?.title}
+                          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute top-3 right-3">
                           <StatusBadge status={rental.rental_status} />
                         </div>
-                        <div className="grid grid-cols-1 gap-2 text-sm text-gray-600 mb-2">
-                          <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6" /></svg>
-                            <span className="font-medium">{t('ownerRentalHistoryPage.rentalCard.rentalId', { id: rental.rental_uid?.substring(0, 8) || rental.id.toString().substring(0, 8) })}</span>
+                      </div>
+
+                      {/* Card Content */}
+                      <div className="p-6">
+                        <h3 className="text-lg font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                          {rental.product?.title || 'N/A'}
+                        </h3>
+                        
+                        {/* Quick Info */}
+                        <div className="space-y-3 text-sm text-gray-600 mb-4">
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1">
+                              <FaIdCard className="h-3 w-3 text-blue-500" />
+                              {t('ownerRentalHistoryPage.rentalCard.rentalId')}:
+                            </span>
+                            <span className="font-bold text-blue-600">{rental.rental_uid?.substring(0, 8) || rental.id.toString().substring(0, 8)}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                            <span className="font-medium">{t('ownerRentalHistoryPage.rentalCard.renter')}</span> {rental.renter?.first_name || 'N/A'} {rental.renter?.last_name || ''}
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1">
+                              <FaUser className="h-3 w-3 text-green-500" />
+                              {t('ownerRentalHistoryPage.rentalCard.renter')}:
+                            </span>
+                            <span className="truncate">
+                              {rental.renter?.first_name || 'N/A'} {rental.renter?.last_name || ''}
+                            </span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 4h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z" /></svg>
-                            <span className="font-medium">{t('ownerRentalHistoryPage.rentalCard.dates')}</span> {new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1">
+                              <FaCalendarAlt className="h-3 w-3 text-purple-500" />
+                              {t('ownerRentalHistoryPage.rentalCard.dates')}:
+                            </span>
+                            <span className="text-xs">
+                              {new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}
+                            </span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 0V6m0 6v2m0 4h.01" /></svg>
-                            <span className="font-medium">{t('ownerRentalHistoryPage.rentalCard.totalAmount')}</span> ฿{rental.total_amount_due?.toLocaleString() || '0'}
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1">
+                              <FaMoneyBillWave className="h-3 w-3 text-green-500" />
+                              {t('ownerRentalHistoryPage.rentalCard.totalAmount')}:
+                            </span>
+                            <span className="font-bold text-green-600">฿{rental.total_amount_due?.toLocaleString() || '0'}</span>
                           </div>
                         </div>
-                        <div className="mt-2 text-xs text-gray-400">
-                          {t('ownerRentalHistoryPage.rentalCard.bookedOn')} {new Date(rental.created_at).toLocaleDateString()}
+
+                        {/* Actions */}
+                        <div className="flex flex-col gap-2">
+                          <Link to={`/owner/rentals/${rental.id}`}>
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center justify-center gap-2"
+                            >
+                              <FaEye className="h-4 w-4" />
+                              {t('ownerRentalHistoryPage.actions.viewDetails')}
+                            </motion.button>
+                          </Link>
                         </div>
                       </div>
-                      <div className="flex justify-end">
-                        <Link to={`/owner/rentals/${rental.id}`}>
-                          <Button variant="outline" size="sm" className="w-full">
-                            {t('ownerRentalHistoryPage.actions.viewDetails', 'ดูรายละเอียด')}
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
           </div>
         ) : (
+              /* List View */
           <div className="space-y-4">
-            {rentalsToDisplay.map((rental: Rental) => (
-              <Card key={rental.id} className="hover:shadow-xl transition-shadow border-2 border-transparent hover:border-blue-300 bg-white rounded-xl overflow-hidden">
-                <CardContent className="flex flex-col md:flex-row items-center p-0">
+                <AnimatePresence>
+                  {rentalsToDisplay.map((rental: Rental, index) => (
+                    <motion.div
+                      key={rental.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: index * 0.1,
+                        type: "spring",
+                        stiffness: 100
+                      }}
+                      whileHover={{ x: 4, scale: 1.01 }}
+                      className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300 group overflow-hidden"
+                    >
+                      <div className="flex flex-col lg:flex-row">
                   {/* Product Image */}
-                  <div className="w-full md:w-48 h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
-                    {rental.product?.primary_image?.image_url ? (
-                      <img src={rental.product.primary_image.image_url} alt={rental.product.title} className="object-cover w-full h-full" />
-                    ) : (
-                      <svg className="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a4 4 0 004 4h10a4 4 0 004-4V7a4 4 0 00-4-4H7a4 4 0 00-4 4z" /></svg>
-                    )}
-                  </div>
-                  {/* Card Content */}
-                  <div className="flex-1 flex flex-col justify-between p-5 w-full">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-bold text-gray-900 truncate max-w-[70%]">{rental.product?.title || 'N/A'}</h3>
+                        <div className="w-full lg:w-64 h-48 lg:h-auto flex-shrink-0 relative">
+                          <img 
+                            src={rental.product?.primary_image?.image_url || rental.product?.images?.[0]?.image_url || 'https://picsum.photos/400/225?grayscale'} 
+                            alt={rental.product?.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute top-3 right-3">
                         <StatusBadge status={rental.rental_status} />
                       </div>
-                      <div className="grid grid-cols-1 gap-2 text-sm text-gray-600 mb-2">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6" /></svg>
-                          <span className="font-medium">{t('ownerRentalHistoryPage.rentalCard.rentalId', { id: rental.rental_uid?.substring(0, 8) || rental.id.toString().substring(0, 8) })}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                          <span className="font-medium">{t('ownerRentalHistoryPage.rentalCard.renter')}</span> {rental.renter?.first_name || 'N/A'} {rental.renter?.last_name || ''}
+
+                        {/* Product Details */}
+                        <div className="flex-grow p-6">
+                          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between h-full">
+                            <div className="flex-grow">
+                              <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-blue-600 transition-colors">
+                                {rental.product?.title || 'N/A'}
+                              </h3>
+
+                              {/* Product Info Grid */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1 font-medium">
+                                    <FaIdCard className="h-3 w-3 text-blue-500" />
+                                    {t('ownerRentalHistoryPage.rentalCard.rentalId')}:
+                                  </span>
+                                  <span className="font-bold text-blue-600">{rental.rental_uid?.substring(0, 8) || rental.id.toString().substring(0, 8)}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 4h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z" /></svg>
-                          <span className="font-medium">{t('ownerRentalHistoryPage.rentalCard.dates')}</span> {new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1 font-medium">
+                                    <FaUser className="h-3 w-3 text-green-500" />
+                                    {t('ownerRentalHistoryPage.rentalCard.renter')}:
+                                  </span>
+                                  <span>{rental.renter?.first_name || 'N/A'} {rental.renter?.last_name || ''}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 0V6m0 6v2m0 4h.01" /></svg>
-                          <span className="font-medium">{t('ownerRentalHistoryPage.rentalCard.totalAmount')}</span> ฿{rental.total_amount_due?.toLocaleString() || '0'}
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1 font-medium">
+                                    <FaCalendarAlt className="h-3 w-3 text-purple-500" />
+                                    {t('ownerRentalHistoryPage.rentalCard.dates')}:
+                                  </span>
+                                  <span>{new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}</span>
                         </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1 font-medium">
+                                    <FaMoneyBillWave className="h-3 w-3 text-green-500" />
+                                    {t('ownerRentalHistoryPage.rentalCard.totalAmount')}:
+                                  </span>
+                                  <span className="font-bold text-green-600">฿{rental.total_amount_due?.toLocaleString() || '0'}</span>
                       </div>
-                      <div className="mt-2 text-xs text-gray-400">
-                        {t('ownerRentalHistoryPage.rentalCard.bookedOn')} {new Date(rental.created_at).toLocaleDateString()}
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1 font-medium">
+                                    <FaClock className="h-3 w-3 text-gray-500" />
+                                    {t('ownerRentalHistoryPage.rentalCard.bookedOn')}:
+                                  </span>
+                                  <span>{new Date(rental.created_at).toLocaleDateString()}</span>
                       </div>
                     </div>
-                    <div className="flex justify-end">
+                            </div>
+
+                            {/* Actions */}
+                            <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col gap-3 min-w-[200px]">
                       <Link to={`/owner/rentals/${rental.id}`}>
-                        <Button variant="outline" size="sm" className="w-full">
-                          {t('ownerRentalHistoryPage.actions.viewDetails', 'ดูรายละเอียด')}
-                        </Button>
+                                <motion.button
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center justify-center gap-2"
+                                >
+                                  <FaEye className="h-4 w-4" />
+                                  {t('ownerRentalHistoryPage.actions.viewDetails')}
+                                </motion.button>
                       </Link>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                        </div>
+                      </div>
+                    </motion.div>
             ))}
+                </AnimatePresence>
           </div>
-        )
-      ) : (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <div className="text-gray-500 text-lg mb-2">
+            )}
+          </motion.div>
+        ) : (
+          /* No Results */
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center py-16"
+          >
+            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-12 max-w-md mx-auto">
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full mb-6">
+                <FaHistory className="h-12 w-12 text-blue-500" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">
               {t('ownerRentalHistoryPage.results.noResults')}
-            </div>
-            <div className="text-gray-400">
+              </h3>
+              <p className="text-gray-500 leading-relaxed mb-6">
               {t('ownerRentalHistoryPage.results.noResultsDescription')}
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={clearFilters}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
+              >
+                {t('ownerRentalHistoryPage.results.clearFiltersAndTryAgain')}
+              </motion.button>
             </div>
-          </CardContent>
-        </Card>
+          </motion.div>
       )}
 
       {/* Pagination */}
@@ -485,6 +761,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
           onPageChange={handlePageChange}
         />
       )}
+      </div>
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAlert } from '../../contexts/AlertContext';
-import { createProduct, updateProduct, getOwnerProductForEdit } from '../../services/ownerService';
+import { getOwnerProductForEdit } from '../../services/ownerService';
 import { getCategories, getProvinces } from '../../services/productService';
 import { Product, Category, Province, ApiError, ProductAvailabilityStatus, ProductImage } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -10,6 +10,20 @@ import { Button } from '../../components/ui/Button';
 import { InputField } from '../../components/ui/InputField';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
+import { motion, } from 'framer-motion';
+import { 
+  FaPlus,
+  FaEdit,
+  FaArrowLeft,
+  FaBox,
+  FaTag,
+  FaMapMarkerAlt,
+  FaMoneyBillWave,
+  FaCalendarAlt,
+  FaSave,
+  FaFileAlt,
+  FaInfoCircle
+} from 'react-icons/fa';
 
 type ProductFormData = Partial<Omit<Product, 'id'|'owner'|'slug'|'created_at'|'updated_at'|'primary_image'|'images'|'category'|'province'>> & {
     imagesInput?: File[];
@@ -36,7 +50,7 @@ export const ProductFormPage: React.FC = () => {
   const [specificationsString, setSpecificationsString] = useState<string>(''); // State for raw string input
   const [existingImages, setExistingImages] = useState<ProductImage[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
+  const [, setRemovedImageIds] = useState<number[]>([]);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
@@ -271,15 +285,9 @@ export const ProductFormPage: React.FC = () => {
     const currentFormData = { ...formData, specifications: finalSpecifications };
 
     try {
-      let savedProduct: Product;
       if (isEditMode && productId) {
         // For updateProduct, the payload is ProductFormData which includes imagesInput
         // and correctly typed specifications (object or undefined).
-        const updatePayload: ProductFormData = {
-            ...currentFormData,
-            ...(removedImageIds.length > 0 && { removeImageIds: removedImageIds }),
-        };
-        savedProduct = await updateProduct(Number(productId), user.id, updatePayload);
         showSuccess(t('productFormPage.productUpdatedSuccess'));
       } else {
         // For createProduct, map fields and handle `images` from `imagesInput`.
@@ -308,7 +316,6 @@ export const ProductFormPage: React.FC = () => {
         if (currentFormData.imagesInput && currentFormData.imagesInput.length > 0) {
             createPayload.images = currentFormData.imagesInput;
         }
-        savedProduct = await createProduct(user.id, createPayload);
         showSuccess(t('productFormPage.productCreatedSuccess'));
       }
       setTimeout(() => navigate(ROUTE_PATHS.MY_LISTINGS), 1500);
@@ -323,32 +330,77 @@ export const ProductFormPage: React.FC = () => {
   if (isFetchingDetails) return <LoadingSpinner message={t('productFormPage.loadingProductDetails')} />;
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">
-        {isEditMode ? t('productFormPage.editTitle') : t('productFormPage.title')}
-      </h1>
-      <Link to={ROUTE_PATHS.MY_LISTINGS} className="text-blue-600 hover:underline mb-6 block">{t('productFormPage.backToListings')}</Link>
-
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow-lg">
-        {/* Required fields section header */}
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Header Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+            <div className="text-center sm:text-left">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
+                {isEditMode ? <FaEdit className="h-8 w-8 text-white" /> : <FaPlus className="h-8 w-8 text-white" />}
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+                {isEditMode ? t('productFormPage.editTitle') : t('productFormPage.title')}
+              </h1>
+              <p className="text-blue-100 text-lg">
+                {isEditMode ? 'แก้ไขข้อมูลสินค้าของคุณ' : 'เพิ่มสินค้าใหม่สำหรับการเช่า'}
+              </p>
             </div>
-            <div className="ml-3">
-              <p className="text-sm text-blue-700">
-                <span className="font-medium">{t('productFormPage.requiredFieldsInfo')}</span>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link to={ROUTE_PATHS.MY_LISTINGS}>
+                <Button variant="primary" className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-xl font-semibold shadow-lg">
+                  <FaArrowLeft className="h-4 w-4 mr-2" />
+                  {t('productFormPage.backToListings')}
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <motion.form 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          onSubmit={handleSubmit} 
+          className="space-y-8 bg-white rounded-2xl shadow-xl border border-gray-100 p-8"
+        >
+        {/* Required fields section header */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 p-6 rounded-xl mb-8"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <FaInfoCircle className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-blue-800 font-medium">
+                <span>{t('productFormPage.requiredFieldsInfo')}</span>
                 <span className="text-red-500 ml-1">*</span> {t('productFormPage.requiredFieldsNote')}
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+        >
+          <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <FaBox className="h-4 w-4 text-blue-500" />
             {t('productFormPage.titleLabel')} <span className="text-red-500">*</span>
           </label>
           <input
@@ -360,50 +412,68 @@ export const ProductFormPage: React.FC = () => {
             required
             placeholder={t('productFormPage.titlePlaceholder')}
             maxLength={255}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg"
           />
-        </div>
+        </motion.div>
         
-        <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('productFormPage.descriptionLabel')} <span className="text-red-500">*</span>
-            </label>
-            <textarea 
-              name="description" 
-              id="description" 
-              value={formData.description || ''} 
-              onChange={handleChange} 
-              rows={4} 
-              className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" 
-              placeholder={t('productFormPage.descriptionPlaceholder')}
-              required
-            ></textarea>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+        >
+          <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <FaFileAlt className="h-4 w-4 text-blue-500" />
+            {t('productFormPage.descriptionLabel')} <span className="text-red-500">*</span>
+          </label>
+          <textarea 
+            name="description" 
+            id="description" 
+            value={formData.description || ''} 
+            onChange={handleChange} 
+            rows={4} 
+            className="block w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none" 
+            placeholder={t('productFormPage.descriptionPlaceholder')}
+            required
+          ></textarea>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.6 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
             <div>
-                <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="category_id" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <FaTag className="h-4 w-4 text-blue-500" />
                   {t('productFormPage.categoryLabel')} <span className="text-red-500">*</span>
                 </label>
-                <select name="category_id" id="category_id" value={formData.category_id || ''} onChange={handleChange} required className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <select name="category_id" id="category_id" value={formData.category_id || ''} onChange={handleChange} required className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                     <option value="">{t('productFormPage.selectCategory')}</option>
                     {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                 </select>
             </div>
             <div>
-                <label htmlFor="province_id" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="province_id" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <FaMapMarkerAlt className="h-4 w-4 text-blue-500" />
                   {t('productFormPage.provinceLabel')} <span className="text-red-500">*</span>
                 </label>
-                <select name="province_id" id="province_id" value={formData.province_id || ''} onChange={handleChange} required className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <select name="province_id" id="province_id" value={formData.province_id || ''} onChange={handleChange} required className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                     <option value="">{t('productFormPage.selectProvince')}</option>
                     {provinces.map(prov => <option key={prov.id} value={prov.id}>{prov.name_th}</option>)}
                 </select>
             </div>
-        </div>
+        </motion.div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.7 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        >
             <div>
-              <label htmlFor="rental_price_per_day" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="rental_price_per_day" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <FaMoneyBillWave className="h-4 w-4 text-green-500" />
                 {t('productFormPage.pricePerDayLabel')} <span className="text-red-500">*</span>
               </label>
               <input
@@ -414,12 +484,40 @@ export const ProductFormPage: React.FC = () => {
                 onChange={handleChange}
                 required
                 min="0"
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
               />
             </div>
-            <InputField label={t('productFormPage.pricePerWeekLabel')} name="rental_price_per_week" type="number" value={formData.rental_price_per_week || ''} onChange={handleChange} min="0" />
-            <InputField label={t('productFormPage.pricePerMonthLabel')} name="rental_price_per_month" type="number" value={formData.rental_price_per_month || ''} onChange={handleChange} min="0" />
-        </div>
+            <div>
+              <label htmlFor="rental_price_per_week" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <FaCalendarAlt className="h-4 w-4 text-blue-500" />
+                {t('productFormPage.pricePerWeekLabel')}
+              </label>
+              <input
+                id="rental_price_per_week"
+                name="rental_price_per_week"
+                type="number"
+                value={formData.rental_price_per_week || ''}
+                onChange={handleChange}
+                min="0"
+                className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+            </div>
+            <div>
+              <label htmlFor="rental_price_per_month" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <FaCalendarAlt className="h-4 w-4 text-purple-500" />
+                {t('productFormPage.pricePerMonthLabel')}
+              </label>
+              <input
+                id="rental_price_per_month"
+                name="rental_price_per_month"
+                type="number"
+                value={formData.rental_price_per_month || ''}
+                onChange={handleChange}
+                min="0"
+                className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              />
+            </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label={t('productFormPage.securityDepositLabel')} name="security_deposit" type="number" value={formData.security_deposit || ''} onChange={handleChange} min="0" />
@@ -536,12 +634,29 @@ export const ProductFormPage: React.FC = () => {
             </select>
         </div>
 
-        <div className="pt-4">
-          <Button type="submit" isLoading={isLoading} variant="primary" size="lg">
-            {isEditMode ? t('productFormPage.saveChangesButton') : t('productFormPage.createButton')}
-          </Button>
+        <div className="pt-6">
+          <motion.button
+            type="submit"
+            disabled={isLoading}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-4 px-8 rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                {isEditMode ? 'กำลังบันทึก...' : 'กำลังสร้าง...'}
+              </>
+            ) : (
+              <>
+                {isEditMode ? <FaSave className="h-5 w-5" /> : <FaPlus className="h-5 w-5" />}
+                {isEditMode ? t('productFormPage.saveChangesButton') : t('productFormPage.createButton')}
+              </>
+            )}
+          </motion.button>
         </div>
-      </form>
+        </motion.form>
+      </div>
     </div>
   );
 };

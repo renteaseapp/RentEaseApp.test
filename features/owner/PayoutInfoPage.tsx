@@ -7,10 +7,25 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
-import { InputField } from '../../components/ui/InputField';
 import { useTranslation } from 'react-i18next';
 import { THAI_BANKS, ROUTE_PATHS } from '../../constants';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaCreditCard, 
+  FaPlus, 
+  FaTimes, 
+  FaTrash, 
+  FaStar,
+  FaArrowLeft,
+  FaBuilding,
+  FaUser,
+  FaIdCard,
+  FaShieldAlt,
+  FaWallet,
+  FaQrcode,
+  FaUniversity
+} from 'react-icons/fa';
 
 type NewPayoutMethodData = Omit<PayoutMethod, 'id' | 'owner_id' | 'created_at' | 'updated_at'>;
 
@@ -150,181 +165,408 @@ export const PayoutInfoPage: React.FC = () => {
       return bankName;
   };
 
-  if (isLoading) return <LoadingSpinner message={t('payoutInfoPage.loading')} />;
+  const getMethodIcon = (methodType: string) => {
+    switch (methodType) {
+      case 'bank_account':
+        return <FaUniversity className="h-5 w-5" />;
+      case 'promptpay':
+        return <FaQrcode className="h-5 w-5" />;
+      default:
+        return <FaCreditCard className="h-5 w-5" />;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <LoadingSpinner message={t('payoutInfoPage.loading')} />
+      </div>
+    );
+  }
   
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">{t('payoutInfoPage.title')}</h1>
-      {error && <ErrorMessage message={error} onDismiss={() => setError(null)} />}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Header Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+            <div className="text-center sm:text-left">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
+                <FaWallet className="h-8 w-8 text-white" />
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{t('payoutInfoPage.title')}</h1>
+              <p className="text-blue-100 text-lg">
+                {t('payoutInfoPage.subtitle')}
+              </p>
+            </div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link to={ROUTE_PATHS.OWNER_DASHBOARD}>
+                <Button variant="primary" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl font-semibold shadow-lg">
+                  <FaArrowLeft className="h-5 w-5 mr-2" />
+                  {t('payoutInfoPage.actions.backToDashboard')}
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
 
-      <div className="mb-6">
-          <Button 
-              onClick={() => setShowForm(prev => !prev)} 
-              variant={showForm ? "secondary" : "primary"}
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
           >
-              {showForm ? t('payoutInfoPage.actions.cancelAdd') : t('payoutInfoPage.actions.addNew')}
-          </Button>
-      </div>
+            <ErrorMessage message={error} onDismiss={() => setError(null)} />
+          </motion.div>
+        )}
 
-      {showForm && (
-          <Card className="mb-8">
-              <CardContent>
-                  <h2 className="text-xl font-semibold mb-4">{t('payoutInfoPage.addNewMethod')}</h2>
-                  <form onSubmit={handleAddMethod} className="space-y-4">
-                      <div>
-                          <label htmlFor="method_type" className="block text-sm font-medium text-gray-700 mb-1">
-                              {t('payoutInfoPage.form.methodType')}
-                          </label>
-                          <select 
-                              name="method_type" 
-                              id="method_type" 
-                              value={newMethodData.method_type} 
-                              onChange={handleInputChange} 
-                              className="block w-full p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                          >
-                              <option value="bank_account">{t('payoutInfoPage.methodTypes.bankAccount')}</option>
-                              <option value="promptpay">{t('payoutInfoPage.methodTypes.promptpay')}</option>
-                          </select>
-                      </div>
-                      
-                      <InputField 
-                          label={t('payoutInfoPage.form.accountName')} 
-                          name="account_name" 
-                          value={newMethodData.account_name} 
-                          onChange={handleInputChange} 
-                          required 
-                      />
-                      
-                      <InputField 
-                          label={t('payoutInfoPage.form.accountNumber')} 
-                          name="account_number" 
-                          value={newMethodData.account_number} 
-                          onChange={handleInputChange} 
-                          required 
-                      />
-                      
-                      {newMethodData.method_type === 'bank_account' && (
-                        <div>
-                          <label htmlFor="bank_name" className="block text-sm font-medium text-gray-700 mb-1">
-                              {t('payoutInfoPage.form.bankName')}
-                          </label>
-                          <select 
-                              name="bank_name" 
-                              id="bank_name" 
-                              value={newMethodData.bank_name || ''} 
-                              onChange={handleInputChange} 
-                              className="block w-full p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                              required
-                          >
-                              <option value="">{t('payoutInfoPage.form.selectBank')}</option>
-                              {THAI_BANKS.map(bank => (
-                                  <option key={bank.code} value={bank.code}>
-                                      {i18n.language === 'th' ? bank.name : bank.nameEn}
-                                  </option>
-                              ))}
-                          </select>
-                        </div>
-                      )}
-                      
-                       <div className="flex items-center">
-                          <input 
-                              type="checkbox" 
-                              id="is_primary" 
-                              name="is_primary" 
-                              checked={newMethodData.is_primary} 
-                              onChange={handleInputChange} 
-                              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <label htmlFor="is_primary" className="ml-2 block text-sm text-gray-900">
-                              {t('payoutInfoPage.form.setAsPrimary')}
-                          </label>
-                        </div>
-                      
-                      <Button type="submit" isLoading={isAdding}>
-                          {t('payoutInfoPage.actions.addMethod')}
-                      </Button>
-                  </form>
-              </CardContent>
-          </Card>
-      )}
+        {/* Add New Method Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mb-8"
+        >
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowForm(prev => !prev)}
+            className={`inline-flex items-center gap-3 px-6 py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg ${
+              showForm 
+                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
+                : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600'
+            }`}
+          >
+            {showForm ? (
+              <>
+                <FaTimes className="h-5 w-5" />
+                {t('payoutInfoPage.actions.cancelAdd')}
+              </>
+            ) : (
+              <>
+                <FaPlus className="h-5 w-5" />
+                {t('payoutInfoPage.actions.addNew')}
+              </>
+            )}
+          </motion.button>
+        </motion.div>
 
-      <h2 className="text-2xl font-semibold text-gray-700 mb-4">{t('payoutInfoPage.yourMethods')}</h2>
-      {payoutMethods.length > 0 ? (
-        <div className="space-y-4">
-          {payoutMethods.map(method => (
-            <Card key={method.id} className={`border-2 ${method.is_primary ? 'border-blue-500' : 'border-transparent'}`}>
-              <CardContent>
-                <div className="flex justify-between items-start">
-                  <div className="flex-grow">
-                    <h3 className="text-lg font-medium text-gray-800">
-                      {method.account_name} 
-                      {method.is_primary && (
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-2">
-                          {t('payoutInfoPage.primary')}
-                        </span>
-                      )}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {t('payoutInfoPage.type')}: {getMethodTypeDisplay(method.method_type)}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {t('payoutInfoPage.account')}: ...{method.account_number.slice(-4)}
-                    </p>
-                    {method.bank_name && (
-                      <p className="text-sm text-gray-600">
-                        {t('payoutInfoPage.bank')}: {getBankDisplayName(method.bank_name)}
-                      </p>
-                    )}
+        {/* Add New Method Form */}
+        <AnimatePresence>
+          {showForm && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4 }}
+              className="mb-8"
+            >
+              <Card className="shadow-xl border border-gray-100 rounded-2xl overflow-hidden">
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-3 bg-blue-100 rounded-xl">
+                      <FaPlus className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-800">{t('payoutInfoPage.addNewMethod')}</h2>
                   </div>
                   
-                  <div className="flex flex-col gap-2 ml-4">
-                    {!method.is_primary && (
-                      <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleSetPrimary(method.id)}
-                          isLoading={isSettingPrimary === method.id}
-                      >
-                          {t('payoutInfoPage.actions.setPrimary')}
-                      </Button>
-                    )}
-                    <Button 
-                        size="sm" 
-                        variant="danger"
-                        onClick={() => handleDeleteMethod(method.id, method.account_name)}
-                        isLoading={isDeleting === method.id}
-                    >
-                        {t('payoutInfoPage.actions.delete')}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="text-gray-400 mb-4">
-            <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {t('payoutInfoPage.noMethods.title')}
-          </h3>
-          <p className="text-gray-500 mb-4">
-            {t('payoutInfoPage.noMethods.description')}
-          </p>
-          <Button onClick={() => setShowForm(true)} variant="primary">
-            {t('payoutInfoPage.actions.addNew')}
-          </Button>
-        </div>
-      )}
+                  <form onSubmit={handleAddMethod} className="space-y-6">
+                    {/* Method Type Selection */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700">
+                          {t('payoutInfoPage.form.methodType')}
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <motion.button
+                            type="button"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setNewMethodData(prev => ({ ...prev, method_type: 'bank_account' }))}
+                            className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                              newMethodData.method_type === 'bank_account'
+                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <FaUniversity className="h-5 w-5" />
+                              <span className="font-medium">{t('payoutInfoPage.methodTypes.bankAccount')}</span>
+                            </div>
+                          </motion.button>
+                          
+                          <motion.button
+                            type="button"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setNewMethodData(prev => ({ ...prev, method_type: 'promptpay' }))}
+                            className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                              newMethodData.method_type === 'promptpay'
+                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <FaQrcode className="h-5 w-5" />
+                              <span className="font-medium">{t('payoutInfoPage.methodTypes.promptpay')}</span>
+                            </div>
+                          </motion.button>
+                        </div>
+                      </div>
+                    </div>
 
-      <div className="mt-8">
-        <Link to={ROUTE_PATHS.OWNER_DASHBOARD} className="text-blue-500">
-          {t('payoutInfoPage.actions.backToDashboard')}
-        </Link>
+                    {/* Account Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700">
+                          <FaUser className="inline-block h-4 w-4 mr-2 text-blue-500" />
+                          {t('payoutInfoPage.form.accountName')}
+                        </label>
+                        <input
+                          type="text"
+                          name="account_name"
+                          value={newMethodData.account_name}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          placeholder={t('payoutInfoPage.form.accountNamePlaceholder')}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700">
+                          <FaIdCard className="inline-block h-4 w-4 mr-2 text-blue-500" />
+                          {t('payoutInfoPage.form.accountNumber')}
+                        </label>
+                        <input
+                          type="text"
+                          name="account_number"
+                          value={newMethodData.account_number}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          placeholder={t('payoutInfoPage.form.accountNumberPlaceholder')}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bank Selection (for bank accounts) */}
+                    {newMethodData.method_type === 'bank_account' && (
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700">
+                          <FaBuilding className="inline-block h-4 w-4 mr-2 text-blue-500" />
+                          {t('payoutInfoPage.form.bankName')}
+                        </label>
+                        <select
+                          name="bank_name"
+                          value={newMethodData.bank_name || ''}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        >
+                          <option value="">{t('payoutInfoPage.form.selectBank')}</option>
+                          {THAI_BANKS.map(bank => (
+                            <option key={bank.code} value={bank.code}>
+                              {i18n.language === 'th' ? bank.name : bank.nameEn}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Set as Primary */}
+                    <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                      <input
+                        type="checkbox"
+                        id="is_primary"
+                        name="is_primary"
+                        checked={newMethodData.is_primary}
+                        onChange={handleInputChange}
+                        className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <label htmlFor="is_primary" className="flex items-center gap-2 text-sm font-medium text-blue-800">
+                        <FaStar className="h-4 w-4" />
+                        {t('payoutInfoPage.form.setAsPrimary')}
+                      </label>
+                    </div>
+
+                    {/* Submit Button */}
+                    <motion.button
+                      type="submit"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      disabled={isAdding}
+                      className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                    >
+                      {isAdding ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          {t('payoutInfoPage.actions.adding')}
+                        </>
+                      ) : (
+                        <>
+                          <FaPlus className="h-5 w-5" />
+                          {t('payoutInfoPage.actions.addMethod')}
+                        </>
+                      )}
+                    </motion.button>
+                  </form>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Existing Methods */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-green-100 rounded-xl">
+              <FaShieldAlt className="h-6 w-6 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800">{t('payoutInfoPage.yourMethods')}</h2>
+          </div>
+
+          {payoutMethods.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AnimatePresence>
+                {payoutMethods.map((method, index) => (
+                  <motion.div
+                    key={method.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    whileHover={{ y: -5, scale: 1.02 }}
+                    className="group"
+                  >
+                    <Card className={`shadow-xl border-2 rounded-2xl overflow-hidden transition-all duration-300 ${
+                      method.is_primary 
+                        ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50' 
+                        : 'border-gray-100 hover:border-blue-300'
+                    }`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className={`p-3 rounded-xl ${
+                                method.is_primary ? 'bg-blue-100' : 'bg-gray-100'
+                              }`}>
+                                {getMethodIcon(method.method_type)}
+                              </div>
+                              <div>
+                                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                  {method.account_name}
+                                  {method.is_primary && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                                      <FaStar className="h-3 w-3" />
+                                      {t('payoutInfoPage.primary')}
+                                    </span>
+                                  )}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  {getMethodTypeDisplay(method.method_type)}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2 text-sm text-gray-600">
+                              <div className="flex items-center gap-2">
+                                <FaIdCard className="h-4 w-4 text-gray-400" />
+                                <span>...{method.account_number.slice(-4)}</span>
+                              </div>
+                              {method.bank_name && (
+                                <div className="flex items-center gap-2">
+                                  <FaBuilding className="h-4 w-4 text-gray-400" />
+                                  <span>{getBankDisplayName(method.bank_name)}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col gap-2 ml-4">
+                            {!method.is_primary && (
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleSetPrimary(method.id)}
+                                disabled={isSettingPrimary === method.id}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center gap-2 text-sm"
+                              >
+                                {isSettingPrimary === method.id ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                ) : (
+                                  <FaStar className="h-4 w-4" />
+                                )}
+                                {t('payoutInfoPage.actions.setPrimary')}
+                              </motion.button>
+                            )}
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleDeleteMethod(method.id, method.account_name)}
+                              disabled={isDeleting === method.id}
+                              className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2 text-sm"
+                            >
+                              {isDeleting === method.id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              ) : (
+                                <FaTrash className="h-4 w-4" />
+                              )}
+                              {t('payoutInfoPage.actions.delete')}
+                            </motion.button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-center py-16"
+            >
+              <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-12 max-w-md mx-auto">
+                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full mb-6">
+                  <FaWallet className="h-12 w-12 text-blue-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                  {t('payoutInfoPage.noMethods.title')}
+                </h3>
+                <p className="text-gray-500 leading-relaxed mb-8">
+                  {t('payoutInfoPage.noMethods.description')}
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowForm(true)}
+                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center gap-3 mx-auto"
+                >
+                  <FaPlus className="h-5 w-5" />
+                  {t('payoutInfoPage.actions.addNew')}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </motion.div>
       </div>
     </div>
   );

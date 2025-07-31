@@ -1,221 +1,353 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card, CardContent } from '../../components/ui/Card';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { Typography, Grid, Box, Table, TableBody, TableContainer, TableCell, TableHead, TableRow, Paper } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
+
+// Import icons for a richer UI
+import {
+  FaChartBar, FaChartPie, FaDollarSign, FaBox, FaClipboardList, FaStar,
+  FaArrowLeft, FaMoneyBillWave, FaRankingStar
+} from 'react-icons/fa6'; // Using Fa6 for newer icons like FaRankingStar
 
 const API_URL = '/api/owners/me/report';
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+// Define a more consistent and appealing color palette for charts
+const CHART_COLORS = [
+  '#6366F1', // Indigo-500 (Primary Blue)
+  '#22C55E', // Green-500
+  '#F59E0B', // Amber-500
+  '#EF4444', // Red-500
+  '#8B5CF6', // Violet-500
+  '#06B6D4', // Cyan-500
+  '#EC4899', // Pink-500
+  '#A8A29E', // Stone-500
+];
+
+// Helper components for consistency (similar to OwnerRentalDetailPage)
+const SectionTitle: React.FC<{ icon: React.ReactNode; title: string }> = ({ icon, title }) => (
+  <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+    <div className="flex-shrink-0 w-7 h-7 text-blue-600">{icon}</div>
+    <h2 className="text-xl md:text-2xl font-bold text-gray-800">{title}</h2>
+  </div>
+);
+
+const MetricCard: React.FC<{ title: string; value: React.ReactNode; icon: React.ReactNode; description?: string; color?: string }> = ({ title, value, icon, description, color = 'text-blue-600' }) => (
+  <Card className="shadow-xl border border-gray-100 rounded-2xl h-full flex flex-col justify-between">
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
+        <div className={`text-3xl ${color}`}>{icon}</div>
+      </div>
+      <div className="text-4xl font-bold text-gray-900 mb-2 leading-none">{value}</div>
+      {description && <p className="text-sm text-gray-500">{description}</p>}
+    </CardContent>
+  </Card>
+);
+
 
 const OwnerReportPage: React.FC = () => {
   const { token } = useAuth();
+  const { t } = useTranslation();
   const [report, setReport] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchReport = async () => {
-      if (!token) {
-        setError('กรุณาเข้าสู่ระบบ');
-        setIsLoading(false);
+  const fetchReport = useCallback(async () => {
+    if (!token) {
+      setError(t('ownerReportPage.error.notLoggedIn'));
+      setIsLoading(false);
+      return;
+    }
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch(API_URL, {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.status === 401) {
+        setError(t('ownerReportPage.error.sessionExpired'));
+        // Optionally redirect to login or handle logout here
+        // logout(); // Assuming a logout function from AuthContext
         return;
       }
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await fetch(API_URL, {
-          method: 'GET',
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json',
-          },
-        });
-        if (response.status === 401) {
-          setError('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
-          setIsLoading(false);
-          return;
-        }
-        const result = await response.json();
-        setReport(result.data.data);
-      } catch (err: any) {
-        setError('เกิดข้อผิดพลาดในการโหลดรายงาน');
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch report');
       }
-    };
+      const result = await response.json();
+      setReport(result.data.data);
+    } catch (err: any) {
+      console.error("Error fetching report:", err);
+      setError(err.message || t('ownerReportPage.error.loadFailed'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token, t]);
+
+  useEffect(() => {
     fetchReport();
-  }, [token]);
+  }, [fetchReport]);
 
-  if (isLoading) return <LoadingSpinner message="กำลังโหลดรายงาน..." />;
-  if (error) return <ErrorMessage message={error} />;
-  if (!report) return <div className="p-4">ไม่พบข้อมูลรายงาน</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <LoadingSpinner message={t('ownerReportPage.loadingReport')} />
+      </div>
+    );
+  }
 
-  // Data for charts
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <ErrorMessage message={error} />
+      </div>
+    );
+  }
+
+  if (!report) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="p-4 text-center text-gray-700">{t('ownerReportPage.noReportData')}</div>
+      </div>
+    );
+  }
+
+  // Data for charts (using translations for names)
   const productStatusData = [
-    { name: 'พร้อมให้เช่า', value: report.products_available },
-    { name: 'ถูกเช่าอยู่', value: report.products_rented_out },
-  ];
-  const rentalStatusData = [
-    { name: 'เสร็จสิ้น', value: report.completed_rentals },
-    { name: 'ถูกยกเลิก', value: report.cancelled_rentals },
-    { name: 'ทั้งหมด', value: report.total_rentals },
-  ];
-  const revenueData = [
-    { name: 'รายได้รวม', value: report.total_revenue },
-    { name: 'รายได้เดือนนี้', value: report.revenue_this_month },
-  ];
+    { name: t('ownerReportPage.chartLabels.available'), value: report.products_available },
+    { name: t('ownerReportPage.chartLabels.rentedOut'), value: report.products_rented_out },
+  ].filter(item => item.value > 0); // Filter out zero values for cleaner charts
+
+  const rentalStatusOverviewData = [
+    { name: t('ownerReportPage.chartLabels.completed'), value: report.completed_rentals },
+    { name: t('ownerReportPage.chartLabels.cancelled'), value: report.cancelled_rentals },
+    { name: t('ownerReportPage.chartLabels.totalRentals'), value: report.total_rentals },
+  ].filter(item => item.value > 0);
+
+  const revenueOverviewData = [
+    { name: t('ownerReportPage.chartLabels.totalRevenue'), value: report.total_revenue },
+    { name: t('ownerReportPage.chartLabels.currentMonthRevenue'), value: report.revenue_this_month },
+  ].filter(item => item.value > 0);
+
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 4 } }}>
-      <Typography variant="h4" fontWeight={700} color="primary" mb={3}>
-        รายงานของคุณ
-      </Typography>
-      <Grid container spacing={3}>
-        {/* สรุปจำนวนสินค้าและการเช่า */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary">จำนวนสินค้า</Typography>
-              <Typography variant="h3" fontWeight={700}>{report.total_products}</Typography>
-              <Box mt={1} mb={1}>
-                <Typography color="text.secondary" fontSize={14}>พร้อมให้เช่า: {report.products_available}</Typography>
-                <Typography color="text.secondary" fontSize={14}>ถูกเช่าอยู่: {report.products_rented_out}</Typography>
-              </Box>
-              <ResponsiveContainer width="100%" height={140}>
-                <PieChart>
-                  <Pie data={productStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={50} label>
-                    {productStatusData.map((entry, idx) => (
-                      <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary">การเช่า</Typography>
-              <Typography variant="h3" fontWeight={700}>{report.total_rentals}</Typography>
-              <Box mt={1} mb={1}>
-                <Typography color="text.secondary" fontSize={14}>เสร็จสิ้น: {report.completed_rentals}</Typography>
-                <Typography color="text.secondary" fontSize={14}>ถูกยกเลิก: {report.cancelled_rentals}</Typography>
-              </Box>
-              <ResponsiveContainer width="100%" height={140}>
-                <BarChart data={rentalStatusData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <XAxis dataKey="name" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#8884d8" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary">รายได้</Typography>
-              <Typography variant="h3" fontWeight={700}>{report.total_revenue} บาท</Typography>
-              <Box mt={1} mb={1}>
-                <Typography color="text.secondary" fontSize={14}>รายได้เดือนนี้: {report.revenue_this_month} บาท</Typography>
-              </Box>
-              <ResponsiveContainer width="100%" height={140}>
-                <BarChart data={revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <XAxis dataKey="name" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#82ca9d" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-        {/* คะแนนรีวิวและร้องเรียน */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary">คะแนนรีวิวเฉลี่ย</Typography>
-              <Typography variant="h2" fontWeight={700} color="#FFD700">★ {report.average_rating}</Typography>
-              <Typography color="text.secondary">จำนวนรีวิว: {report.total_reviews}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        {/* รายการจ่ายเงินล่าสุด */}
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary" mb={2}>รายการจ่ายเงินล่าสุด</Typography>
-              {report.recent_payouts && report.recent_payouts.length > 0 ? (
-                <TableContainer component={Paper}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>จำนวนเงิน</TableCell>
-                        <TableCell>สถานะ</TableCell>
-                        <TableCell>เวลาทำรายการ</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {report.recent_payouts.map((p: any, idx: number) => (
-                        <TableRow key={idx}>
-                          <TableCell>{p.amount}</TableCell>
-                          <TableCell>{p.status}</TableCell>
-                          <TableCell>{p.transaction_time ? new Date(p.transaction_time).toLocaleString() : '-'}</TableCell>
-                        </TableRow>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Header Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+            <div className="text-center sm:text-left">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
+                <FaChartBar className="h-8 w-8 text-white" />
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{t('ownerReportPage.title')}</h1>
+              <p className="text-blue-100 text-lg">
+                {t('ownerReportPage.subtitle')}
+              </p>
+            </div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button 
+                variant="primary" 
+                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl font-semibold shadow-lg"
+                onClick={() => navigate(-1)} // Go back to previous page
+              >
+                <FaArrowLeft className="h-5 w-5 mr-2" />
+                {t('ownerReportPage.backButton')}
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+        >
+          {/* Total Products Metric Card */}
+          <MetricCard
+            title={t('ownerReportPage.metrics.totalProducts')}
+            value={report.total_products}
+            icon={<FaBox />}
+            description={`${t('ownerReportPage.chartLabels.available')}: ${report.products_available}, ${t('ownerReportPage.chartLabels.rentedOut')}: ${report.products_rented_out}`}
+            color="text-indigo-600"
+          />
+          {/* Total Rentals Metric Card */}
+          <MetricCard
+            title={t('ownerReportPage.metrics.totalRentals')}
+            value={report.total_rentals}
+            icon={<FaClipboardList />}
+            description={`${t('ownerReportPage.chartLabels.completed')}: ${report.completed_rentals}, ${t('ownerReportPage.chartLabels.cancelled')}: ${report.cancelled_rentals}`}
+            color="text-green-600"
+          />
+          {/* Total Revenue Metric Card */}
+          <MetricCard
+            title={t('ownerReportPage.metrics.totalRevenue')}
+            value={`฿${report.total_revenue?.toLocaleString() || '0'}`}
+            icon={<FaDollarSign />}
+            description={`${t('ownerReportPage.metrics.revenueThisMonth')}: ฿${report.revenue_this_month?.toLocaleString() || '0'}`}
+            color="text-amber-600"
+          />
+          {/* Average Rating Metric Card */}
+          <MetricCard
+            title={t('ownerReportPage.metrics.averageRating')}
+            value={<><FaStar className="inline-block align-text-bottom text-yellow-500 mr-1"/>{report.average_rating}</>}
+            icon={<FaRankingStar />}
+            description={`${t('ownerReportPage.metrics.totalReviews')}: ${report.total_reviews}`}
+            color="text-blue-600"
+          />
+
+        </motion.div>
+
+        {/* Charts Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8"
+        >
+          {/* Product Status Chart */}
+          <Card className="shadow-xl border border-gray-100 rounded-2xl">
+            <CardContent className="p-6">
+              <SectionTitle icon={<FaChartPie />} title={t('ownerReportPage.charts.productStatus')} />
+              {productStatusData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={productStatusData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      fill="#8884d8"
+                      label={({ name, percent }) =>
+                        percent !== undefined
+                          ? `${name} (${(percent * 100).toFixed(0)}%)`
+                          : name
+                      }
+                    >
+                      {productStatusData.map((_, idx) => (
+                        <Cell key={`cell-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
                       ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [value, t('common.items')]} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
               ) : (
-                <Typography color="text.secondary">ไม่มีข้อมูลการจ่ายเงินล่าสุด</Typography>
+                <p className="text-center text-gray-500">{t('ownerReportPage.noDataForChart')}</p>
               )}
             </CardContent>
           </Card>
-        </Grid>
-        {/* Top Products Section */}
-        <Box mt={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary" mb={2}>สินค้ายอดนิยม</Typography>
+
+          {/* Rental Status Chart */}
+          <Card className="shadow-xl border border-gray-100 rounded-2xl">
+            <CardContent className="p-6">
+              <SectionTitle icon={<FaChartBar />} title={t('ownerReportPage.charts.rentalStatusOverview')} />
+              {rentalStatusOverviewData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={rentalStatusOverviewData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip formatter={(value: number) => [value, t('common.rentals')]} />
+                    <Bar dataKey="value" fill={CHART_COLORS[0]} radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-gray-500">{t('ownerReportPage.noDataForChart')}</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Revenue Overview Chart */}
+          <Card className="shadow-xl border border-gray-100 rounded-2xl lg:col-span-2">
+            <CardContent className="p-6">
+              <SectionTitle icon={<FaMoneyBillWave />} title={t('ownerReportPage.charts.revenueOverview')} />
+              {revenueOverviewData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={revenueOverviewData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis tickFormatter={(value: number) => `฿${value.toLocaleString()}`} />
+                    <Tooltip formatter={(value: number) => [`฿${value.toLocaleString()}`, t('common.amount')]} />
+                    <Bar dataKey="value" fill={CHART_COLORS[1]} radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-gray-500">{t('ownerReportPage.noDataForChart')}</p>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Tables Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="grid grid-cols-1 gap-6"
+        >
+          {/* Top Products Table */}
+          <Card className="shadow-xl border border-gray-100 rounded-2xl overflow-hidden">
+            <CardContent className="p-6">
+              <SectionTitle icon={<FaRankingStar />} title={t('ownerReportPage.tables.topProducts')} />
               {report.top_products && report.top_products.length > 0 ? (
-                <TableContainer component={Paper}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>ชื่อสินค้า</TableCell>
-                        <TableCell align="right">จำนวนครั้งที่ถูกเช่า</TableCell>
-                        <TableCell align="right">รายได้รวม (บาท)</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('ownerReportPage.tables.productName')}
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('ownerReportPage.tables.rentalCount')}
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('ownerReportPage.tables.totalRevenue')}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
                       {report.top_products.map((prod: any, idx: number) => (
-                        <TableRow key={prod.product_id || idx}>
-                          <TableCell>{prod.title}</TableCell>
-                          <TableCell align="right">{prod.rental_count}</TableCell>
-                          <TableCell align="right">{prod.total_revenue}</TableCell>
-                        </TableRow>
+                        <tr key={prod.product_id || idx} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{prod.title || t('common.noTitle')}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{prod.rental_count}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold text-right">฿{prod.total_revenue?.toLocaleString() || '0'}</td>
+                        </tr>
                       ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                    </tbody>
+                  </table>
+                </div>
               ) : (
-                <Typography color="text.secondary">ไม่มีข้อมูลสินค้ายอดนิยม</Typography>
+                <p className="text-center text-gray-500 py-8">{t('ownerReportPage.noTopProducts')}</p>
               )}
             </CardContent>
           </Card>
-        </Box>
-      </Grid>
-      <Box mt={4}>
-        <Button variant="outline" onClick={() => window.history.back()}>ย้อนกลับ</Button>
-      </Box>
-    </Box>
+        </motion.div>
+      </div>
+    </div>
   );
 };
 
-export default OwnerReportPage; 
+export default OwnerReportPage;

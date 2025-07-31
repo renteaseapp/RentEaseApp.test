@@ -616,62 +616,127 @@
       "sortApplied": "Sorting applied successfully!"
     }
   },
+  "ownerReportPage": {
+    "title": "Owner Report",
+    "subtitle": "Comprehensive analytics and insights for your rental business",
+    "backButton": "Back",
+    "loadingReport": "Loading report...",
+    "noReportData": "No report data available",
+    "noDataForChart": "No data available for chart",
+    "error": {
+      "notLoggedIn": "You must be logged in to view this report",
+      "sessionExpired": "Your session has expired. Please log in again",
+      "loadFailed": "Failed to load report data"
+    },
+    "metrics": {
+      "totalProducts": "Total Products",
+      "totalRentals": "Total Rentals",
+      "totalRevenue": "Total Revenue",
+      "revenueThisMonth": "This Month",
+      "averageRating": "Average Rating",
+      "totalReviews": "Total Reviews",
+      "totalRenters": "Total Renters",
+      "uniqueCustomers": "Unique customers",
+      "totalProductsViewed": "Total Views",
+      "overallViews": "Overall product views"
+    },
+    "chartLabels": {
+      "available": "Available",
+      "rentedOut": "Rented Out",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "totalRentals": "Total Rentals",
+      "totalRevenue": "Total Revenue",
+      "currentMonthRevenue": "This Month Revenue"
+    },
+    "charts": {
+      "productStatus": "Product Status Overview",
+      "rentalStatusOverview": "Rental Status Overview",
+      "revenueOverview": "Revenue Overview"
+    },
+    "tables": {
+      "recentPayouts": "Recent Payouts",
+      "topProducts": "Top Performing Products",
+      "amount": "Amount",
+      "status": "Status",
+      "transactionTime": "Transaction Time",
+      "productName": "Product Name",
+      "rentalCount": "Rental Count",
+      "totalRevenue": "Total Revenue"
+    },
+    "payoutStatus": {
+      "completed": "Completed",
+      "pending": "Pending",
+      "failed": "Failed"
+    },
+    "noRecentPayouts": "No recent payouts",
+    "noTopProducts": "No top products data available"
+  },
+
   "ownerRentalHistoryPage": {
-    "title": "My Rental History (as Owner)",
+    "title": "Rental History",
+    "subtitle": "Manage and track all your rental transactions",
+    "backToDashboard": "Back to Dashboard",
     "loadingHistory": "Loading rental history...",
-    "loadingRentals": "Loading rentals...",
+    "viewMode": "View Mode",
+    "activeFilters": "{{count}} active filters",
     "error": {
       "loadFailed": "Failed to load rental history"
     },
     "filters": {
-      "title": "Filters",
-      "searchProducts": "Search Products",
-      "searchPlaceholder": "Search by product name...",
+      "searchPlaceholder": "Search by product name, renter name, or rental ID...",
+      "advancedFilters": "Advanced Filters",
+      "searchProducts": "Search",
       "status": "Status",
-      "allStatus": "All Status",
+      "allStatus": "All Statuses",
       "fromDate": "From Date",
       "toDate": "To Date",
-      "applyFilters": "Apply Filters",
-      "clearFilters": "Clear Filters"
+      "clearFilters": "Clear Filters",
+      "applyFilters": "Apply Filters"
     },
     "status": {
-      "pending_owner_approval": "Pending Approval",
-      "pending_payment": "Pending Payment",
-      "confirmed": "Confirmed",
-      "active": "Active",
-      "return_pending": "Return Pending",
-      "completed": "Completed",
-      "cancelled_by_renter": "Cancelled by Renter",
-      "cancelled_by_owner": "Cancelled by Owner",
-      "rejected_by_owner": "Rejected by Owner",
-      "dispute": "Dispute",
-      "expired": "Expired",
-      "late_return": "Late Return"
+      "completed": "COMPLETED",
+      "active": "ACTIVE",
+      "pending_owner_approval": "PENDING APPROVAL",
+      "pending_payment": "PENDING PAYMENT",
+      "confirmed": "CONFIRMED",
+      "return_pending": "RETURN PENDING",
+      "cancelled_by_renter": "CANCELLED BY RENTER",
+      "cancelled_by_owner": "CANCELLED BY OWNER",
+      "rejected_by_owner": "REJECTED BY OWNER",
+      "dispute": "DISPUTE",
+      "expired": "EXPIRED",
+      "late_return": "LATE RETURN"
+    },
+    "view": {
+      "grid": "Grid",
+      "list": "List"
     },
     "results": {
       "showing": "Showing {{from}} to {{to}} of {{total}} rentals",
-      "noResults": "No rental history found.",
-      "noResultsDescription": "When users rent your items, they will appear here."
+      "totalRentals": "{{count}} total rentals",
+      "noResults": "No rentals found",
+      "noResultsDescription": "Try adjusting your filters or search terms to find what you're looking for.",
+      "clearFiltersAndTryAgain": "Clear Filters & Try Again"
     },
     "rentalCard": {
-      "rentalId": "Rental ID: {{id}}...",
-      "renter": "Renter:",
-      "dates": "Dates:",
-      "totalAmount": "Total Amount:",
-      "bookedOn": "Booked on:",
+      "rentalId": "Rental ID",
+      "renter": "Renter",
+      "dates": "Rental Period",
+      "totalAmount": "Total Amount",
+      "bookedOn": "Booked on"
+    },
+    "actions": {
       "viewDetails": "View Details"
     },
     "pagination": {
       "previous": "Previous",
       "next": "Next"
     },
-    "actions": {
-      "viewDetails": "View Details",
-      "processReturn": "Process Return"
-    },
-    "view": {
-      "grid": "Grid",
-      "list": "List"
+    "notifications": {
+      "returnPending": "You have items waiting to be returned",
+      "lateReturn": "You have late returns that need attention",
+      "pendingApproval": "You have rental requests waiting for approval"
     }
   },
   "ownerRentalDetailPage": {
@@ -693,7 +758,8 @@
       "actions": "Actions",
       "timeline": "Timeline",
       "returnProcessing": "Return Processing",
-      "returnProcessingDesc": "When the renter returns the item, please inspect and confirm the return here. This will update the rental status and notify the renter."
+      "returnProcessingDesc": "When the renter returns the item, please inspect and confirm the return here. This will update the rental status and notify the renter.",
+      "deliveryStatusUpdate": "Delivery Status Update"
     },
     "labels": {
       "rentalStatus": "Rental Status:",
@@ -716,7 +782,19 @@
       "ownerNote": "Owner Note",
       "returnConditionImages": "Return Condition Images",
       "paymentVerifiedAt": "Payment Verified At",
-      "paymentVerificationNotes": "Payment Verification Notes"
+      "paymentVerificationNotes": "Payment Verification Notes",
+      "deliveryStatus": "Delivery Status",
+      "trackingNumber": "Tracking Number",
+      "carrierCode": "Carrier Code",
+      "notes": "Notes",
+      "accountName": "Account Name",
+      "bankName": "Bank Name",
+      "accountNumber": "Account Number",
+      "amount": "Amount",
+      "transferDate": "Transfer Date",
+      "noReturnImages": "No return condition images available",
+      "returnConditionImageAlt": "Return condition image {{idx}}",
+      "deliveryAddress": "Delivery Address"
     },
     "actions": {
       "approveRequest": "Approve Request",
@@ -724,7 +802,8 @@
       "confirmReject": "Confirm Reject",
       "cancel": "Cancel",
       "processReturn": "Process Return",
-      "rejectReasonPlaceholder": "Reason for rejection (required)"
+      "rejectReasonPlaceholder": "Reason for rejection (required)",
+      "saveDeliveryStatus": "Save Delivery Status"
     },
     "timeline": {
       "created": "Created:",
@@ -751,9 +830,24 @@
       "payment": {
         "paid": "PAID",
         "pending": "PENDING",
+        "pending_verification": "PENDING VERIFICATION",
         "unpaid": "UNPAID",
         "failed": "FAILED",
         "refunded": "REFUNDED"
+      },
+      "delivery": {
+        "pending": "PENDING",
+        "shipped": "SHIPPED",
+        "delivered": "DELIVERED",
+        "failed": "FAILED",
+        "returned": "RETURNED"
+      },
+      "returnCondition": {
+        "as_rented": "AS RENTED",
+        "minor_wear": "MINOR WEAR",
+        "damaged": "DAMAGED",
+        "lost": "LOST",
+        "not_yet_returned": "NOT YET RETURNED"
       }
     },
     "invalidSlip": {
@@ -765,7 +859,8 @@
       "confirm": "Confirm",
       "reasonRequired": "Please provide a reason.",
       "success": "Marked slip as invalid. The renter has been notified.",
-      "error": "Failed to mark slip as invalid. Please try again."
+      "error": "Failed to mark slip as invalid. Please try again.",
+      "saving": "Saving..."
     },
     "backToMyRentals": "← Back to My Rentals",
     "rentalDetailsTitle": "Rental Details",
@@ -791,6 +886,18 @@
     "viewDownloadSlip": "View/Download Slip",
     "loading": "Loading rental details...",
     "notFound": "Rental not found.",
+    "subtitle": "Rental Details - {{uid}}",
+    "approveSuccess": "Rental request approved successfully!",
+    "rejectSuccess": "Rental request rejected successfully!",
+    "paymentConfirmSuccess": "Payment confirmed successfully!",
+    "deliveryStatusUpdateSuccess": "Delivery status updated successfully!",
+    "claimChatSuccess": "Rental information sent to chat successfully!",
+    "error": {
+      "paymentConfirmFailed": "Failed to confirm payment. Please try again.",
+      "deliveryStatusUpdateFailed": "Failed to update delivery status. Please try again.",
+      "claimChatFailed": "Failed to send rental information to chat. Please try again.",
+      "slipVerificationFailed": "Failed to verify payment slip. Please try again."
+    },
     "statusMessages": {
       "pending_owner_approval_title": "Waiting for owner approval.",
       "pending_owner_approval_desc": "Your rental request has been sent. Please wait for the owner to approve before proceeding to payment.",
@@ -830,10 +937,75 @@
       "cancelError": "Failed to cancel rental.",
       "cancelReasonRequired": "Please provide a reason for cancellation.",
       "fetchError": "Failed to load rental details."
+    },
+    "sidebar": {
+      "statusActions": "Status & Actions",
+      "rentalStatus": "Rental Status",
+      "paymentStatus": "Payment Status",
+      "deliveryStatus": "Delivery Status",
+      "approveRequest": "Approve Rental Request",
+      "approving": "Approving...",
+      "rejectRequest": "Reject Request",
+      "confirmingReject": "Confirming Rejection...",
+      "confirmReject": "Confirm Rejection",
+      "confirmPayment": "Confirm Payment",
+      "confirmingPayment": "Confirming Payment...",
+      "confirmReturn": "Confirm Item Return",
+      "claim": "Report Issue/Claim",
+      "sendingToChat": "Sending to Chat...",
+      "paymentSlip": "Payment Slip",
+      "paymentSlipAlt": "Payment slip",
+      "verifySlip": "Verify Slip Automatically",
+      "verifyingSlip": "Verifying...",
+      "invalidSlip": "Mark Slip as Invalid",
+      "noActionForStatus": "No actions available for this status",
+      "noReturnInfo": "No return information available yet",
+      "slipComparisonResult": "Slip Comparison Results",
+      "slipMismatchWarning": "Slip information does not match owner account or amount. Please verify again.",
+      "slipMatchSuccess": "Slip information matches owner account and amount."
+    },
+    "pickupMethod": {
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "self_pickup": "Self Pickup"
+    },
+    "returnMethod": {
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "self_return": "Self Return"
+    },
+    "placeholders": {
+      "rejectReason": "Enter reason for rejection...",
+      "trackingNumber": "Enter tracking number (if available)",
+      "carrierCode": "e.g. thailand_post, flash, kerry, etc.",
+      "returnNotes": "Enter any notes about the return condition..."
+    },
+    "returnForm": {
+      "title": "Confirm Item Return",
+      "actualReturnTime": "Actual Return Time",
+      "conditionStatus": "Item Condition",
+      "conditionStatusOptions": {
+        "as_rented": "As rented",
+        "minor_wear": "Minor wear",
+        "damaged": "Damaged",
+        "lost": "Lost"
+      },
+      "notes": "Notes (optional)",
+      "images": "Attach Return Images (optional)",
+      "initiateClaim": "Open claim (if item has issues)",
+      "submit": "Confirm Return",
+      "saving": "Saving...",
+      "success": "Return confirmed successfully!",
+      "error": "An error occurred. Please try again."
+    },
+    "claimMessageTemplate": "Report issue/claim regarding rental\nRental ID: {{rentalUid}}\nProduct: {{productName}}\nRenter: {{renterName}}\nRental Period: {{rentalPeriod}}",
+    "common": {
+      "cancel": "Cancel"
     }
   },
   "payoutInfoPage": {
     "title": "Payout Methods",
+    "subtitle": "Manage your payment methods for receiving rental income",
     "loading": "Loading payout information...",
     "addNewMethod": "Add New Payout Method",
     "yourMethods": "Your Payout Methods",
@@ -852,16 +1024,18 @@
     "form": {
       "methodType": "Method Type",
       "accountName": "Account Holder Name",
+      "accountNamePlaceholder": "Enter account holder name",
       "accountNumber": "Account Number",
+      "accountNumberPlaceholder": "Enter account number",
       "bankName": "Bank Name",
       "selectBank": "Select Bank",
-      "setAsPrimary": "Set as primary method",
-      "noSelect": "Do not select"
+      "setAsPrimary": "Set as primary method"
     },
     "actions": {
-      "addNew": "Add New Payout Method",
-      "cancelAdd": "Cancel Adding Method",
+      "addNew": "Add New Method",
+      "cancelAdd": "Cancel",
       "addMethod": "Add Method",
+      "adding": "Adding...",
       "setPrimary": "Set as Primary",
       "delete": "Delete",
       "backToDashboard": "Back to Dashboard"
