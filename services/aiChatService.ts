@@ -1,9 +1,9 @@
-import axios from 'axios';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Vite environment variables type definitions
 declare global {
   interface ImportMetaEnv {
-    readonly VITE_OPENROUTER_API_KEY: string;
+    readonly VITE_GEMINI_API_KEY: string;
     readonly MODE: string;
   }
   
@@ -14,7 +14,7 @@ declare global {
 
 export interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'model' | 'function' | 'system';
   content: string;
   timestamp: Date;
 }
@@ -56,16 +56,22 @@ const SYSTEM_PROMPT = `คุณเป็น AI Assistant สำหรับแ�
 
 export class AIChatService {
   private static instance: AIChatService;
-  private apiKey: string;
-  private baseURL = 'https://openrouter.ai/api/v1';
+  private genAI: GoogleGenerativeAI;
+  private model: any;
+  private lastRequestTime: number = 0;
+  private requestCount: number = 0;
+  private readonly MIN_REQUEST_INTERVAL = 1000; // 1 second between requests
+  private readonly MAX_REQUESTS_PER_MINUTE = 10;
 
   private constructor() {
-    this.apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || '';
-    console.log('AI Chat Service initialized with API Key:', this.apiKey ? 'Configured' : 'Not configured');
-    console.log('Environment variable length:', import.meta.env.VITE_OPENROUTER_API_KEY?.length || 0);
-    console.log('API Key starts with sk-or-v1-:', this.apiKey.startsWith('sk-or-v1-'));
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+    console.log('AI Chat Service initialized with Gemini API Key:', apiKey ? 'Configured' : 'Not configured');
+    console.log('Environment variable length:', import.meta.env.VITE_GEMINI_API_KEY?.length || 0);
     console.log('Environment:', import.meta.env.MODE);
     console.log('All env vars:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
+
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   }
 
   public static getInstance(): AIChatService {
@@ -77,59 +83,140 @@ export class AIChatService {
 
   public async sendMessage(
     message: string,
-    conversationHistory: ChatMessage[] = []
+    conversationHistory: ChatMessage[] = [],
+    retryCount: number = 0
   ): Promise<ChatResponse> {
-    console.log('Current API Key:', this.apiKey ? 'Set' : 'Not set');
-    console.log('Environment variable:', import.meta.env.VITE_OPENROUTER_API_KEY ? 'Found' : 'Not found');
-    console.log('API Key (first 10 chars):', this.apiKey.substring(0, 10) + '...');
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+    console.log('Current Gemini API Key:', apiKey ? 'Set' : 'Not set');
+    console.log('Environment variable:', import.meta.env.VITE_GEMINI_API_KEY ? 'Found' : 'Not found');
+    console.log('API Key (first 10 chars):', apiKey.substring(0, 10) + '...');
+    console.log('API Key length:', apiKey.length);
     
-    if (!this.apiKey) {
-      throw new Error('OpenRouter API key is not configured. Please check your .env file');
+    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+      throw new Error('Google Gemini API key is not configured. Please create a .env.local file with VITE_GEMINI_API_KEY=your_actual_api_key. See GEMINI_SETUP.md for setup instructions.');
     }
 
-    if (!this.apiKey.startsWith('sk-or-v1-')) {
-      throw new Error('Invalid OpenRouter API key format. Should start with sk-or-v1-');
+    if (apiKey.length < 20) {
+      throw new Error('API Key seems too short. Please check your Google Gemini API key');
     }
 
     try {
-      // สร้าง messages array สำหรับ API
-      const messages = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...conversationHistory.map(msg => ({
-          role: msg.role,
-          content: msg.content
-        })),
-        { role: 'user', content: message }
-      ];
-
-      console.log('Sending request to OpenRouter with API Key:', this.apiKey.substring(0, 10) + '...');
+      // Rate limiting check
+      const now = Date.now();
+      const timeSinceLastRequest = now - this.lastRequestTime;
       
-      const response = await axios.post(
-        `${this.baseURL}/chat/completions`,
-        {
-          model: 'google/gemini-2.0-flash-exp:free',
-          messages,
-          max_tokens: 1000000,
-          temperature: 0.7,
-          stream: false
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': window.location.origin,
-            'X-Title': 'RentEase AI Assistant'
-          }
-        }
-      );
+      if (timeSinceLastRequest < this.MIN_REQUEST_INTERVAL) {
+        const waitTime = this.MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+        console.log(`Rate limiting: Waiting ${waitTime}ms before next request`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+      
+      // Reset request count if more than 1 minute has passed
+      if (now - this.lastRequestTime > 60000) {
+        this.requestCount = 0;
+      }
+      
+      if (this.requestCount >= this.MAX_REQUESTS_PER_MINUTE) {
+        throw new Error('Rate limit: Too many requests. Please wait a minute before trying again.');
+      }
+      
+      this.lastRequestTime = now;
+      this.requestCount++;
 
-      return response.data;
+      // Prepare Gemini-compliant history (role must be one of: "user","model","function","system")
+      const normalizeRole = (role: string): 'user' | 'model' | 'function' | 'system' => {
+        switch (role) {
+          case 'assistant':
+          case 'model':
+          case 'bot':
+            return 'model';
+          case 'user':
+            return 'user';
+          case 'function':
+            return 'function';
+          case 'system':
+            return 'system';
+          default:
+            return 'user';
+        }
+      };
+
+      console.log('Sending request to Google Gemini with API Key:', apiKey.substring(0, 10) + '...');
+      console.log('Full API Key length:', apiKey.length);
+      console.log('Request count this minute:', this.requestCount);
+      
+      // สร้าง chat session
+      const chat = this.model.startChat({
+        history: [
+          // Include a system instruction as a model-safe first turn (Gemini supports "system" in some SDKs,
+          // but to be safe we send it as an initial "user" instruction or prepend it in the first turn).
+          // Here we add as a "user" system instruction to steer behavior consistently.
+          { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
+          ...conversationHistory.map(msg => ({
+            role: normalizeRole(msg.role),
+            parts: [{ text: msg.content }]
+          }))
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1000000,
+        },
+      });
+
+      // ส่งข้อความไปยัง Gemini
+      const result = await chat.sendMessage([{ text: message }]);
+      const response_text = result.response.text();
+
+      // Convert Gemini response to our ChatResponse format
+      const response: ChatResponse = {
+        choices: [{
+          message: {
+            content: response_text,
+            role: 'model'
+          }
+        }],
+        usage: {
+          prompt_tokens: 0, // Gemini doesn't provide token usage in the same way
+          completion_tokens: 0,
+          total_tokens: 0
+        }
+      };
+
+      return response;
     } catch (error: any) {
       console.error('AI Chat API Error:', error);
-      throw new Error(
-        error.response?.data?.error?.message || 
-        'เกิดข้อผิดพลาดในการเชื่อมต่อกับ AI Assistant'
-      );
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+      console.error('Error status:', error.status);
+      console.error('Error code:', error.code);
+      
+      // Handle specific error cases
+      if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('authentication')) {
+        console.error('Authentication failed - API Key might be invalid');
+        console.error('API Key being used:', apiKey.substring(0, 20) + '...');
+        throw new Error('Authentication failed. Please check your Google Gemini API key');
+      } else if (error.message?.includes('quota') || error.message?.includes('rate limit')) {
+        console.error('Rate Limit - Too many requests');
+        
+        // Retry logic for rate limiting
+        if (retryCount < 3) {
+          const waitTime = Math.pow(2, retryCount) * 1000; // Exponential backoff: 1s, 2s, 4s
+          console.log(`Retrying in ${waitTime}ms (attempt ${retryCount + 1}/3)`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          return this.sendMessage(message, conversationHistory, retryCount + 1);
+        }
+        
+        throw new Error('Rate limit exceeded. Please wait a few minutes and try again');
+      } else if (error.message?.includes('content') || error.message?.includes('safety')) {
+        console.error('Content Policy - Request blocked');
+        throw new Error('ข้อความของคุณถูกบล็อกโดยนโยบายความปลอดภัย กรุณาลองใหม่');
+      } else if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+        throw new Error('Network error. Please check your internet connection');
+      } else if (error.message) {
+        throw new Error(error.message);
+      } else {
+        throw new Error('เกิดข้อผิดพลาดในการเชื่อมต่อกับ Google Gemini');
+      }
     }
   }
 
@@ -145,4 +232,4 @@ export class AIChatService {
   }
 }
 
-export const aiChatService = AIChatService.getInstance(); 
+export const aiChatService = AIChatService.getInstance();

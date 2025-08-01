@@ -56,7 +56,7 @@ export const AIChatProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       
       const assistantMessage: ChatMessage = {
         id: aiChatService.generateMessageId(),
-        role: 'assistant',
+        role: 'model',
         content: response.choices[0].message.content,
         timestamp: new Date()
       };
@@ -64,8 +64,14 @@ export const AIChatProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       // เพิ่มข้อความของ AI
       setMessages(prev => [...prev, assistantMessage]);
     } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาดในการส่งข้อความ');
+      const errorMessage = err.message || 'เกิดข้อผิดพลาดในการส่งข้อความ';
+      setError(errorMessage);
       console.error('AI Chat Error:', err);
+      
+      // If it's an API key configuration error, show a more helpful message
+      if (errorMessage.includes('API key is not configured')) {
+        setError('AI Chat ไม่พร้อมใช้งาน - กรุณาตั้งค่า API Key ตามคำแนะนำใน AI_CHAT_SETUP.md');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -101,4 +107,4 @@ export const useAIChat = (): AIChatContextType => {
     throw new Error('useAIChat must be used within an AIChatProvider');
   }
   return context;
-}; 
+};

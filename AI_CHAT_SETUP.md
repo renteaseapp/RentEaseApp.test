@@ -1,5 +1,27 @@
 # การตั้งค่า AI Chat Assistant
 
+## 🔧 การแก้ไขปัญหา 401 Authentication Error
+
+หากคุณเจอข้อผิดพลาด "Failed to load resource: the server responded with a status of 401" หรือ "No auth credentials found" ให้ทำตามขั้นตอนนี้:
+
+### ขั้นตอนการแก้ไข:
+1. **สร้างไฟล์ `.env.local`** ในโฟลเดอร์ root ของโปรเจค
+2. **เพิ่ม API Key** ในไฟล์ `.env.local`:
+   ```env
+   VITE_OPENROUTER_API_KEY=sk-or-v1-your_actual_api_key_here
+   ```
+3. **รีสตาร์ท development server**:
+   ```bash
+   npm run dev
+   ```
+
+### วิธีได้ API Key:
+1. ไปที่ [OpenRouter](https://openrouter.ai/)
+2. สมัครสมาชิกและสร้าง API Key
+3. คัดลอก API Key ที่ขึ้นต้นด้วย `sk-or-v1-`
+
+---
+
 ## 1. การตั้งค่า OpenRouter API Key
 
 ### ขั้นตอนที่ 1: สมัคร OpenRouter
@@ -12,7 +34,7 @@
 
 ```env
 # OpenRouter API Configuration
-REACT_APP_OPENROUTER_API_KEY=your_openrouter_api_key_here
+VITE_OPENROUTER_API_KEY=your_openrouter_api_key_here
 
 # Socket URL (ถ้ามี)
 VITE_SOCKET_URL=https://renteaseapi-test.onrender.com

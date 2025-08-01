@@ -48,7 +48,7 @@ rentease-webv3/
 
 2. ตั้งค่า AI Chat Assistant (ถ้าต้องการ):
    - สมัคร OpenRouter API Key ที่ [openrouter.ai](https://openrouter.ai/)
-   - สร้างไฟล์ `.env.local` และเพิ่ม `REACT_APP_OPENROUTER_API_KEY=your_api_key_here`
+   - สร้างไฟล์ `.env.local` และเพิ่ม `VITE_OPENROUTER_API_KEY=your_api_key_here`
    - ดูรายละเอียดเพิ่มเติมใน `AI_CHAT_SETUP.md`
 
 3. รันแอปพลิเคชัน:
