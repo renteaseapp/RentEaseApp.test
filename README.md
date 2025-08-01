@@ -46,7 +46,10 @@ rentease-webv3/
    npm install
    ```
 
-2. (ถ้ามี) ตั้งค่า API Key ในไฟล์ `.env.local`
+2. ตั้งค่า AI Chat Assistant (ถ้าต้องการ):
+   - สมัคร OpenRouter API Key ที่ [openrouter.ai](https://openrouter.ai/)
+   - สร้างไฟล์ `.env.local` และเพิ่ม `REACT_APP_OPENROUTER_API_KEY=your_api_key_here`
+   - ดูรายละเอียดเพิ่มเติมใน `AI_CHAT_SETUP.md`
 
 3. รันแอปพลิเคชัน:
    ```bash
@@ -64,6 +67,7 @@ rentease-webv3/
 - React Context API (State management)
 - Socket.io (Real-time)
 - Cypress (E2E test)
+- OpenRouter API (AI Chat Assistant - Google Gemini 2.0 Flash Exp)
 
 ## ฟีเจอร์เด่น (ตัวอย่าง)
 
@@ -72,6 +76,7 @@ rentease-webv3/
 - **ระบบร้องเรียน/รีวิว:** ผู้ใช้สามารถร้องเรียนหรือรีวิวการเช่าได้
 - **ระบบแอดมิน:** จัดการผู้ใช้, สินค้า, รายงาน, หมวดหมู่ ฯลฯ
 - **ระบบแชท:** พูดคุยระหว่างผู้เช่า-เจ้าของ
+- **AI Chat Assistant:** ใช้ Google Gemini 2.0 Flash Exp ผ่าน OpenRouter API
 - **รองรับหลายภาษา:** ไทย/อังกฤษ
 
 ## การแปลภาษา

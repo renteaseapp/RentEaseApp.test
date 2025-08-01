@@ -499,6 +499,28 @@ export interface ContactFormPayload {
   message: string;
 }
 
+// AI Chat Types
+export interface AIChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+
+export interface AIChatResponse {
+  choices: Array<{
+    message: {
+      content: string;
+      role: string;
+    };
+  }>;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
 // Chat Types
 export interface ChatConversation {
     id: string | number; // or number

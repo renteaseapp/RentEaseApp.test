@@ -2,8 +2,10 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { AlertProvider } from './contexts/AlertContext';
+import { AIChatProvider } from './contexts/AIChatContext';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
+import AIChatWidget from './components/common/AIChatWidget';
 import { LoginPage } from './features/auth/LoginPage';
 import { RegisterPage } from './features/auth/RegisterPage';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage';
@@ -70,6 +72,7 @@ const AppContent: React.FC = () => {
   return (
           <div className="flex flex-col min-h-screen">
             <Navbar />
+            <AIChatWidget />
             <main className="flex-grow bg-gray-100">
               <Routes>
                 {/* Public Routes */}
@@ -141,9 +144,11 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <AlertProvider>
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
+        <AIChatProvider>
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </AIChatProvider>
       </AlertProvider>
     </AuthProvider>
   );

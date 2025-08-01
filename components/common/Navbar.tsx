@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAIChat } from '../../contexts/AIChatContext';
 import { ROUTE_PATHS } from '../../constants';
 import { Button } from '../ui/Button';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +24,7 @@ import {
   FaExclamationTriangle,
   FaChevronDown,
   FaUser,
+  FaRobot,
 } from 'react-icons/fa';
 
 const HomeIcon = () => (
@@ -31,6 +33,7 @@ const HomeIcon = () => (
 
 export const Navbar: React.FC = () => {
   const { user, isAdmin, logout, isLoading: authIsLoading } = useAuth();
+  const { toggleChat } = useAIChat();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -220,6 +223,18 @@ export const Navbar: React.FC = () => {
 
                   {!authIsLoading && user && (
                     <>
+                      {/* AI Chat Assistant */}
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="p-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200"
+                        aria-label="AI Assistant"
+                        onClick={toggleChat}
+                        title="AI Assistant"
+                      >
+                        <FaRobot className="h-5 w-5 text-gradient-to-r from-blue-600 to-purple-600" />
+                      </motion.button>
+
                       {/* Notifications */}
                       <div className="relative">
                         <motion.button
@@ -479,6 +494,15 @@ export const Navbar: React.FC = () => {
                 <FaSearch className="h-5 w-5" />
                 {t('navbar.allProducts')}
               </Link>
+              {user && (
+                <button
+                  onClick={() => { toggleChat(); setIsMobileMenuOpen(false); }}
+                  className="text-gray-600 hover:bg-blue-50 hover:text-blue-600 block px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 flex items-center gap-3 w-full text-left"
+                >
+                  <FaRobot className="h-5 w-5" />
+                  AI Assistant
+                </button>
+              )}
             </div>
             {/* If user is not logged in, show login/register in mobile menu */}
             {!user && !authIsLoading && (
