@@ -4,6 +4,7 @@ import axios from 'axios';
 declare global {
   interface ImportMetaEnv {
     readonly VITE_OPENROUTER_API_KEY: string;
+    readonly MODE: string;
   }
   
   interface ImportMeta {
@@ -63,6 +64,8 @@ export class AIChatService {
     console.log('AI Chat Service initialized with API Key:', this.apiKey ? 'Configured' : 'Not configured');
     console.log('Environment variable length:', import.meta.env.VITE_OPENROUTER_API_KEY?.length || 0);
     console.log('API Key starts with sk-or-v1-:', this.apiKey.startsWith('sk-or-v1-'));
+    console.log('Environment:', import.meta.env.MODE);
+    console.log('All env vars:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
   }
 
   public static getInstance(): AIChatService {
@@ -78,9 +81,14 @@ export class AIChatService {
   ): Promise<ChatResponse> {
     console.log('Current API Key:', this.apiKey ? 'Set' : 'Not set');
     console.log('Environment variable:', import.meta.env.VITE_OPENROUTER_API_KEY ? 'Found' : 'Not found');
+    console.log('API Key (first 10 chars):', this.apiKey.substring(0, 10) + '...');
     
     if (!this.apiKey) {
       throw new Error('OpenRouter API key is not configured. Please check your .env file');
+    }
+
+    if (!this.apiKey.startsWith('sk-or-v1-')) {
+      throw new Error('Invalid OpenRouter API key format. Should start with sk-or-v1-');
     }
 
     try {
@@ -94,24 +102,26 @@ export class AIChatService {
         { role: 'user', content: message }
       ];
 
-             const response = await axios.post(
-         `${this.baseURL}/chat/completions`,
-         {
-           model: 'google/gemini-2.0-flash-exp:free',
-           messages,
-           max_tokens: 1000000,
-           temperature: 0.7,
-           stream: false
-         },
-         {
-           headers: {
-             'Authorization': `Bearer ${this.apiKey}`,
-             'Content-Type': 'application/json',
-             'HTTP-Referer': window.location.origin,
-             'X-Title': 'RentEase AI Assistant'
-           }
-         }
-       );
+      console.log('Sending request to OpenRouter with API Key:', this.apiKey.substring(0, 10) + '...');
+      
+      const response = await axios.post(
+        `${this.baseURL}/chat/completions`,
+        {
+          model: 'google/gemini-2.0-flash-exp:free',
+          messages,
+          max_tokens: 1000000,
+          temperature: 0.7,
+          stream: false
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'RentEase AI Assistant'
+          }
+        }
+      );
 
       return response.data;
     } catch (error: any) {
