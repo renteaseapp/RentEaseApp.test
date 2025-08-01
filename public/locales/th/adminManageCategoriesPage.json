@@ -2,6 +2,9 @@
   "title": "จัดการหมวดหมู่",
   "loadingCategories": "กำลังโหลดหมวดหมู่...",
   "confirmDelete": "คุณแน่ใจหรือไม่ว่าต้องการลบหมวดหมู่นี้?",
+  "manageCategoriesDescription": "จัดการหมวดหมู่สินค้าและการจัดประเภท",
+  "noCategoriesFound": "ไม่พบหมวดหมู่",
+  "noCategoriesMatch": "ไม่มีหมวดหมู่ที่ตรงกับตัวกรองปัจจุบัน",
   "error": {
     "loadFailed": "ไม่สามารถโหลดหมวดหมู่ได้",
     "saveFailed": "บันทึกหมวดหมู่ไม่สำเร็จ",
@@ -29,6 +32,7 @@
     "active": "เปิดใช้งาน"
   },
   "table": {
+    "id": "รหัส",
     "name": "ชื่อหมวดหมู่",
     "slug": "Slug",
     "status": "สถานะ",
@@ -38,5 +42,15 @@
     "active": "เปิดใช้งาน",
     "inactive": "ปิดใช้งาน"
   },
-  "searchPlaceholder": "ค้นหาด้วยชื่อหรือ slug..."
+  "searchPlaceholder": "ค้นหาด้วยชื่อหรือ slug...",
+  "stats": {
+    "totalCategories": "หมวดหมู่ทั้งหมด",
+    "activeCategories": "หมวดหมู่ที่เปิดใช้งาน",
+    "inactiveCategories": "หมวดหมู่ที่ปิดใช้งาน"
+  },
+  "filters": {
+    "allCategories": "หมวดหมู่ทั้งหมด",
+    "active": "เปิดใช้งาน",
+    "inactive": "ปิดใช้งาน"
+  }
 } 

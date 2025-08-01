@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { 
   FaChartBar, 
   FaUsers, 
@@ -15,7 +16,8 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaUser,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaGlobe
 } from 'react-icons/fa';
 
 interface AdminSidebarProps {
@@ -141,6 +143,29 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </motion.div>
         ))}
       </nav>
+
+      {/* Language Switcher */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="px-3 py-4 border-t border-gray-700"
+      >
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+          {!isCollapsed && (
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500">
+                <FaGlobe className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-sm font-medium text-gray-300">
+                {t('languageSwitcher.language')}
+              </span>
+            </div>
+          )}
+          <div className={`${isCollapsed ? 'w-full' : ''}`}>
+            <LanguageSwitcher isDarkTheme={true} />
+          </div>
+        </div>
+      </motion.div>
 
       {/* User Profile Section */}
       {!isCollapsed && user && (

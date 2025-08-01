@@ -4,14 +4,12 @@ import {
   Category,
   Product,
   StaticPageContent,
-  ApiError,
   PaginatedResponse,
   UserIdVerificationStatus,
   ProductAdminApprovalStatus
 } from '../types';
 
 const API_URL = 'https://renteaseapi-test.onrender.com/api';
-const ADMIN_API = `${API_URL}/admin`;
 
 const api = axios.create({ baseURL: API_URL });
 api.interceptors.request.use((config) => {

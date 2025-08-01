@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import { getMyRentals, getProductReviews } from '../../services/rentalService';
-import { Rental, ApiError, PaginatedResponse, RentalStatus, Review } from '../../types';
+import { Rental, ApiError, PaginatedResponse, RentalStatus, } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, } from 'framer-motion';
 import { 
   FaSearch, 
   FaFilter, 
@@ -28,7 +27,6 @@ import {
 } from 'react-icons/fa';
 
 export const MyRentalsPage: React.FC = () => {
-  const { user } = useAuth();
   const { t } = useTranslation();
   const [rentalsResponse, setRentalsResponse] = useState<PaginatedResponse<Rental> | null>(null);
   const [isLoading, setIsLoading] = useState(true);

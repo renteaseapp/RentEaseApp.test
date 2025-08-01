@@ -10,7 +10,6 @@ import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   FaSearch, 
-  FaFire, 
   FaBoxOpen, 
   FaTags, 
   FaShieldAlt, 
@@ -153,8 +152,7 @@ export const HomePage: React.FC = () => {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center">
-              <FaFire className="text-orange-500 mr-3" />
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
               {t('homePage.popularRentalsTitle')}
             </h2>
             <Link 
@@ -200,15 +198,8 @@ export const HomePage: React.FC = () => {
                     visible: { opacity: 1, y: 0 }
                   }}
                   whileHover={{ y: -10 }}
-                  className="relative"
                 >
-                  <div className="absolute -top-3 -left-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold rounded-full px-3 py-1 shadow-lg text-xs flex items-center gap-1 z-10">
-                    <FaFire /> {idx + 1}
-                  </div>
                   <ProductCard product={product} />
-                  <div className="absolute bottom-4 right-4 bg-white/90 text-orange-500 rounded-full px-3 py-1 text-xs flex items-center gap-1 shadow">
-                    <FaFire /> {(product as any).rental_count || 0} {t('homePage.rentalCount')}
-                  </div>
                 </motion.div>
               ))}
             </motion.div>

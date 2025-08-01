@@ -13,13 +13,17 @@ import { getPayoutMethodsByOwnerId, updateRentalDeliveryStatus } from '../../ser
 import { getProvinces } from '../../services/productService';
 import { sendMessage, getConversations } from '../../services/chatService';
 import { motion, AnimatePresence } from 'framer-motion';
+import { socketService } from '../../services/socketService';
+import { useAuth } from '../../contexts/AuthContext';
+import { RealtimeNotification } from '../../components/common/RealtimeNotification';
 
 // Import icons for a richer UI
 import {
   FaCheckCircle, FaTimesCircle, FaClock, FaExclamationTriangle,
   FaUser, FaCalendarAlt, FaTruck, FaMapMarkerAlt, FaTag, FaBox, FaCreditCard,
   FaArrowLeft, FaComments, FaClipboardCheck, FaInfoCircle, FaHourglassHalf, FaPaperPlane,
-  FaCoins, FaShippingFast, FaIdCard, FaBuilding, FaMoneyBillWave, FaReceipt, FaFileInvoiceDollar
+  FaCoins, FaShippingFast, FaIdCard, FaBuilding, FaMoneyBillWave, FaReceipt, FaFileInvoiceDollar,
+  FaWifi
 } from 'react-icons/fa';
 
 // --- Status badge component (re-used from MyListingsPage or similar for consistency) ---
@@ -162,6 +166,7 @@ const SectionTitle: React.FC<{ icon: React.ReactNode; title: string }> = ({ icon
 export const OwnerRentalDetailPage: React.FC = () => {
   const { t } = useTranslation();
   const { rentalId } = useParams<{ rentalId: string }>();
+  const { token } = useAuth();
   const [rental, setRental] = useState<Rental | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -184,6 +189,16 @@ export const OwnerRentalDetailPage: React.FC = () => {
   const [carrierCode, setCarrierCode] = useState<string>('');
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [deliveryError, setDeliveryError] = useState<string|null>(null);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [realtimeNotification, setRealtimeNotification] = useState<{
+    isVisible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info' | 'warning';
+  }>({
+    isVisible: false,
+    message: '',
+    type: 'info'
+  });
 
   const fetchRental = useCallback(async () => {
     if (!rentalId) {
@@ -208,13 +223,101 @@ export const OwnerRentalDetailPage: React.FC = () => {
     }
   }, [rentalId, t]);
 
+  // Socket.IO connection and event listeners
+  useEffect(() => {
+    if (token) {
+      // Connect to Socket.IO
+      socketService.connect(token);
+      setIsSocketConnected(true);
+
+      // Listen for rental updates
+      socketService.onRentalUpdated((updatedRental) => {
+        if (updatedRental.id === Number(rentalId)) {
+          console.log('Real-time rental update received:', updatedRental);
+          setRental(updatedRental);
+          
+          // Show notification based on status change
+          if (rental && rental.rental_status !== updatedRental.rental_status) {
+            const statusMessages: Record<string, string> = {
+              'pending_payment': t('ownerRentalDetailPage.alerts.statusPendingPayment'),
+              'confirmed': t('ownerRentalDetailPage.alerts.statusConfirmed'),
+              'active': t('ownerRentalDetailPage.alerts.statusActive'),
+              'return_pending': t('ownerRentalDetailPage.alerts.statusReturnPending'),
+              'completed': t('ownerRentalDetailPage.alerts.statusCompleted'),
+              'cancelled_by_renter': t('ownerRentalDetailPage.alerts.statusCancelledByRenter'),
+              'rejected_by_owner': t('ownerRentalDetailPage.alerts.statusRejected'),
+            };
+            
+                         const message = statusMessages[updatedRental.rental_status];
+             if (message) {
+               setRealtimeNotification({
+                 isVisible: true,
+                 message,
+                 type: 'success'
+               });
+               setTimeout(() => setRealtimeNotification(prev => ({ ...prev, isVisible: false })), 5000);
+             }
+          }
+
+                     // Show payment status change notification
+           if (rental && rental.payment_status !== updatedRental.payment_status) {
+             if (updatedRental.payment_status === 'paid') {
+               setRealtimeNotification({
+                 isVisible: true,
+                 message: t('ownerRentalDetailPage.alerts.paymentReceived'),
+                 type: 'success'
+               });
+               setTimeout(() => setRealtimeNotification(prev => ({ ...prev, isVisible: false })), 5000);
+             } else if (updatedRental.payment_status === 'pending_verification') {
+               setRealtimeNotification({
+                 isVisible: true,
+                 message: t('ownerRentalDetailPage.alerts.paymentUnderReview'),
+                 type: 'info'
+               });
+               setTimeout(() => setRealtimeNotification(prev => ({ ...prev, isVisible: false })), 5000);
+             }
+           }
+        }
+      });
+
+             // Listen for product updates
+       socketService.onProductUpdated((updatedProduct) => {
+         if (rental && updatedProduct.id === rental.product_id) {
+           console.log('Real-time product update received:', updatedProduct);
+           setRealtimeNotification({
+             isVisible: true,
+             message: t('ownerRentalDetailPage.alerts.productUpdated'),
+             type: 'info'
+           });
+           setTimeout(() => setRealtimeNotification(prev => ({ ...prev, isVisible: false })), 5000);
+         }
+       });
+
+             // Listen for claim updates
+       socketService.onClaimUpdated((updatedClaim) => {
+         if (rental && updatedClaim.rental_id === rental.id) {
+           console.log('Real-time claim update received:', updatedClaim);
+           setRealtimeNotification({
+             isVisible: true,
+             message: t('renterRentalDetailPage.alerts.claimUpdated'),
+             type: 'warning'
+           });
+           setTimeout(() => setRealtimeNotification(prev => ({ ...prev, isVisible: false })), 5000);
+         }
+       });
+
+      return () => {
+        // Cleanup Socket.IO listeners
+        socketService.off('rentalUpdated');
+        socketService.off('productUpdated');
+        socketService.off('claimUpdated');
+      };
+    }
+  }, [token, rentalId, rental?.id, rental?.product_id, rental?.rental_status, rental?.payment_status, showSuccess, t]);
+
   useEffect(() => {
     fetchRental();
-    // Auto-refresh every 10 seconds (increased from 5s to reduce potential load)
-    const interval = setInterval(() => {
-      fetchRental();
-    }, 10000); 
-    return () => clearInterval(interval);
+    // Removed polling since we have real-time Socket.IO updates
   }, [fetchRental]);
 
   // Fetch payout methods and provinces
@@ -390,6 +493,12 @@ export const OwnerRentalDetailPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <RealtimeNotification
+        isVisible={realtimeNotification.isVisible}
+        message={realtimeNotification.message}
+        type={realtimeNotification.type}
+        onClose={() => setRealtimeNotification(prev => ({ ...prev, isVisible: false }))}
+      />
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -407,6 +516,13 @@ export const OwnerRentalDetailPage: React.FC = () => {
               <p className="text-blue-100 text-lg">
                 {t('ownerRentalDetailPage.subtitle', { uid: rental.rental_uid || rental.id })}
               </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${isSocketConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+              <span className="text-sm text-blue-100 flex items-center gap-1">
+                <FaWifi className="h-4 w-4" />
+                {isSocketConnected ? 'Live' : 'Offline'}
+              </span>
             </div>
             <motion.div
               whileHover={{ scale: 1.05 }}

@@ -1,0 +1,41 @@
+{
+  "loadingProduct": "กำลังโหลดรายละเอียดสินค้า...",
+  "productNotFound": "ไม่พบสินค้า",
+  "productNotFoundDescription": "สินค้าที่คุณกำลังค้นหาไม่มีอยู่",
+  "backToProducts": "กลับไปยังรายการสินค้า",
+  "productInfo": "รหัสสินค้า: {{productId}} • รหัสเจ้าของ: {{ownerId}}",
+  "viewProductPage": "ดูหน้ารายละเอียดสินค้า",
+  "productImages": "รูปภาพสินค้า",
+  "noImageAvailable": "ไม่มีรูปภาพ",
+  "productInformation": "ข้อมูลสินค้า",
+  "ownerId": "รหัสเจ้าของ",
+  "categoryId": "รหัสหมวดหมู่",
+  "provinceId": "รหัสจังหวัด",
+  "pricePerDay": "ราคาต่อวัน",
+  "availabilityStatus": "สถานะการใช้งาน",
+  "available": "พร้อมใช้งาน",
+  "adminApprovalStatus": "สถานะการอนุมัติจากแอดมิน",
+  "createdAt": "วันที่สร้าง",
+  "description": "คำอธิบาย",
+  "adminActions": "การดำเนินการของแอดมิน",
+  "approvalNotes": "หมายเหตุการอนุมัติ",
+  "approvalNotesPlaceholder": "เพิ่มหมายเหตุเกี่ยวกับการตัดสินใจของคุณ...",
+  "processing": "กำลังประมวลผล...",
+  "approveProduct": "อนุมัติสินค้า",
+  "rejectProduct": "ปฏิเสธสินค้า",
+  "quickStats": "สถิติด่วน",
+  "securityDeposit": "เงินประกัน",
+  "quantityAvailable": "จำนวนที่มี",
+  "minRentalDays": "จำนวนวันเช่าขั้นต่ำ",
+  "averageRating": "คะแนนเฉลี่ย",
+  "notAvailable": "ไม่มีข้อมูล",
+  "error": {
+    "loadFailed": "โหลดรายละเอียดสินค้าล้มเหลว",
+    "updateApprovalFailed": "อัปเดตสถานะการอนุมัติล้มเหลว"
+  },
+  "approvalStatus": {
+    "approved": "อนุมัติแล้ว",
+    "pending": "รอการอนุมัติ",
+    "rejected": "ปฏิเสธแล้ว"
+  }
+} 

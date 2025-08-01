@@ -1366,7 +1366,8 @@
   },
   "languageSwitcher": {
     "en": "อังกฤษ",
-    "th": "ไทย"
+    "th": "ไทย",
+    "language": "ภาษา"
   },
   "adminLoginPage": {
     "title": "เข้าสู่ระบบผู้ดูแลระบบ",

@@ -1,6 +1,9 @@
 {
   "title": "Manage Products",
   "loadingProducts": "Loading products...",
+  "manageProductsDescription": "Manage product listings and approvals",
+  "noProductsFound": "No products found",
+  "noProductsMatch": "No products match your current filters",
   "table": {
     "title": "Title",
     "ownerId": "Owner ID",
@@ -29,5 +32,17 @@
     "next": "Next",
     "page": "Page"
   },
-  "searchPlaceholder": "Search by title or owner ID..."
+  "searchPlaceholder": "Search by title or owner ID...",
+  "stats": {
+    "totalProducts": "Total Products",
+    "pendingReview": "Pending Review",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "filters": {
+    "allProducts": "All Products",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  }
 } 

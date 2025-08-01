@@ -53,8 +53,6 @@ import { AdminManageUsersPage } from './features/admin/AdminManageUsersPage';
 import { AdminUserDetailPage } from './features/admin/AdminUserDetailPage';
 import { AdminManageProductsPage } from './features/admin/AdminManageProductsPage';
 import { AdminProductDetailPage } from './features/admin/AdminProductDetailPage';
-import { AdminManageRentalsPage } from './features/admin/AdminManageRentalsPage';
-import { AdminRentalDetailPage } from './features/admin/AdminRentalDetailPage';
 import { AdminManageCategoriesPage } from './features/admin/AdminManageCategoriesPage';
 import { AdminReportsPage } from './features/admin/AdminReportsPage';
 import { AdminLoginPage } from './features/admin/AdminLoginPage';
@@ -127,8 +125,6 @@ const AppContent: React.FC = () => {
                   <Route path={ROUTE_PATHS.ADMIN_USER_DETAIL} element={<AdminUserDetailPage />} />
                   <Route path={ROUTE_PATHS.ADMIN_MANAGE_PRODUCTS} element={<AdminManageProductsPage />} />
                   <Route path={ROUTE_PATHS.ADMIN_PRODUCT_DETAIL} element={<AdminProductDetailPage />} />
-                  <Route path={ROUTE_PATHS.ADMIN_MANAGE_RENTALS} element={<AdminManageRentalsPage />} />
-                  <Route path={ROUTE_PATHS.ADMIN_RENTAL_DETAIL} element={<AdminRentalDetailPage />} />
                   <Route path={ROUTE_PATHS.ADMIN_MANAGE_CATEGORIES} element={<AdminManageCategoriesPage />} />
                   <Route path="/admin/complaints" element={<AdminComplaintsPage />} />
                   <Route path={ROUTE_PATHS.ADMIN_REPORTS} element={<AdminReportsPage />} />

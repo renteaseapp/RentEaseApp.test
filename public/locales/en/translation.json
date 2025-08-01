@@ -1301,7 +1301,8 @@
   },
   "languageSwitcher": {
     "en": "EN",
-    "th": "TH"
+    "th": "TH",
+    "language": "Language"
   },
   "adminLoginPage": {
     "title": "Admin Sign In",
