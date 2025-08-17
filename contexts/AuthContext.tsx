@@ -83,13 +83,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const checkOwner = async () => {
       if (user && token) {
         try {
-          const res = await import('../services/ownerService');
-          const dashboard = await res.getOwnerDashboardData(user.id);
-          setIsOwner((dashboard.data.total_my_products || 0) > 0);
-        } catch {
+          console.log('🔍 Checking if user is owner...', { userId: user.id, userEmail: user.email });
+          
+          // วิธีที่ 1: ลองเรียก owner API
+          try {
+            const res = await import('../services/ownerService');
+            const dashboard = await res.getOwnerDashboardData(user.id);
+            // ถ้า API call สำเร็จและมี products แสดงว่าเป็น owner
+            const hasProducts = (dashboard.data.total_my_products || 0) > 0;
+            console.log('✅ Owner check result (API):', { hasProducts, totalProducts: dashboard.data.total_my_products });
+            setIsOwner(hasProducts);
+            return; // ถ้าสำเร็จให้ออกจาก function
+          } catch (apiError) {
+            console.log('❌ Owner API call failed:', apiError);
+            // ถ้า API call ล้มเหลว ให้ใช้วิธีที่ 2
+          }
+          
+          // วิธีที่ 2: ตรวจสอบจาก user data หรือ localStorage
+          // ถ้าไม่มี owner data ใน localStorage แสดงว่าไม่ใช่ owner
+          const ownerData = localStorage.getItem('ownerData');
+          if (ownerData) {
+            try {
+              const parsed = JSON.parse(ownerData);
+              const hasProducts = (parsed.total_my_products || 0) > 0;
+              console.log('✅ Owner check result (localStorage):', { hasProducts, totalProducts: parsed.total_my_products });
+              setIsOwner(hasProducts);
+              return;
+            } catch (parseError) {
+              console.log('❌ Failed to parse owner data from localStorage');
+            }
+          }
+          
+          // ถ้าไม่มีข้อมูลใดๆ แสดงว่าไม่ใช่ owner
+          console.log('✅ User is not an owner (no owner data found)');
+          setIsOwner(false);
+          
+        } catch (error) {
+          // ถ้าเกิด error อื่นๆ แสดงว่าไม่ใช่ owner
+          console.log('❌ Error during owner check:', error);
           setIsOwner(false);
         }
       } else {
+        console.log('🔍 No user or token, setting isOwner to false');
         setIsOwner(false);
       }
     };

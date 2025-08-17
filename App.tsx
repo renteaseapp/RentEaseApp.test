@@ -36,7 +36,6 @@ import OwnerReportPage from './features/owner/OwnerReportPage';
 // Renter features
 import { RenterDashboardPage } from './features/renter/RenterDashboardPage';
 import { MyRentalsPage } from './features/renter/MyRentalsPage';
-import { RentalCheckoutPage } from './features/renter/RentalCheckoutPage';
 import { PaymentPage } from './features/renter/PaymentPage';
 import { RenterRentalDetailPage } from './features/renter/RenterRentalDetailPage';
 import { SubmitReviewPage } from './features/renter/SubmitReviewPage';
@@ -117,7 +116,6 @@ const AppContent: React.FC = () => {
 
                 {/* Renter-only Routes */}
                 <Route element={<RenterRoute />}>
-                  <Route path={ROUTE_PATHS.RENTAL_CHECKOUT_PAGE} element={<RentalCheckoutPage />} />
                   <Route path={ROUTE_PATHS.PAYMENT_PAGE} element={<PaymentPage />} />
                   <Route path={ROUTE_PATHS.RENTER_RENTAL_DETAIL} element={<RenterRentalDetailPage />} />
                   <Route path={ROUTE_PATHS.SUBMIT_REVIEW} element={<SubmitReviewPage />} />

@@ -12,6 +12,12 @@ import { useTranslation } from 'react-i18next';
 import { useAlert } from '../../contexts/AlertContext';
 import { InitiateReturnForm } from './InitiateReturnForm';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  calculateRentalSubtotal, 
+  calculateTotalAmount, 
+  formatCurrency,
+  validateRentalDuration 
+} from '../../utils/financialCalculations';
 import { socketService } from '../../services/socketService';
 import AlertNotification from '../../components/common/AlertNotification';
 import { 
@@ -200,16 +206,27 @@ export const RenterRentalDetailPage: React.FC = () => {
       setCancelError(t('renterRentalDetailPage.alerts.cancelReasonRequired'));
       return;
     }
+    
+    console.log('🔍 Cancel Rental Debug:', {
+      rentalId: rental.id,
+      rentalStatus: rental.rental_status,
+      cancelReason,
+      isCancelling
+    });
+    
     setIsCancelling(true);
     setCancelError(null);
     try {
+      console.log('🔍 Calling cancelRental API...');
       await cancelRental(rental.id, cancelReason);
+      console.log('✅ cancelRental API call successful');
       setShowCancelDialog(false);
       showSuccess(t('renterRentalDetailPage.alerts.cancelSuccess'));
       // Refresh rental details
       setIsLoading(true);
       fetchRentalDetails();
     } catch (err) {
+      console.error('❌ cancelRental API call failed:', err);
       showError((err as ApiError).message || t('renterRentalDetailPage.alerts.cancelError'));
     } finally {
       setIsCancelling(false);
@@ -540,14 +557,14 @@ export const RenterRentalDetailPage: React.FC = () => {
                     <FaMoneyBillWave className="h-5 w-5 text-yellow-500" />
                     <div>
                       <span className="text-sm text-gray-500">{t('renterRentalDetailPage.pricePerDay')}</span>
-                      <p className="font-semibold">฿{(productDetails?.rental_price_per_day || rental.product?.rental_price_per_day)?.toLocaleString?.() || '-'}</p>
+                      <p className="font-semibold">{formatCurrency((productDetails?.rental_price_per_day || rental.product?.rental_price_per_day) || 0)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     <FaShieldAlt className="h-5 w-5 text-purple-500" />
                     <div>
                       <span className="text-sm text-gray-500">{t('renterRentalDetailPage.deposit')}</span>
-                      <p className="font-semibold">฿{(productDetails?.security_deposit || rental.product?.security_deposit)?.toLocaleString?.() || '-'}</p>
+                      <p className="font-semibold">{formatCurrency((productDetails?.security_deposit || rental.product?.security_deposit) || 0)}</p>
                     </div>
                   </div>
                 </div>
@@ -872,7 +889,7 @@ export const RenterRentalDetailPage: React.FC = () => {
                     <FaMoneyBillWave className="h-5 w-5 text-yellow-500" />
                     <div>
                       <span className="text-sm text-gray-500">{t('renterRentalDetailPage.pricePerDay')}</span>
-                      <p className="font-semibold">฿{rental.rental_price_per_day_at_booking.toLocaleString()}</p>
+                      <p className="font-semibold">{formatCurrency(rental.rental_price_per_day_at_booking)}</p>
                     </div>
                   </div>
                   {typeof rental.security_deposit_at_booking === 'number' && (
@@ -880,7 +897,7 @@ export const RenterRentalDetailPage: React.FC = () => {
                       <FaShieldAlt className="h-5 w-5 text-blue-500" />
                       <div>
                         <span className="text-sm text-gray-500">{t('renterRentalDetailPage.deposit')}</span>
-                        <p className="font-semibold">฿{rental.security_deposit_at_booking.toLocaleString()}</p>
+                        <p className="font-semibold">{formatCurrency(rental.security_deposit_at_booking)}</p>
                       </div>
                     </div>
                   )}
@@ -889,7 +906,7 @@ export const RenterRentalDetailPage: React.FC = () => {
                       <FaTruck className="h-5 w-5 text-green-500" />
                       <div>
                         <span className="text-sm text-gray-500">{t('renterRentalDetailPage.deliveryFee')}</span>
-                        <p className="font-semibold">฿{rental.delivery_fee.toLocaleString()}</p>
+                        <p className="font-semibold">{formatCurrency(rental.delivery_fee)}</p>
                       </div>
                     </div>
                   )}
@@ -898,7 +915,7 @@ export const RenterRentalDetailPage: React.FC = () => {
                       <FaCreditCard className="h-5 w-5 text-purple-500" />
                       <div>
                         <span className="text-sm text-gray-500">{t('renterRentalDetailPage.platformFee')}</span>
-                        <p className="font-semibold">฿{rental.platform_fee_renter.toLocaleString()}</p>
+                        <p className="font-semibold">{formatCurrency(rental.platform_fee_renter)}</p>
                       </div>
                     </div>
                   )}
@@ -907,7 +924,7 @@ export const RenterRentalDetailPage: React.FC = () => {
                       <FaExclamationTriangle className="h-5 w-5 text-red-500" />
                       <div>
                         <span className="text-sm text-gray-500">{t('renterRentalDetailPage.lateFeeDeducted')}</span>
-                        <p className="font-semibold text-red-600">฿{rental.late_fee_calculated.toLocaleString()}</p>
+                        <p className="font-semibold text-red-600">{formatCurrency(rental.late_fee_calculated)}</p>
                       </div>
                     </div>
                   )}
@@ -916,7 +933,7 @@ export const RenterRentalDetailPage: React.FC = () => {
                       <FaMoneyBillWave className="h-5 w-5 text-green-500" />
                       <div>
                         <span className="text-sm text-gray-500">{t('renterRentalDetailPage.depositRefund')}</span>
-                        <p className="font-semibold text-green-600">฿{rental.security_deposit_refund_amount.toLocaleString()}</p>
+                        <p className="font-semibold text-green-600">{formatCurrency(rental.security_deposit_refund_amount)}</p>
                         <p className="text-xs text-gray-500 mt-1">{t('renterRentalDetailPage.depositRefundNote')}</p>
                         {rental.rental_status === 'late_return' && (
                           <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -933,14 +950,14 @@ export const RenterRentalDetailPage: React.FC = () => {
                     <FaMoneyBillWave className="h-5 w-5 text-blue-500" />
                     <div>
                       <span className="text-sm text-gray-500">{t('renterRentalDetailPage.subtotal')}</span>
-                      <p className="font-semibold">฿{(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}</p>
+                      <p className="font-semibold">{formatCurrency(rental.calculated_subtotal_rental_fee || 0)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
                     <FaCheckCircle className="h-5 w-5 text-green-500" />
                     <div>
                       <span className="text-sm text-gray-500">{t('renterRentalDetailPage.totalPaid')}</span>
-                      <p className="font-semibold">฿{((rental.final_amount_paid || rental.total_amount_due) || 0).toLocaleString()}</p>
+                      <p className="font-semibold">{formatCurrency((rental.final_amount_paid || rental.total_amount_due) || 0)}</p>
                     </div>
                   </div>
                 </div>
@@ -1016,7 +1033,17 @@ export const RenterRentalDetailPage: React.FC = () => {
               </div>
 
               {/* {t('renterRentalDetailPage.secondaryActions')} */}
-              {[RentalStatus.PENDING_OWNER_APPROVAL, RentalStatus.PENDING_PAYMENT].includes(rental.rental_status) && (
+              {(() => {
+                const canCancel = [RentalStatus.PENDING_OWNER_APPROVAL, RentalStatus.PENDING_PAYMENT].includes(rental.rental_status);
+                console.log('🔍 Cancel Button Debug:', {
+                  rentalStatus: rental.rental_status,
+                  pendingOwnerApproval: rental.rental_status === RentalStatus.PENDING_OWNER_APPROVAL,
+                  pendingPayment: rental.rental_status === RentalStatus.PENDING_PAYMENT,
+                  canCancel,
+                  allowedStatuses: [RentalStatus.PENDING_OWNER_APPROVAL, RentalStatus.PENDING_PAYMENT]
+                });
+                return canCancel;
+              })() && (
                 <>
                   <hr className="my-6 border-gray-200" />
                   <motion.button
@@ -1126,6 +1153,96 @@ export const RenterRentalDetailPage: React.FC = () => {
             onCancel={() => setShowReturnForm(false)}
             isLoading={isReturning}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Cancel Rental Dialog */}
+      <AnimatePresence>
+        {showCancelDialog && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowCancelDialog(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-red-600 flex items-center gap-2">
+                  <FaBan className="h-5 w-5" />
+                  {t('renterRentalDetailPage.modals.cancelRental.title', 'Cancel Rental')}
+                </h3>
+                <button
+                  onClick={() => setShowCancelDialog(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FaTimes className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700 text-sm">
+                    {t('renterRentalDetailPage.modals.cancelRental.warning', 'Are you sure you want to cancel this rental? This action cannot be undone.')}
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="cancelReason" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('renterRentalDetailPage.modals.cancelRental.reason', 'Reason for cancellation')} *
+                  </label>
+                  <textarea
+                    id="cancelReason"
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    rows={3}
+                    placeholder={t('renterRentalDetailPage.modals.cancelRental.reasonPlaceholder', 'Please provide a reason for cancelling this rental...')}
+                    required
+                  />
+                </div>
+
+                {cancelError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-600 text-sm">{cancelError}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowCancelDialog(false)}
+                    className="flex-1 px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    onClick={handleCancelRental}
+                    disabled={!cancelReason.trim() || isCancelling}
+                    className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${
+                      !cancelReason.trim() || isCancelling
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-red-500 hover:bg-red-600'
+                    }`}
+                  >
+                    {isCancelling ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        {t('common.loading')}
+                      </div>
+                    ) : (
+                      t('renterRentalDetailPage.modals.cancelRental.confirm', 'Confirm Cancellation')
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

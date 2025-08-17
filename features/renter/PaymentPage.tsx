@@ -28,8 +28,17 @@ import {
   FaQrcode,
   FaEye,
   FaHistory,
-  FaCalendarAlt
+  FaCalendarAlt,
+  FaTruck,
+  FaHandshake,
+  FaCalculator
 } from 'react-icons/fa';
+import { 
+  calculateRentalSubtotal, 
+  calculateTotalAmount, 
+  formatCurrency,
+  validateRentalDuration 
+} from '../../utils/financialCalculations';
 
 export const PaymentPage: React.FC = () => {
   const { rentalId } = useParams<{ rentalId: string }>();
@@ -52,16 +61,39 @@ export const PaymentPage: React.FC = () => {
   const [verifyResult, setVerifyResult] = useState<any>(null);
 
   useEffect(() => {
-    if (!authUser?.id) return;
-    if (!rentalId) {
-      setError("Rental ID is missing.");
-      setIsLoading(false);
-      return;
-    }
+    if (!rentalId || !authUser?.id) return;
+    
     setIsLoading(true);
     getRentalDetails(rentalId, authUser.id, 'renter')
       .then(async data => {
         console.log('Fetched rental:', data);
+        console.log('🔍 PaymentPage Debug - Rental Data:', {
+          id: data.id,
+          calculated_subtotal_rental_fee: data.calculated_subtotal_rental_fee,
+          security_deposit_at_booking: data.security_deposit_at_booking,
+          delivery_fee: data.delivery_fee,
+          platform_fee_renter: data.platform_fee_renter,
+          platform_fee_owner: data.platform_fee_owner,
+          total_amount_due: data.total_amount_due,
+          final_amount_paid: data.final_amount_paid
+        });
+        
+        // Calculate expected total
+        const expectedTotal = (data.calculated_subtotal_rental_fee || 0) + 
+                            (data.security_deposit_at_booking || 0) + 
+                            (data.delivery_fee || 0) + 
+                            (data.platform_fee_renter || 0);
+        
+        console.log('🔍 PaymentPage Debug - Expected Calculation:', {
+          subtotal: data.calculated_subtotal_rental_fee || 0,
+          securityDeposit: data.security_deposit_at_booking || 0,
+          deliveryFee: data.delivery_fee || 0,
+          platformFee: data.platform_fee_renter || 0,
+          expectedTotal,
+          actualTotalAmountDue: data.total_amount_due,
+          difference: expectedTotal - (data.total_amount_due || 0)
+        });
+        
         setRental(data);
         if (data.product_id) {
           setIsLoadingProduct(true);
@@ -235,48 +267,113 @@ export const PaymentPage: React.FC = () => {
               >
                 <h2 className="text-xl font-semibold mb-4">{t('paymentPage.rentalIdLabel', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })} {t('paymentPage.forProduct', { title: rental.product?.title || '-' })}</h2>
                 
+                {/* Rental Details Summary */}
+                <div className="mb-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    {/* Rental Period */}
+                    <div className="flex items-center gap-2">
+                      <FaCalendarAlt className="h-4 w-4 text-blue-600" />
+                      <div>
+                        <span className="font-semibold text-blue-800">{t('paymentPage.rentalPeriodLabel')}:</span>
+                        <p className="text-blue-700">{rental.start_date} - {rental.end_date}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Pickup Method */}
+                    <div className="flex items-center gap-2">
+                      {rental.pickup_method === 'delivery' ? (
+                        <FaTruck className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <FaHandshake className="h-4 w-4 text-blue-600" />
+                      )}
+                      <div>
+                        <span className="font-semibold text-gray-800">วิธีรับสินค้า:</span>
+                        <p className="text-gray-700">
+                          {rental.pickup_method === 'delivery' ? 'จัดส่งถึงที่อยู่' : 'รับสินค้าเองที่ร้าน'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
                 {/* Cost Breakdown Section */}
                 <div className="mb-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
                   <h3 className="font-semibold text-gray-800 flex items-center gap-2 mb-3">
                     <FaMoneyBillWave className="h-4 w-4 text-gray-600" />
                     {t('paymentPage.costBreakdownTitle', 'Cost Breakdown')}
                   </h3>
+                  
+                  {/* Debug Info */}
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs mb-4">
+                    <div className="font-semibold text-blue-800 mb-1">🔍 Debug Info:</div>
+                    <div className="text-blue-700 space-y-1">
+                      <div>• calculated_subtotal_rental_fee: ฿{(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}</div>
+                      <div>• security_deposit_at_booking: ฿{(rental.security_deposit_at_booking || 0).toLocaleString()}</div>
+                      <div>• delivery_fee: ฿{(rental.delivery_fee || 0).toLocaleString()}</div>
+                      <div>• platform_fee_renter: ฿{(rental.platform_fee_renter || 0).toLocaleString()}</div>
+                      <div>• total_amount_due: ฿{(rental.total_amount_due || 0).toLocaleString()}</div>
+                      <div className="font-semibold">
+                        Expected: ฿{((rental.calculated_subtotal_rental_fee || 0) + (rental.security_deposit_at_booking || 0) + (rental.delivery_fee || 0) + (rental.platform_fee_renter || 0)).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="space-y-2">
-                    {/* Subtotal */}
+                    {/* Rental Fee */}
                     <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-600 text-sm">{t('paymentPage.subtotalLabel', 'Rental Fee')}:</span>
-                      <span className="font-semibold text-sm">฿{(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}</span>
+                      <span className="text-gray-600 text-sm flex items-center gap-1">
+                        <FaCalendarAlt className="h-3 w-3 text-blue-500" />
+                        {t('paymentPage.subtotalLabel', 'Rental Fee')}:
+                      </span>
+                      <span className="font-semibold text-sm text-blue-600">฿{(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}</span>
                     </div>
                     
                     {/* Security Deposit */}
                     {rental.security_deposit_at_booking && rental.security_deposit_at_booking > 0 && (
                       <div className="flex justify-between items-center py-1">
                         <span className="text-gray-600 text-sm flex items-center gap-1">
-                          <FaShieldAlt className="h-3 w-3 text-gray-500" />
+                          <FaShieldAlt className="h-3 w-3 text-yellow-500" />
                           {t('paymentPage.securityDepositLabel', 'Security Deposit')}:
                         </span>
-                        <span className="font-semibold text-sm">฿{rental.security_deposit_at_booking.toLocaleString()}</span>
+                        <span className="font-semibold text-sm text-yellow-600">฿{rental.security_deposit_at_booking.toLocaleString()}</span>
                       </div>
                     )}
                     
                     {/* Delivery Fee */}
                     {rental.delivery_fee && rental.delivery_fee > 0 && (
                       <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-600 text-sm">{t('paymentPage.deliveryFeeLabel', 'Delivery Fee')}:</span>
-                        <span className="font-semibold text-sm">฿{rental.delivery_fee.toLocaleString()}</span>
+                        <span className="text-gray-600 text-sm flex items-center gap-1">
+                          <FaTruck className="h-3 w-3 text-green-500" />
+                          {t('paymentPage.deliveryFeeLabel', 'Delivery Fee')}:
+                        </span>
+                        <span className="font-semibold text-sm text-green-600">฿{rental.delivery_fee.toLocaleString()}</span>
                       </div>
                     )}
                     
                     {/* Platform Fee */}
                     {rental.platform_fee_renter && rental.platform_fee_renter > 0 && (
                       <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-600 text-sm">{t('paymentPage.platformFeeLabel', 'Platform Fee')}:</span>
-                        <span className="font-semibold text-sm">฿{rental.platform_fee_renter.toLocaleString()}</span>
+                        <span className="text-gray-600 text-sm flex items-center gap-1">
+                          <FaCreditCard className="h-3 w-3 text-purple-500" />
+                          {t('paymentPage.platformFeeLabel', 'Platform Fee')}:
+                        </span>
+                        <span className="font-semibold text-sm text-purple-600">฿{rental.platform_fee_renter.toLocaleString()}</span>
+                      </div>
+                    )}
+                    
+                    {/* Late Fee (if applicable) */}
+                    {rental.late_fee_calculated && rental.late_fee_calculated > 0 && (
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-600 text-sm flex items-center gap-1">
+                          <FaExclamationTriangle className="h-3 w-3 text-red-500" />
+                          {t('paymentPage.lateFeeLabel', 'Late Fee')}:
+                        </span>
+                        <span className="font-semibold text-sm text-red-600">฿{rental.late_fee_calculated.toLocaleString()}</span>
                       </div>
                     )}
                     
                     {/* Total Amount Due */}
-                    <div className="flex justify-between items-center py-2 bg-blue-100 rounded-lg px-2 mt-2">
+                    <div className="flex justify-between items-center py-2 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg px-2 mt-2 border border-blue-200">
                       <span className="text-blue-800 font-semibold text-sm">{t('paymentPage.totalAmountDueLabel')}:</span>
                       <span className="font-bold text-blue-800">฿{(rental.total_amount_due || 0).toLocaleString()}</span>
                     </div>
@@ -286,7 +383,7 @@ export const PaymentPage: React.FC = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
                     <span className="text-gray-600">{t('paymentPage.totalPaidLabel')}:</span>
-                    <span className="font-semibold">฿{Number.isFinite(rental.final_amount_paid ?? rental.total_amount_due) ? (rental.final_amount_paid ?? rental.total_amount_due).toLocaleString() : '-'}</span>
+                    <span className="font-semibold">{formatCurrency(Number.isFinite(rental.final_amount_paid ?? rental.total_amount_due) ? (rental.final_amount_paid ?? rental.total_amount_due) : 0)}</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
                     <span className="text-gray-600">{t('paymentPage.rentalPeriodLabel')}:</span>
@@ -314,6 +411,20 @@ export const PaymentPage: React.FC = () => {
                   <span>{t('paymentPage.waitingApprovalDesc')}</span>
                 </div>
               </motion.div>
+              
+              {/* Add View Rental Details button */}
+              <div className="mt-6 text-center">
+                <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id))}>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    <FaEye className="h-4 w-4" />
+                    {t('paymentPage.viewRentalDetailBtn', 'View Rental Details')}
+                  </motion.button>
+                </Link>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -381,35 +492,63 @@ export const PaymentPage: React.FC = () => {
                     <span className="text-xs text-gray-600">({t('productDetailPage.reviewsCount', { count: product.total_reviews || 0 })})</span>
                   </div>
                   <div className="text-blue-700 font-bold text-lg mb-2 flex items-center gap-2">
-                    <FaMoneyBillWave className="h-5 w-5" />
-                    ฿{(product.rental_price_per_day ?? 0).toLocaleString()} <span className="text-sm font-normal text-gray-500">{t('productCard.pricePerDay')}</span>
+                    <FaMoneyBillWave className="h-5 h-5" />
+                    {formatCurrency(product.rental_price_per_day ?? 0)} <span className="text-sm font-normal text-gray-500">{t('productCard.pricePerDay')}</span>
                   </div>
-                  {product.security_deposit && (
-                    <div className="text-sm text-gray-600 mb-2 flex items-center gap-2">
-                      <FaShieldAlt className="h-4 w-4" />
-                      {t('productDetailPage.securityDeposit')}: <span className="font-semibold text-gray-700">฿{product.security_deposit.toLocaleString()}</span>
-                    </div>
-                  )}
+                  
+                  {/* Rental Duration Information */}
                   {product.min_rental_duration_days && product.max_rental_duration_days && (
                     <div className="text-sm text-gray-600 mb-2 flex items-center gap-2">
                       <FaClock className="h-4 w-4" />
                       {t('productDetailPage.rentalDuration')}: <span className="font-semibold text-gray-700">{product.min_rental_duration_days} - {product.max_rental_duration_days} {t('productDetailPage.days')}</span>
                     </div>
                   )}
+                  
+                  {/* Security Deposit */}
+                  {product.security_deposit && (
+                    <div className="text-sm text-gray-600 mb-2 flex items-center gap-2">
+                      <FaShieldAlt className="h-4 w-4" />
+                      {t('productDetailPage.securityDeposit')}: <span className="font-semibold text-gray-700">{formatCurrency(product.security_deposit)}</span>
+                    </div>
+                  )}
+                  
+                  {/* Location */}
                   {product.province && (
                     <div className="text-sm text-gray-600 flex items-center mb-2">
                       <FaMapMarkerAlt className="h-4 w-4 mr-2 text-gray-500" />
                       {t('productDetailPage.location', { locationName: product.province.name_th })}
                     </div>
                   )}
+                  
+                  {/* Pickup Location */}
                   {product.address_details && (
-                    <div className="text-sm text-gray-600 mb-2">{t('productDetailPage.pickupLocation')}: {product.address_details}</div>
+                    <div className="text-sm text-gray-600 mb-2 flex items-center gap-2">
+                      <FaMapMarkerAlt className="h-4 w-4 text-gray-500" />
+                      {t('productDetailPage.pickupLocation')}: <span className="font-semibold text-gray-700">{product.address_details}</span>
+                    </div>
                   )}
+                  
+                  {/* Description */}
                   {product.description && (
-                    <div className="text-sm text-gray-700 mt-3 mb-2">{product.description}</div>
+                    <div className="text-sm text-gray-700 mt-3 mb-2 p-3 bg-gray-50 rounded-lg border-l-4 border-blue-200">
+                      <span className="font-semibold text-gray-800">{t('productDetailPage.productDescription')}:</span>
+                      <p className="mt-1">{product.description}</p>
+                    </div>
                   )}
+                  
+                  {/* Specifications */}
                   {product.specifications && Object.keys(product.specifications).length > 0 && (
-                    <div className="text-xs text-gray-500 mt-2 mb-2">{t('productDetailPage.specificationsLabel')}: {Object.entries(product.specifications).map(([k,v]) => `${k}: ${v}`).join(', ')}</div>
+                    <div className="text-xs text-gray-500 mt-2 mb-2 p-2 bg-gray-50 rounded-lg">
+                      <span className="font-semibold text-gray-700">{t('productDetailPage.specificationsLabel')}:</span>
+                      <div className="mt-1 space-y-1">
+                        {Object.entries(product.specifications).map(([key, value], index) => (
+                          <div key={index} className="flex justify-between">
+                            <span className="text-gray-600">{key}:</span>
+                            <span className="font-medium text-gray-700">{String(value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                   {product.owner && (
                     <div className="flex items-center gap-2 mt-3 p-3 bg-gray-50 rounded-xl">
@@ -452,15 +591,58 @@ export const PaymentPage: React.FC = () => {
               <div className="mb-4 flex flex-wrap gap-2 items-center">
                 <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">{t('paymentPage.rentalIdLabel', { id: rental.rental_uid ? rental.rental_uid.substring(0,8) : '-' })}</span>
                 <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">{t('paymentPage.forProduct', { title: rental.product?.title || '-' })}</span>
-                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">{t('paymentPage.totalAmountDueLabel')}: ฿{Number.isFinite(rental.total_amount_due) ? rental.total_amount_due.toLocaleString() : '-'}</span>
+                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">{t('paymentPage.totalAmountDueLabel')}: {formatCurrency(Number.isFinite(rental.total_amount_due) ? rental.total_amount_due : 0)}</span>
               </div>
               
-              <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <FaCalendarAlt className="h-4 w-4 text-blue-600" />
-                  <span className="font-semibold text-blue-800">{t('paymentPage.rentalPeriodLabel')}:</span>
+              {/* Rental Details Summary */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Rental Period */}
+                  <div className="flex items-center gap-2">
+                    <FaCalendarAlt className="h-4 w-4 text-blue-600" />
+                    <div>
+                      <span className="font-semibold text-blue-800 text-sm">{t('paymentPage.rentalPeriodLabel')}:</span>
+                      <p className="text-blue-700 text-sm">{rental.start_date} - {rental.end_date}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Pickup Method */}
+                  <div className="flex items-center gap-2">
+                    {rental.pickup_method === 'delivery' ? (
+                      <FaTruck className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <FaHandshake className="h-4 w-4 text-blue-600" />
+                    )}
+                    <div>
+                      <span className="font-semibold text-gray-800 text-sm">วิธีรับสินค้า:</span>
+                      <p className="text-gray-700 text-sm">
+                        {rental.pickup_method === 'delivery' ? 'จัดส่งถึงที่อยู่' : 'รับสินค้าเองที่ร้าน'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Rental Status */}
+                  <div className="flex items-center gap-2">
+                    <FaClock className="h-4 w-4 text-orange-600" />
+                    <div>
+                      <span className="font-semibold text-gray-800 text-sm">สถานะการเช่า:</span>
+                      <p className="text-gray-700 text-sm">
+                        {rental.rental_status ? rental.rental_status.replace('_', ' ').toUpperCase() : '-'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Payment Status */}
+                  <div className="flex items-center gap-2">
+                    <FaCreditCard className="h-4 w-4 text-purple-600" />
+                    <div>
+                      <span className="font-semibold text-gray-800 text-sm">สถานะการชำระเงิน:</span>
+                      <p className="text-gray-700 text-sm">
+                        {rental.payment_status ? rental.payment_status.replace('_', ' ').toUpperCase() : '-'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-blue-700">{rental.start_date} - {rental.end_date}</span>
               </div>
               
               {/* Cost Breakdown Section */}
@@ -475,73 +657,123 @@ export const PaymentPage: React.FC = () => {
                   {t('paymentPage.costBreakdownTitle', 'Cost Breakdown')}
                 </h3>
                 <div className="space-y-3">
-                  {/* Subtotal */}
+                  {/* Rental Fee (Subtotal) */}
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-gray-600">{t('paymentPage.subtotalLabel', 'Rental Fee')}:</span>
-                    <span className="font-semibold">฿{(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}</span>
+                    <span className="text-gray-600 flex items-center gap-2">
+                      <FaCalendarAlt className="h-4 w-4 text-blue-500" />
+                      {t('paymentPage.subtotalLabel', 'Rental Fee')}:
+                    </span>
+                    <span className="font-semibold text-blue-600">{formatCurrency(rental.calculated_subtotal_rental_fee || 0)}</span>
                   </div>
                   
                   {/* Security Deposit */}
                   {rental.security_deposit_at_booking && rental.security_deposit_at_booking > 0 && (
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
                       <span className="text-gray-600 flex items-center gap-2">
-                        <FaShieldAlt className="h-4 w-4 text-gray-500" />
+                        <FaShieldAlt className="h-4 w-4 text-yellow-500" />
                         {t('paymentPage.securityDepositLabel', 'Security Deposit')}:
                       </span>
-                      <span className="font-semibold">฿{rental.security_deposit_at_booking.toLocaleString()}</span>
+                      <span className="font-semibold text-yellow-600">{formatCurrency(rental.security_deposit_at_booking)}</span>
                     </div>
                   )}
                   
                   {/* Delivery Fee */}
                   {rental.delivery_fee && rental.delivery_fee > 0 && (
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                      <span className="text-gray-600">{t('paymentPage.deliveryFeeLabel', 'Delivery Fee')}:</span>
-                      <span className="font-semibold">฿{rental.delivery_fee.toLocaleString()}</span>
+                      <span className="text-gray-600 flex items-center gap-2">
+                        <FaTruck className="h-4 w-4 text-green-500" />
+                        {t('paymentPage.deliveryFeeLabel', 'Delivery Fee')}:
+                      </span>
+                      <span className="font-semibold text-green-600">{formatCurrency(rental.delivery_fee)}</span>
                     </div>
                   )}
                   
                   {/* Platform Fee */}
                   {rental.platform_fee_renter && rental.platform_fee_renter > 0 && (
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                      <span className="text-gray-600">{t('paymentPage.platformFeeLabel', 'Platform Fee')}:</span>
-                      <span className="font-semibold">฿{rental.platform_fee_renter.toLocaleString()}</span>
+                      <span className="text-gray-600 flex items-center gap-2">
+                        <FaCreditCard className="h-4 w-4 text-purple-500" />
+                        {t('paymentPage.platformFeeLabel', 'Platform Fee')}:
+                      </span>
+                      <span className="font-semibold text-purple-600">{formatCurrency(rental.platform_fee_renter)}</span>
                     </div>
                   )}
                   
                   {/* Late Fee (if applicable) */}
                   {rental.late_fee_calculated && rental.late_fee_calculated > 0 && (
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                      <span className="text-gray-600">{t('paymentPage.lateFeeLabel', 'Late Fee')}:</span>
-                      <span className="font-semibold text-red-600">฿{rental.late_fee_calculated.toLocaleString()}</span>
+                      <span className="text-gray-600 flex items-center gap-2">
+                        <FaExclamationTriangle className="h-4 w-4 text-red-500" />
+                        {t('paymentPage.lateFeeLabel', 'Late Fee')}:
+                      </span>
+                      <span className="font-semibold text-red-600">{formatCurrency(rental.late_fee_calculated)}</span>
                     </div>
                   )}
                   
+                  {/* Rental Period Information */}
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FaClock className="h-4 w-4 text-blue-600" />
+                      <span className="font-semibold text-blue-800 text-sm">ข้อมูลระยะเวลาการเช่า</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      <div className="flex items-center gap-1">
+                        <span className="text-blue-700">ระยะเวลาขั้นต่ำ:</span>
+                        <span className="font-semibold text-blue-800">
+                          {product?.min_rental_duration_days || 1} วัน
+                        </span>
+                      </div>
+                      {product?.max_rental_duration_days && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-blue-700">ระยะเวลาสูงสุด:</span>
+                          <span className="font-semibold text-blue-800">
+                            {product.max_rental_duration_days} วัน
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
                   {/* Total Amount Due */}
-                  <div className="flex justify-between items-center py-3 bg-blue-100 rounded-lg px-3">
-                    <span className="text-blue-800 font-semibold">{t('paymentPage.totalAmountDueLabel')}:</span>
-                    <span className="font-bold text-lg text-blue-800">฿{(rental.total_amount_due || 0).toLocaleString()}</span>
+                  <div className="flex justify-between items-center py-3 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg px-3 border border-blue-200">
+                    <span className="text-blue-800 font-semibold text-lg">{t('paymentPage.totalAmountDueLabel')}:</span>
+                    <span className="font-bold text-2xl text-blue-800">{formatCurrency(rental.total_amount_due || 0)}</span>
                   </div>
                   
                   {/* Final Amount Paid (if different from total) */}
                   {rental.final_amount_paid && rental.final_amount_paid !== rental.total_amount_due && (
-                    <div className="flex justify-between items-center py-2 bg-green-100 rounded-lg px-3">
+                    <div className="flex justify-between items-center py-2 bg-green-100 rounded-lg px-3 border border-green-200">
                       <span className="text-green-800 font-semibold">{t('paymentPage.finalAmountPaidLabel', 'Final Amount Paid')}:</span>
-                      <span className="font-bold text-lg text-green-800">฿{rental.final_amount_paid.toLocaleString()}</span>
+                      <span className="font-bold text-lg text-green-800">{formatCurrency(rental.final_amount_paid)}</span>
                     </div>
                   )}
                   
                   {/* Security Deposit Refund (if applicable) */}
-                  {rental.security_deposit_refund_amount !== undefined && rental.security_deposit_refund_amount !== null && (
+                  {rental.security_deposit_refund_amount !== undefined && rental.security_deposit_refund_amount !== null && rental.security_deposit_refund_amount > 0 && (
                     <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-yellow-800 font-semibold">{t('paymentPage.securityDepositRefundLabel', 'Security Deposit Refund')}:</span>
-                        <span className="font-bold text-yellow-800">฿{rental.security_deposit_refund_amount.toLocaleString()}</span>
+                        <span className="font-bold text-yellow-800">{formatCurrency(rental.security_deposit_refund_amount)}</span>
                       </div>
                       <p className="text-sm text-yellow-700">
                         {t('paymentPage.securityDepositRefundNote', 'Contact the owner via chat to arrange the refund')}
                       </p>
                     </div>
                   )}
+                  
+                  {/* Important Note */}
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FaInfoCircle className="h-5 w-5 text-yellow-600" />
+                      <h4 className="font-semibold text-yellow-800">หมายเหตุสำคัญ</h4>
+                    </div>
+                    <div className="text-sm text-yellow-700 space-y-1">
+                      <p>• ค่าธรรมเนียมที่แสดงในหน้านี้เป็นค่าจริงที่คำนวณจาก backend</p>
+                      <p>• ระบบปัจจุบันตั้งค่าให้ไม่มีค่าธรรมเนียมแพลตฟอร์มและค่าส่ง</p>
+                      <p>• ยอดรวมที่ต้องชำระ: ค่าเช่า + ค่ามัดจำ (ไม่มีค่าธรรมเนียมเพิ่มเติม)</p>
+                      <p>• หากมีข้อสงสัยเกี่ยวกับค่าใช้จ่าย กรุณาติดต่อเจ้าของสินค้าหรือผู้ดูแลระบบ</p>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
               
@@ -579,16 +811,30 @@ export const PaymentPage: React.FC = () => {
                   </div>
                   <p className="text-yellow-700 font-semibold mb-2">{t('paymentPage.pendingVerificationMessage')}</p>
                   <p className="text-sm text-gray-600 mb-6">{t('paymentPage.pendingVerificationNotify')}</p>
-                  <Link to={ROUTE_PATHS.MY_RENTALS_RENTER}>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl font-semibold hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                    >
-                      <FaHistory className="h-4 w-4" />
-                      {t('paymentPage.goToPaymentHistory')}
-                    </motion.button>
-                  </Link>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Link to={ROUTE_PATHS.MY_RENTALS_RENTER}>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl font-semibold hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                      >
+                        <FaHistory className="h-4 w-4" />
+                        {t('paymentPage.goToPaymentHistory')}
+                      </motion.button>
+                    </Link>
+                    
+                    <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id))}>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                      >
+                        <FaEye className="h-4 w-4" />
+                        {t('paymentPage.viewRentalDetailBtn', 'View Rental Details')}
+                      </motion.button>
+                    </Link>
+                  </div>
                 </motion.div>
               ) : (rental.payment_status === PaymentStatus.UNPAID || rental.rental_status === RentalStatus.PENDING_PAYMENT) ? (
                 <>
@@ -740,6 +986,20 @@ export const PaymentPage: React.FC = () => {
                     <FaInfoCircle className="h-8 w-8 text-gray-600" />
                   </div>
                   <p className="text-gray-600">{t('paymentPage.currentPaymentStatus', { status: rental.payment_status ? rental.payment_status.replace('_', ' ').toUpperCase() : '-' })}</p>
+                  
+                  {/* Add View Rental Details button */}
+                  <div className="mt-6">
+                    <Link to={ROUTE_PATHS.RENTER_RENTAL_DETAIL.replace(':rentalId', String(rental.id))}>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                      >
+                        <FaEye className="h-4 w-4" />
+                        {t('paymentPage.viewRentalDetailBtn', 'View Rental Details')}
+                      </motion.button>
+                    </Link>
+                  </div>
                 </motion.div>
               )}
             </div>

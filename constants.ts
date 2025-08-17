@@ -30,7 +30,6 @@ export const ROUTE_PATHS = {
 
   // Renter specific paths
   RENTER_DASHBOARD: '/renter/dashboard', 
-  RENTAL_CHECKOUT_PAGE: '/checkout/:productId', 
   PAYMENT_PAGE: '/payment/:rentalId', 
   RENTER_RENTAL_DETAIL: '/renter/rentals/:rentalId', 
   WISHLIST: '/my/wishlist',

@@ -12,6 +12,7 @@ export const getOwnerDashboardData = async (ownerId: number): Promise<ApiRespons
         throw new Error('No authentication token found');
     }
 
+    console.log('🔍 Calling owner dashboard API for user:', ownerId);
     const response = await fetch(`${API_BASE_URL}/owners/me/dashboard`, {
         method: 'GET',
         headers: {
@@ -21,18 +22,27 @@ export const getOwnerDashboardData = async (ownerId: number): Promise<ApiRespons
         }
     });
 
+    console.log('🔍 Owner dashboard API response status:', response.status);
+
     if (response.status === 401) {
+        console.log('❌ Unauthorized - user is not an owner');
         localStorage.removeItem('authToken');
         window.location.href = '/login';
         throw new Error('Authentication failed');
     }
 
+    if (response.status === 403) {
+        console.log('❌ Forbidden - user does not have owner permissions');
+        throw new Error('User does not have owner permissions');
+    }
+
         if (!response.ok) {
+            console.log('❌ API call failed with status:', response.status);
             throw new Error('Failed to fetch dashboard data');
         }
 
         const result = await response.json();
-        console.log('Dashboard API Response:', result);
+        console.log('✅ Dashboard API Response:', result);
         
         return {
             success: true,
@@ -40,7 +50,7 @@ export const getOwnerDashboardData = async (ownerId: number): Promise<ApiRespons
             message: result.message || 'Dashboard data fetched successfully'
         };
     } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error('❌ Error fetching dashboard data:', error);
         throw error;
     }
 };

@@ -19,6 +19,12 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { addDays, isAfter, format } from 'date-fns';
 import { formatDate, formatDateLocale, getCurrentDate, addDays as addDaysTz } from '../../utils/timezoneUtils';
+import { 
+  calculateRentalSubtotal, 
+  calculateTotalAmount, 
+  formatCurrency,
+  validateRentalDuration 
+} from '../../utils/financialCalculations';
 import { Tab, Tabs } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { settingsService, EstimatedFees } from '../../services/settingsService';
@@ -382,8 +388,8 @@ export const ProductDetailPage: React.FC = () => {
     return 0;
   };
   const rentalDays = calculateRentalDays();
-  const subtotal = product && rentalDays > 0 ? (product.rental_price_per_day || 0) * rentalDays : 0;
-  const totalAmount = subtotal + (product?.security_deposit || 0) + (estimatedFees?.total_estimated_fees || 0);
+  const subtotal = calculateRentalSubtotal(product?.rental_price_per_day || 0, rentalDays);
+  const totalAmount = calculateTotalAmount(subtotal, product?.security_deposit || 0, estimatedFees);
 
   // Calculate estimated fees when rental parameters change
   useEffect(() => {
@@ -391,12 +397,29 @@ export const ProductDetailPage: React.FC = () => {
       setIsLoadingFees(true);
       setFeeError(null);
       
+      console.log('🔍 Calling calculateEstimatedFees:', {
+        subtotalRentalFee: subtotal,
+        pickupMethod,
+        productId: product.id
+      });
+      
       settingsService.calculateEstimatedFees(subtotal, pickupMethod)
         .then(fees => {
+          console.log('✅ API Response - calculateEstimatedFees:', fees);
+          
+          // Validate API response
+          if (!fees || typeof fees.total_amount_estimate !== 'number') {
+            console.error('❌ Invalid API response format:', fees);
+            setFeeError('Invalid fee calculation response from server');
+            setEstimatedFees(null);
+            return;
+          }
+          
           setEstimatedFees(fees);
+          console.log('✅ Estimated fees set successfully:', fees);
         })
         .catch(err => {
-          console.error('Error calculating fees:', err);
+          console.error('❌ Error calculating fees:', err);
           setFeeError(err.message || 'Failed to calculate fees');
           setEstimatedFees(null);
         })
@@ -404,10 +427,56 @@ export const ProductDetailPage: React.FC = () => {
           setIsLoadingFees(false);
         });
     } else {
+      console.log('🔍 Skipping fee calculation:', { subtotal, productId: product?.id });
       setEstimatedFees(null);
       setFeeError(null);
     }
   }, [subtotal, pickupMethod, product?.id]);
+
+  // Calculate the correct total amount including fees
+  const getCorrectTotalAmount = () => {
+    console.log('🔍 Debug getCorrectTotalAmount:', {
+      subtotal,
+      securityDeposit: product?.security_deposit || 0,
+      estimatedFees,
+      pickupMethod
+    });
+    
+    if (estimatedFees) {
+      // ถ้ามี estimated fees ให้ใช้ค่าจาก API
+      // ใช้ total_estimated_fees (ค่าธรรมเนียม) + subtotal (ค่าเช่า) + securityDeposit (ค่ามัดจำ)
+      const total = subtotal + (product?.security_deposit || 0) + estimatedFees.total_estimated_fees;
+      console.log('✅ Total with estimated fees:', {
+        subtotal,
+        securityDeposit: product?.security_deposit || 0,
+        totalEstimatedFees: estimatedFees.total_estimated_fees,
+        total
+      });
+      return total;
+    } else {
+      // ถ้าไม่มี estimated fees ให้ใช้ค่าปกติ
+      const total = subtotal + (product?.security_deposit || 0);
+      console.log('✅ Total without estimated fees:', {
+        subtotal,
+        securityDeposit: product?.security_deposit || 0,
+        total
+      });
+      return total;
+    }
+  };
+
+  const correctTotalAmount = getCorrectTotalAmount();
+  
+  // Debug logging
+  console.log('🔍 Debug ProductDetailPage calculations:', {
+    rentalDays,
+    productRentalPrice: product?.rental_price_per_day,
+    subtotal,
+    securityDeposit: product?.security_deposit,
+    estimatedFees,
+    correctTotalAmount,
+    pickupMethod
+  });
 
   const handleRentalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -419,11 +488,26 @@ export const ProductDetailPage: React.FC = () => {
       setFormError(t('selectDeliveryAddress'));
       return;
     }
+    
+    // Validate rental duration using utility function
+    const durationValidation = validateRentalDuration(
+      startDate, 
+      endDate, 
+      product.min_rental_duration_days || 1, 
+      product.max_rental_duration_days || undefined
+    );
+    
+    if (!durationValidation.isValid) {
+      setFormError(durationValidation.error || "Invalid rental duration.");
+      return;
+    }
+    
     // Validate start date must be in the future (at least tomorrow)
     if (new Date(startDate) < tomorrow) {
       setFormError(t('startDateMustBeFuture'));
       return;
     }
+    
     setIsSubmitting(true);
     setFormError(null);
     setFormSuccess(null);
@@ -457,7 +541,11 @@ export const ProductDetailPage: React.FC = () => {
       }
       setFormSuccess(t('rentalRequestSuccess'));
       setShowRentalModal(false);
-      navigate(ROUTE_PATHS.PAYMENT_PAGE.replace(':rentalId', String(newRental.id)));
+      
+      // แสดงข้อความ success สั้นๆ แล้วไปหน้า PaymentPage
+      setTimeout(() => {
+        navigate(ROUTE_PATHS.PAYMENT_PAGE.replace(':rentalId', String(newRental.id)));
+      }, 1500);
     } catch (err) {
       setFormError(
         (err as any)?.response?.data?.message ||
@@ -1200,6 +1288,7 @@ export const ProductDetailPage: React.FC = () => {
                   <div className="flex-1">
                     <p className="text-green-800 font-medium">สำเร็จ!</p>
                     <p className="text-green-600 text-sm">{formSuccess}</p>
+                    <p className="text-green-500 text-xs mt-1">กำลังไปหน้า PaymentPage...</p>
                   </div>
                 </motion.div>
               )}
@@ -1294,6 +1383,42 @@ export const ProductDetailPage: React.FC = () => {
                       <span className="text-red-700 text-sm">
                         {t('productDetailPage.dateValidationError', 'วันสิ้นสุดต้องหลังวันเริ่มต้นอย่างน้อย 1 วัน')}
                       </span>
+                    </motion.div>
+                  )}
+                  
+                  {/* Rental Duration Validation Message */}
+                  {startDateObj && endDateObj && isAfter(endDateObj, startDateObj) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`p-3 rounded-xl border ${
+                        rentalDays >= (product?.min_rental_duration_days || 1) && 
+                        (!product?.max_rental_duration_days || rentalDays <= product.max_rental_duration_days)
+                          ? 'bg-green-50 border-green-200'
+                          : 'bg-red-50 border-red-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {rentalDays >= (product?.min_rental_duration_days || 1) && 
+                         (!product?.max_rental_duration_days || rentalDays <= product.max_rental_duration_days) ? (
+                          <>
+                            <FaCheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-sm text-green-700">
+                              ระยะเวลาการเช่าถูกต้อง: {rentalDays} วัน
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <FaExclamationTriangle className="h-4 w-4 text-red-600" />
+                            <span className="text-sm text-red-700">
+                              {rentalDays < (product?.min_rental_duration_days || 1) 
+                                ? `ระยะเวลาการเช่าต้องอย่างน้อย ${product?.min_rental_duration_days || 1} วัน`
+                                : `ระยะเวลาการเช่าไม่เกิน ${product?.max_rental_duration_days} วัน`
+                              }
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </motion.div>
                   )}
                   
@@ -1501,13 +1626,39 @@ export const ProductDetailPage: React.FC = () => {
                   </div>
                   
                   <div className="space-y-3">
+                    {/* Rental Duration Information */}
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                      <div className="flex items-center gap-2 mb-3">
+                        <FaClock className="h-4 w-4 text-blue-600" />
+                        <h4 className="font-semibold text-blue-800">ข้อมูลระยะเวลาการเช่า</h4>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <FaCalendarAlt className="h-4 w-4 text-green-600" />
+                          <span className="text-gray-700">ระยะเวลาขั้นต่ำ:</span>
+                          <span className="font-semibold text-green-700">
+                            {product?.min_rental_duration_days || 1} วัน
+                          </span>
+                        </div>
+                        {product?.max_rental_duration_days && (
+                          <div className="flex items-center gap-2">
+                            <FaCalendarAlt className="h-4 w-4 text-orange-600" />
+                            <span className="text-gray-700">ระยะเวลาสูงสุด:</span>
+                            <span className="font-semibold text-orange-700">
+                              {product.max_rental_duration_days} วัน
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
                       <span className="text-gray-600">{t('productDetailPage.rentalDays', 'จำนวนวันที่เช่า')}</span>
                       <span className="font-semibold text-gray-900">{rentalDays > 0 ? `${rentalDays} วัน` : '-'}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
                       <span className="text-gray-600">{t('productDetailPage.rentalPrice', 'ราคารวมค่าเช่า')}</span>
-                      <span className="font-semibold text-blue-600">฿{(subtotal || 0).toLocaleString()}</span>
+                      <span className="font-semibold text-blue-600">{formatCurrency(subtotal || 0)}</span>
                     </div>
                     {product?.security_deposit && (
                       <div className="flex justify-between items-center py-2 border-b border-gray-200">
@@ -1515,7 +1666,7 @@ export const ProductDetailPage: React.FC = () => {
                           <FaShieldAlt className="h-4 w-4 text-gray-500" />
                           {t('productDetailPage.securityDeposit', 'ค่ามัดจำ')}
                         </span>
-                        <span className="font-semibold text-blue-600">฿{(product.security_deposit || 0).toLocaleString()}</span>
+                        <span className="font-semibold text-blue-600">{formatCurrency(product.security_deposit || 0)}</span>
                       </div>
                     )}
 
@@ -1546,29 +1697,145 @@ export const ProductDetailPage: React.FC = () => {
                         {estimatedFees.delivery_fee > 0 && (
                           <div className="flex justify-between items-center py-1 text-sm">
                             <span className="text-blue-700">{t('productDetailPage.estimatedDeliveryFeeLabel', 'ค่าส่งโดยประมาณ')}:</span>
-                            <span className="font-semibold text-blue-800">฿{estimatedFees.delivery_fee.toLocaleString()}</span>
+                            <span className="font-semibold text-blue-800">{formatCurrency(estimatedFees.delivery_fee)}</span>
                           </div>
                         )}
                         
                         {estimatedFees.platform_fee_renter > 0 && (
                           <div className="flex justify-between items-center py-1 text-sm">
                             <span className="text-blue-700">{t('productDetailPage.estimatedPlatformFeeLabel', 'ค่าธรรมเนียมแพลตฟอร์มโดยประมาณ')}:</span>
-                            <span className="font-semibold text-blue-800">฿{estimatedFees.platform_fee_renter.toLocaleString()}</span>
+                            <span className="font-semibold text-blue-800">{formatCurrency(estimatedFees.platform_fee_renter)}</span>
                           </div>
                         )}
                         
                         <div className="mt-2 pt-2 border-t border-blue-200">
                           <div className="flex justify-between items-center">
-                            <span className="text-blue-800 font-semibold">{t('productDetailPage.estimatedTotalLabel', 'ยอดรวมโดยประมาณ')}:</span>
-                            <span className="font-bold text-blue-800">฿{estimatedFees.total_amount_estimate.toLocaleString()}</span>
+                            <span className="text-blue-800 font-semibold">{t('productDetailPage.estimatedTotalLabel', 'ยอดรวมค่าธรรมเนียมโดยประมาณ')}:</span>
+                            <span className="font-bold text-blue-800">{formatCurrency(estimatedFees.total_amount_estimate)}</span>
                           </div>
                         </div>
                       </div>
                     )}
 
+                    {/* Cost Summary */}
+                    <div className="mt-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
+                      <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <FaCalculator className="h-4 w-4 text-gray-600" />
+                        สรุปค่าใช้จ่าย
+                      </h4>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">ค่าเช่า ({rentalDays} วัน × ฿{(product?.rental_price_per_day || 0).toLocaleString()}/วัน):</span>
+                          <span className="font-semibold text-blue-600">{formatCurrency(subtotal)}</span>
+                        </div>
+                        
+                        {product?.security_deposit && product.security_deposit > 0 && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">ค่ามัดจำ:</span>
+                            <span className="font-semibold text-yellow-600">{formatCurrency(product.security_deposit)}</span>
+                          </div>
+                        )}
+                        
+                        {estimatedFees && !isLoadingFees && (
+                          <>
+                            {estimatedFees.delivery_fee > 0 && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-600">ค่าส่งโดยประมาณ:</span>
+                                <span className="font-semibold text-green-600">{formatCurrency(estimatedFees.delivery_fee)}</span>
+                              </div>
+                            )}
+                            
+                            {estimatedFees.platform_fee_renter > 0 && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-600">ค่าธรรมเนียมแพลตฟอร์มโดยประมาณ:</span>
+                                <span className="font-semibold text-purple-600">{formatCurrency(estimatedFees.platform_fee_renter)}</span>
+                              </div>
+                            )}
+                            
+                            {estimatedFees.total_estimated_fees > 0 ? (
+                              <>
+                                <div className="flex justify-between items-center text-xs text-gray-500">
+                                  <span>รวมค่าธรรมเนียม:</span>
+                                  <span>{formatCurrency(estimatedFees.total_estimated_fees)}</span>
+                                </div>
+                                
+                                {/* Explanation of total_amount_estimate */}
+                                <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
+                                  <div className="font-semibold mb-1">หมายเหตุ:</div>
+                                  <div>• total_amount_estimate (฿{estimatedFees.total_amount_estimate.toLocaleString()}): ค่าเช่า + ค่าธรรมเนียม</div>
+                                  <div>• total_estimated_fees (฿{estimatedFees.total_estimated_fees.toLocaleString()}): ค่าธรรมเนียมเท่านั้น</div>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                                <div className="font-semibold mb-1">🎉 ไม่มีค่าธรรมเนียม!</div>
+                                <div>• ไม่มีค่าธรรมเนียมแพลตฟอร์ม</div>
+                                <div>• ไม่มีค่าส่ง (self-pickup)</div>
+                                <div>• คุณจ่ายเฉพาะค่าเช่าและค่ามัดจำเท่านั้น</div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        
+                        <div className="pt-2 border-t border-gray-200">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-800 font-semibold">ยอดรวมโดยประมาณ:</span>
+                            <span className="font-bold text-gray-800">{formatCurrency(correctTotalAmount)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Detailed Calculation */}
+                      <div className="mt-3 p-3 bg-white border border-gray-200 rounded-lg">
+                        <h5 className="font-semibold text-gray-800 mb-2 text-sm">การคำนวณ:</h5>
+                        <div className="text-xs text-gray-600 space-y-1">
+                          <div>ค่าเช่า: {rentalDays} วัน × ฿{(product?.rental_price_per_day || 0).toLocaleString()} = ฿{subtotal.toLocaleString()}</div>
+                          {product?.security_deposit && product.security_deposit > 0 && (
+                            <div>ค่ามัดจำ: ฿{(product.security_deposit).toLocaleString()}</div>
+                          )}
+                          {estimatedFees && !isLoadingFees && (
+                            estimatedFees.total_estimated_fees > 0 ? (
+                              <div>ค่าธรรมเนียมโดยประมาณ: ฿{(estimatedFees.total_estimated_fees).toLocaleString()}</div>
+                            ) : (
+                              <div className="text-green-600 font-semibold">🎉 ไม่มีค่าธรรมเนียม!</div>
+                            )
+                          )}
+                          <div className="border-t border-gray-200 pt-1 font-semibold">
+                            ยอดรวม: ฿{subtotal.toLocaleString()} + ฿{(product?.security_deposit || 0).toLocaleString()} + ฿{(estimatedFees?.total_estimated_fees || 0).toLocaleString()} = ฿{correctTotalAmount.toLocaleString()}
+                          </div>
+                        </div>
+                        
+                        {/* API Response Info */}
+                        {estimatedFees && !isLoadingFees && (
+                          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                            <div className="font-semibold text-blue-800 mb-1">ข้อมูลจาก API:</div>
+                            <div className="text-blue-700 space-y-1">
+                              <div>• subtotal_rental_fee: ฿{estimatedFees.subtotal_rental_fee.toLocaleString()}</div>
+                              <div>• platform_fee_renter: ฿{(estimatedFees.platform_fee_renter || 0).toLocaleString()}</div>
+                              <div>• platform_fee_owner: ฿{(estimatedFees.platform_fee_owner || 0).toLocaleString()}</div>
+                              <div>• delivery_fee: ฿{(estimatedFees.delivery_fee || 0).toLocaleString()}</div>
+                              <div>• total_estimated_fees: ฿{(estimatedFees.total_estimated_fees || 0).toLocaleString()}</div>
+                              <div>• total_amount_estimate: ฿{(estimatedFees.total_amount_estimate || 0).toLocaleString()}</div>
+                              <div className="text-blue-600 font-semibold">
+                                total_amount_estimate = subtotal_rental_fee + total_estimated_fees
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Calculation Note */}
+                      <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-xs text-blue-700 text-center">
+                          <strong>หมายเหตุ:</strong> ยอดรวม = ค่าเช่า + ค่ามัดจำ + ค่าธรรมเนียมโดยประมาณ
+                        </p>
+                      </div>
+                    </div>
+
                     <div className="flex justify-between items-center py-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl px-4">
                       <span className="text-lg font-bold text-gray-900">{t('productDetailPage.totalAmount', 'ยอดที่ต้องชำระ')}</span>
-                      <span className="text-2xl font-bold text-green-600">฿{(totalAmount || 0).toLocaleString()}</span>
+                      <span className="text-2xl font-bold text-green-600">{formatCurrency(correctTotalAmount)}</span>
                     </div>
 
                     {/* Important Note */}
@@ -1577,9 +1844,22 @@ export const ProductDetailPage: React.FC = () => {
                         <FaInfoCircle className="h-4 w-4 text-yellow-600" />
                         <span className="font-semibold text-yellow-800">{t('productDetailPage.importantNoteTitle', 'หมายเหตุสำคัญ')}</span>
                       </div>
-                      <p className="text-sm text-yellow-700">
-                        {t('productDetailPage.feeCalculationNote', 'ค่าธรรมเนียมจะถูกคำนวณและยืนยันเมื่อได้รับการอนุมัติการเช่า')}
-                      </p>
+                      <div className="space-y-2 text-sm text-yellow-700">
+                        <p>
+                          <strong>ค่าธรรมเนียม:</strong> ค่าธรรมเนียมจะถูกคำนวณและยืนยันเมื่อได้รับการอนุมัติการเช่า
+                        </p>
+                        <p>
+                          <strong>ความแตกต่าง:</strong> ราคาที่แสดงในหน้านี้เป็นราคาโดยประมาณ ส่วนราคาจริงจะแสดงในหน้า PaymentPage หลังจากได้รับการอนุมัติ
+                        </p>
+                        <p>
+                          <strong>การคำนวณ:</strong> 
+                          <br />• <strong>ProductDetailPage:</strong> ค่าเช่า + ค่ามัดจำ + ค่าธรรมเนียมโดยประมาณ
+                          <br />• <strong>PaymentPage:</strong> ค่าจริงที่คำนวณจาก backend หลังจากได้รับการอนุมัติ
+                        </p>
+                        <p>
+                          <strong>สาเหตุของความแตกต่าง:</strong> ราคาจริงอาจแตกต่างจากราคาโดยประมาณเนื่องจากค่าธรรมเนียมที่แท้จริง ค่าจัดส่ง และค่าอื่นๆ ที่จะถูกคำนวณเมื่อได้รับการอนุมัติ
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -1596,11 +1876,33 @@ export const ProductDetailPage: React.FC = () => {
                     fullWidth 
                     variant="primary" 
                     size="lg" 
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                    disabled={
+                      rentalDays <= 0 || 
+                      isSubmitting || 
+                      rentalDays < (product?.min_rental_duration_days || 1) ||
+                      (product?.max_rental_duration_days ? rentalDays > product.max_rental_duration_days : false)
+                    }
+                    className={`font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 ${
+                      rentalDays <= 0 || 
+                      isSubmitting || 
+                      rentalDays < (product?.min_rental_duration_days || 1) ||
+                      (product?.max_rental_duration_days ? rentalDays > product.max_rental_duration_days : false)
+                        ? 'bg-gray-400 cursor-not-allowed hover:scale-100'
+                        : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <FaShoppingCart className="w-6 h-6" />
-                      <span className="text-lg">{t('productDetailPage.submitRentalRequestButton')}</span>
+                      <span className="text-lg">
+                        {rentalDays <= 0 
+                          ? 'เลือกวันที่เช่า'
+                          : rentalDays < (product?.min_rental_duration_days || 1)
+                          ? `ระยะเวลาต้องอย่างน้อย ${product?.min_rental_duration_days || 1} วัน`
+                          : (product?.max_rental_duration_days ? rentalDays > product.max_rental_duration_days : false)
+                          ? `ระยะเวลาไม่เกิน ${product?.max_rental_duration_days} วัน`
+                          : t('productDetailPage.submitRentalRequestButton')
+                        }
+                      </span>
                     </div>
                   </Button>
                 </motion.div>
