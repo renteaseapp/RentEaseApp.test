@@ -82,6 +82,7 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const limit = 5;
+  const { t } = useTranslation('productDetailPage');
 
   useEffect(() => {
     setLoading(true);
@@ -94,12 +95,12 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
         setMeta(res.meta);
       })
       .catch(() => {
-        setError('เกิดข้อผิดพลาดในการโหลดรีวิวสินค้าสินค้า');
+        setError(t('reviews.errorLoadingReviews'));
       })
       .finally(() => setLoading(false));
-  }, [productId, page]);
+  }, [productId, page, t]);
 
-  if (loading) return <div className="py-8 text-center">Loading reviews...</div>;
+  if (loading) return <div className="py-8 text-center">{t('reviews.loadingReviews')}</div>;
   if (error) return <div className="text-red-500 text-center py-8">{error}</div>;
 
   return (
@@ -113,7 +114,7 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
         <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
           <FaThumbsUp className="w-6 h-6 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800">รีวิวสินค้า</h2>
+        <h2 className="text-2xl font-bold text-gray-800">{t('reviews.title')}</h2>
       </div>
 
       {reviews.length === 0 && (
@@ -123,7 +124,7 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
           animate={{ opacity: 1 }}
         >
           <FaThumbsUp className="mx-auto text-6xl text-gray-300 mb-4" />
-          <p className="text-gray-500 text-lg">ยังไม่มีรีวิว</p>
+          <p className="text-gray-500 text-lg">{t('reviews.noReviews')}</p>
         </motion.div>
       )}
 
@@ -141,7 +142,7 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-blue-700 flex items-center gap-1">
                   <FaStar className="w-4 h-4" />
-                  คะแนนสินค้า:
+                  {t('reviews.productRating')}
                 </span>
                 {[...Array(5)].map((_, i) => (
                   <StarIcon key={i} filled={i < review.rating_product} />
@@ -150,7 +151,7 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-green-700 flex items-center gap-1">
                   <FaUser className="w-4 h-4" />
-                  คะแนนเจ้าของ:
+                  {t('reviews.ownerRating')}
                 </span>
                 {[...Array(5)].map((_, i) => (
                   <StarIcon key={i} filled={i < review.rating_owner} />
@@ -169,7 +170,7 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
                 <div className="flex items-center gap-2">
                   <FaUser className="w-4 h-4" />
                   <span>
-                    ผู้รีวิว: {review.rentals.renter?.first_name
+                    {t('reviews.reviewer')} {review.rentals.renter?.first_name
                       ? review.rentals.renter.first_name
                       : review.rentals.renter_id
                     }
@@ -596,7 +597,7 @@ export const ProductDetailPage: React.FC = () => {
       const detailedProfile = await getPublicUserProfile(product.owner.id);
       setOwnerDetailedProfile(detailedProfile);
     } catch (err: any) {
-      setOwnerProfileError(err?.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูลเจ้าของสินค้า');
+      setOwnerProfileError(err?.message || t('ownerProfile.errorLoadingProfile'));
       console.error('Error fetching owner profile:', err);
     } finally {
       setLoadingOwnerProfile(false);
@@ -641,7 +642,7 @@ export const ProductDetailPage: React.FC = () => {
           });
         });
     } catch (err: any) {
-      setAddAddressError(err?.response?.data?.message || 'เกิดข้อผิดพลาดในการเพิ่มที่อยู่');
+      setAddAddressError(err?.response?.data?.message || t('addressForm.errorAddingAddress'));
     } finally {
       setAddingAddress(false);
     }
@@ -660,7 +661,7 @@ export const ProductDetailPage: React.FC = () => {
         setInWishlist(true);
       }
     } catch (err: any) {
-      setWishlistError(err?.response?.data?.message || err?.message || 'เกิดข้อผิดพลาด');
+      setWishlistError(err?.response?.data?.message || err?.message || t('errors.wishlist'));
     } finally {
       setWishlistLoading(false);
     }
@@ -1228,7 +1229,7 @@ export const ProductDetailPage: React.FC = () => {
               <button 
                 className="absolute top-4 right-4 text-white/80 hover:text-white text-2xl transition-colors duration-200 z-10" 
                 onClick={() => setShowRentalModal(false)} 
-                aria-label="ปิด"
+                aria-label={t('buttons.close')}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1262,7 +1263,7 @@ export const ProductDetailPage: React.FC = () => {
                     <FaExclamationTriangle className="w-5 h-5 text-red-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-red-800 font-medium">เกิดข้อผิดพลาด</p>
+                    <p className="text-red-800 font-medium">{t('rentalForm.errorTitle')}</p>
                     <p className="text-red-600 text-sm">{formError}</p>
                   </div>
                   <button 
@@ -1286,9 +1287,9 @@ export const ProductDetailPage: React.FC = () => {
                     <FaCheckCircle className="w-5 h-5 text-green-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-green-800 font-medium">สำเร็จ!</p>
+                    <p className="text-green-800 font-medium">{t('rentalForm.successTitle')}</p>
                     <p className="text-green-600 text-sm">{formSuccess}</p>
-                    <p className="text-green-500 text-xs mt-1">กำลังไปหน้า PaymentPage...</p>
+                    <p className="text-green-500 text-xs mt-1">{t('rentalForm.redirectingToPayment')}</p>
                   </div>
                 </motion.div>
               )}
@@ -1327,7 +1328,7 @@ export const ProductDetailPage: React.FC = () => {
                           selected={startDateObj}
                           onChange={date => setStartDateObj(date)}
                           minDate={addDaysTz(getCurrentDate(), 1).toDate()}
-                          placeholderText="เลือกวันที่"
+                          placeholderText={t('datePicker.selectDate')}
                           dateFormat="dd/MM/yyyy"
                           className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                           showPopperArrow
@@ -1335,7 +1336,7 @@ export const ProductDetailPage: React.FC = () => {
                           showYearDropdown
                           dropdownMode="select"
                           isClearable
-                          todayButton="วันนี้"
+                          todayButton={t('datePicker.today')}
                           calendarStartDay={1}
                         />
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -1355,7 +1356,7 @@ export const ProductDetailPage: React.FC = () => {
                           onChange={date => setEndDateObj(date)}
                           minDate={startDateObj ? addDaysTz(startDateObj, 1).toDate() : addDaysTz(getCurrentDate(), 2).toDate()}
                           disabled={!startDateObj}
-                          placeholderText="เลือกวันที่"
+                          placeholderText={t('datePicker.selectDate')}
                           dateFormat="dd/MM/yyyy"
                           className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white disabled:bg-gray-50 disabled:cursor-not-allowed"
                           showPopperArrow
@@ -1363,7 +1364,7 @@ export const ProductDetailPage: React.FC = () => {
                           showYearDropdown
                           dropdownMode="select"
                           isClearable
-                          todayButton="วันนี้"
+                          todayButton={t('datePicker.today')}
                           calendarStartDay={1}
                         />
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -1381,7 +1382,7 @@ export const ProductDetailPage: React.FC = () => {
                     >
                       <FaExclamationTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
                       <span className="text-red-700 text-sm">
-                        {t('productDetailPage.dateValidationError', 'วันสิ้นสุดต้องหลังวันเริ่มต้นอย่างน้อย 1 วัน')}
+                        {t('rentalForm.dateValidationError')}
                       </span>
                     </motion.div>
                   )}
@@ -1404,7 +1405,7 @@ export const ProductDetailPage: React.FC = () => {
                           <>
                             <FaCheckCircle className="h-4 w-4 text-green-600" />
                             <span className="text-sm text-green-700">
-                              ระยะเวลาการเช่าถูกต้อง: {rentalDays} วัน
+                              {t('rentalForm.rentalDurationValid', { days: rentalDays })}
                             </span>
                           </>
                         ) : (
@@ -1412,8 +1413,8 @@ export const ProductDetailPage: React.FC = () => {
                             <FaExclamationTriangle className="h-4 w-4 text-red-600" />
                             <span className="text-sm text-red-700">
                               {rentalDays < (product?.min_rental_duration_days || 1) 
-                                ? `ระยะเวลาการเช่าต้องอย่างน้อย ${product?.min_rental_duration_days || 1} วัน`
-                                : `ระยะเวลาการเช่าไม่เกิน ${product?.max_rental_duration_days} วัน`
+                                ? t('rentalForm.rentalDurationTooShort', { minDays: product?.min_rental_duration_days || 1 })
+                                : t('rentalForm.rentalDurationTooLong', { maxDays: product?.max_rental_duration_days })
                               }
                             </span>
                           </>
@@ -1425,7 +1426,7 @@ export const ProductDetailPage: React.FC = () => {
                   <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
                     <p className="text-blue-700 text-sm flex items-center gap-2">
                       <FaInfoCircle className="w-4 h-4 flex-shrink-0" />
-                      {t('productDetailPage.datePickerNote', 'เลือกได้เฉพาะวันถัดไปจากวันนี้ขึ้นไป')}
+                      {t('productDetailPage.datePickerNote')}
                     </p>
                   </div>
                 </motion.div>
@@ -1447,7 +1448,7 @@ export const ProductDetailPage: React.FC = () => {
                         {t('productDetailPage.step2Title', 'วิธีรับสินค้า')}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">
-                        เลือกวิธีการรับสินค้าที่สะดวกสำหรับคุณ
+                        {t('rentalForm.pickupMethodDescription')}
                       </p>
                     </div>
                   </div>
@@ -1471,8 +1472,8 @@ export const ProductDetailPage: React.FC = () => {
                           <FaHandshake className="w-5 h-5" />
                         </div>
                         <div className="text-left">
-                          <p className="font-semibold text-gray-900">{t('productDetailPage.selfPickupOption')}</p>
-                          <p className="text-sm text-gray-600">รับสินค้าเองที่ร้าน</p>
+                          <p className="font-semibold text-gray-900">{t('rentalForm.selfPickupOption')}</p>
+                          <p className="text-sm text-gray-600">{t('rentalForm.selfPickupDescription')}</p>
                         </div>
                       </div>
                     </button>
@@ -1495,8 +1496,8 @@ export const ProductDetailPage: React.FC = () => {
                           <FaTruck className="w-5 h-5" />
                         </div>
                         <div className="text-left">
-                          <p className="font-semibold text-gray-900">{t('productDetailPage.deliveryOption')}</p>
-                          <p className="text-sm text-gray-600">จัดส่งถึงที่อยู่</p>
+                          <p className="font-semibold text-gray-900">{t('rentalForm.deliveryOption')}</p>
+                          <p className="text-sm text-gray-600">{t('rentalForm.deliveryDescription')}</p>
                         </div>
                       </div>
                     </button>
@@ -1521,7 +1522,7 @@ export const ProductDetailPage: React.FC = () => {
                           {t('productDetailPage.step3Title', 'ที่อยู่สำหรับจัดส่ง')}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          เลือกที่อยู่ที่ต้องการให้จัดส่งสินค้า
+                          {t('rentalForm.deliveryAddressDescription')}
                         </p>
                       </div>
                     </div>
@@ -1595,7 +1596,7 @@ export const ProductDetailPage: React.FC = () => {
                         {t('productDetailPage.step4Title', 'หมายเหตุเพิ่มเติม')}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">
-                        ระบุรายละเอียดเพิ่มเติมที่ต้องการแจ้งเจ้าของสินค้า
+                        {t('rentalForm.additionalNotesDescription')}
                       </p>
                     </div>
                   </div>
@@ -1630,12 +1631,12 @@ export const ProductDetailPage: React.FC = () => {
                     <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
                       <div className="flex items-center gap-2 mb-3">
                         <FaClock className="h-4 w-4 text-blue-600" />
-                        <h4 className="font-semibold text-blue-800">ข้อมูลระยะเวลาการเช่า</h4>
+                        <h4 className="font-semibold text-blue-800">{t('rentalForm.rentalDurationInfo')}</h4>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div className="flex items-center gap-2">
                           <FaCalendarAlt className="h-4 w-4 text-green-600" />
-                          <span className="text-gray-700">ระยะเวลาขั้นต่ำ:</span>
+                          <span className="text-gray-700">{t('rentalForm.minDuration')}</span>
                           <span className="font-semibold text-green-700">
                             {product?.min_rental_duration_days || 1} วัน
                           </span>
@@ -1643,7 +1644,7 @@ export const ProductDetailPage: React.FC = () => {
                         {product?.max_rental_duration_days && (
                           <div className="flex items-center gap-2">
                             <FaCalendarAlt className="h-4 w-4 text-orange-600" />
-                            <span className="text-gray-700">ระยะเวลาสูงสุด:</span>
+                            <span className="text-gray-700">{t('rentalForm.maxDuration')}</span>
                             <span className="font-semibold text-orange-700">
                               {product.max_rental_duration_days} วัน
                             </span>
@@ -1654,7 +1655,7 @@ export const ProductDetailPage: React.FC = () => {
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
                       <span className="text-gray-600">{t('productDetailPage.rentalDays', 'จำนวนวันที่เช่า')}</span>
-                      <span className="font-semibold text-gray-900">{rentalDays > 0 ? `${rentalDays} วัน` : '-'}</span>
+                      <span className="font-semibold text-gray-900">{rentalDays > 0 ? `${rentalDays} ${t('days')}` : '-'}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
                       <span className="text-gray-600">{t('productDetailPage.rentalPrice', 'ราคารวมค่าเช่า')}</span>
@@ -1721,18 +1722,18 @@ export const ProductDetailPage: React.FC = () => {
                     <div className="mt-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
                       <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <FaCalculator className="h-4 w-4 text-gray-600" />
-                        สรุปค่าใช้จ่าย
+                        {t('rentalForm.costSummary')}
                       </h4>
                       
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">ค่าเช่า ({rentalDays} วัน × ฿{(product?.rental_price_per_day || 0).toLocaleString()}/วัน):</span>
+                          <span className="text-gray-600">{t('rentalForm.rentalFeeCalculation', { days: rentalDays, price: (product?.rental_price_per_day || 0).toLocaleString(), total: subtotal.toLocaleString() })}</span>
                           <span className="font-semibold text-blue-600">{formatCurrency(subtotal)}</span>
                         </div>
                         
                         {product?.security_deposit && product.security_deposit > 0 && (
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-600">ค่ามัดจำ:</span>
+                            <span className="text-gray-600">{t('rentalForm.securityDepositLabel')}</span>
                             <span className="font-semibold text-yellow-600">{formatCurrency(product.security_deposit)}</span>
                           </div>
                         )}
@@ -1741,14 +1742,14 @@ export const ProductDetailPage: React.FC = () => {
                           <>
                             {estimatedFees.delivery_fee > 0 && (
                               <div className="flex justify-between items-center">
-                                <span className="text-gray-600">ค่าส่งโดยประมาณ:</span>
+                                <span className="text-gray-600">{t('rentalForm.deliveryFeeEstimate')}</span>
                                 <span className="font-semibold text-green-600">{formatCurrency(estimatedFees.delivery_fee)}</span>
                               </div>
                             )}
                             
                             {estimatedFees.platform_fee_renter > 0 && (
                               <div className="flex justify-between items-center">
-                                <span className="text-gray-600">ค่าธรรมเนียมแพลตฟอร์มโดยประมาณ:</span>
+                                <span className="text-gray-600">{t('rentalForm.platformFeeEstimate')}</span>
                                 <span className="font-semibold text-purple-600">{formatCurrency(estimatedFees.platform_fee_renter)}</span>
                               </div>
                             )}
@@ -1756,23 +1757,23 @@ export const ProductDetailPage: React.FC = () => {
                             {estimatedFees.total_estimated_fees > 0 ? (
                               <>
                                 <div className="flex justify-between items-center text-xs text-gray-500">
-                                  <span>รวมค่าธรรมเนียม:</span>
+                                  <span>{t('rentalForm.totalFees')}</span>
                                   <span>{formatCurrency(estimatedFees.total_estimated_fees)}</span>
                                 </div>
                                 
                                 {/* Explanation of total_amount_estimate */}
                                 <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
-                                  <div className="font-semibold mb-1">หมายเหตุ:</div>
-                                  <div>• total_amount_estimate (฿{estimatedFees.total_amount_estimate.toLocaleString()}): ค่าเช่า + ค่าธรรมเนียม</div>
-                                  <div>• total_estimated_fees (฿{estimatedFees.total_estimated_fees.toLocaleString()}): ค่าธรรมเนียมเท่านั้น</div>
+                                  <div className="font-semibold mb-1">{t('rentalForm.calculation')}</div>
+                                  <div>• total_amount_estimate (฿{estimatedFees.total_amount_estimate.toLocaleString()}): {t('rentalForm.rentalCalculation', { days: 1, price: 1, total: 1 })} + {t('rentalForm.estimatedFeesCalculation', { amount: 1 })}</div>
+                                  <div>{t('rentalForm.estimatedFeesCalculation', { amount: (estimatedFees.total_estimated_fees).toLocaleString() })}</div>
                                 </div>
                               </>
                             ) : (
                               <div className="text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
-                                <div className="font-semibold mb-1">🎉 ไม่มีค่าธรรมเนียม!</div>
-                                <div>• ไม่มีค่าธรรมเนียมแพลตฟอร์ม</div>
-                                <div>• ไม่มีค่าส่ง (self-pickup)</div>
-                                <div>• คุณจ่ายเฉพาะค่าเช่าและค่ามัดจำเท่านั้น</div>
+                                <div className="font-semibold mb-1">{t('rentalForm.noFeesNote')}</div>
+                                <div>• {t('rentalForm.noPlatformFee')}</div>
+                                <div>• {t('rentalForm.noDeliveryFee')}</div>
+                                <div>• {t('rentalForm.payOnlyRentalAndDeposit')}</div>
                               </div>
                             )}
                           </>
@@ -1780,7 +1781,7 @@ export const ProductDetailPage: React.FC = () => {
                         
                         <div className="pt-2 border-t border-gray-200">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-800 font-semibold">ยอดรวมโดยประมาณ:</span>
+                            <span className="text-gray-800 font-semibold">{t('rentalForm.costSummary')}</span>
                             <span className="font-bold text-gray-800">{formatCurrency(correctTotalAmount)}</span>
                           </div>
                         </div>
@@ -1788,28 +1789,28 @@ export const ProductDetailPage: React.FC = () => {
                       
                       {/* Detailed Calculation */}
                       <div className="mt-3 p-3 bg-white border border-gray-200 rounded-lg">
-                        <h5 className="font-semibold text-gray-800 mb-2 text-sm">การคำนวณ:</h5>
+                        <h5 className="font-semibold text-gray-800 mb-2 text-sm">{t('rentalForm.calculation')}</h5>
                         <div className="text-xs text-gray-600 space-y-1">
-                          <div>ค่าเช่า: {rentalDays} วัน × ฿{(product?.rental_price_per_day || 0).toLocaleString()} = ฿{subtotal.toLocaleString()}</div>
+                          <div>{t('rentalForm.rentalCalculation', { days: rentalDays, price: (product?.rental_price_per_day || 0).toLocaleString(), total: subtotal.toLocaleString() })}</div>
                           {product?.security_deposit && product.security_deposit > 0 && (
-                            <div>ค่ามัดจำ: ฿{(product.security_deposit).toLocaleString()}</div>
+                            <div>{t('rentalForm.securityDepositCalculation', { amount: (product.security_deposit).toLocaleString() })}</div>
                           )}
                           {estimatedFees && !isLoadingFees && (
                             estimatedFees.total_estimated_fees > 0 ? (
-                              <div>ค่าธรรมเนียมโดยประมาณ: ฿{(estimatedFees.total_estimated_fees).toLocaleString()}</div>
+                              <div>{t('rentalForm.estimatedFeesCalculation', { amount: (estimatedFees.total_estimated_fees).toLocaleString() })}</div>
                             ) : (
-                              <div className="text-green-600 font-semibold">🎉 ไม่มีค่าธรรมเนียม!</div>
+                              <div className="text-green-600 font-semibold">{t('rentalForm.noFeesNote')}</div>
                             )
                           )}
                           <div className="border-t border-gray-200 pt-1 font-semibold">
-                            ยอดรวม: ฿{subtotal.toLocaleString()} + ฿{(product?.security_deposit || 0).toLocaleString()} + ฿{(estimatedFees?.total_estimated_fees || 0).toLocaleString()} = ฿{correctTotalAmount.toLocaleString()}
+                            {t('rentalForm.totalCalculation', { rental: subtotal.toLocaleString(), deposit: (product?.security_deposit || 0).toLocaleString(), fees: (estimatedFees?.total_estimated_fees || 0).toLocaleString(), total: correctTotalAmount.toLocaleString() })}
                           </div>
                         </div>
                         
                         {/* API Response Info */}
                         {estimatedFees && !isLoadingFees && (
                           <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
-                            <div className="font-semibold text-blue-800 mb-1">ข้อมูลจาก API:</div>
+                            <div className="font-semibold text-blue-800 mb-1">{t('rentalForm.apiResponseInfo')}</div>
                             <div className="text-blue-700 space-y-1">
                               <div>• subtotal_rental_fee: ฿{estimatedFees.subtotal_rental_fee.toLocaleString()}</div>
                               <div>• platform_fee_renter: ฿{(estimatedFees.platform_fee_renter || 0).toLocaleString()}</div>
@@ -1818,7 +1819,7 @@ export const ProductDetailPage: React.FC = () => {
                               <div>• total_estimated_fees: ฿{(estimatedFees.total_estimated_fees || 0).toLocaleString()}</div>
                               <div>• total_amount_estimate: ฿{(estimatedFees.total_amount_estimate || 0).toLocaleString()}</div>
                               <div className="text-blue-600 font-semibold">
-                                total_amount_estimate = subtotal_rental_fee + total_estimated_fees
+                                {t('rentalForm.totalAmountFormula')}
                               </div>
                             </div>
                           </div>
@@ -1828,7 +1829,7 @@ export const ProductDetailPage: React.FC = () => {
                       {/* Calculation Note */}
                       <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
                         <p className="text-xs text-blue-700 text-center">
-                          <strong>หมายเหตุ:</strong> ยอดรวม = ค่าเช่า + ค่ามัดจำ + ค่าธรรมเนียมโดยประมาณ
+                          <strong>{t('rentalForm.calculationNote')}</strong>
                         </p>
                       </div>
                     </div>
@@ -1846,18 +1847,18 @@ export const ProductDetailPage: React.FC = () => {
                       </div>
                       <div className="space-y-2 text-sm text-yellow-700">
                         <p>
-                          <strong>ค่าธรรมเนียม:</strong> ค่าธรรมเนียมจะถูกคำนวณและยืนยันเมื่อได้รับการอนุมัติการเช่า
+                          <strong>{t('rentalForm.importantNotes.fees')}</strong>
                         </p>
                         <p>
-                          <strong>ความแตกต่าง:</strong> ราคาที่แสดงในหน้านี้เป็นราคาโดยประมาณ ส่วนราคาจริงจะแสดงในหน้า PaymentPage หลังจากได้รับการอนุมัติ
+                          <strong>{t('rentalForm.importantNotes.difference')}</strong>
                         </p>
                         <p>
-                          <strong>การคำนวณ:</strong> 
-                          <br />• <strong>ProductDetailPage:</strong> ค่าเช่า + ค่ามัดจำ + ค่าธรรมเนียมโดยประมาณ
-                          <br />• <strong>PaymentPage:</strong> ค่าจริงที่คำนวณจาก backend หลังจากได้รับการอนุมัติ
+                          <strong>{t('rentalForm.importantNotes.calculation')}</strong>
+                          <br />• <strong>ProductDetailPage:</strong> {t('rentalForm.importantNotes.productDetailPage')}
+                          <br />• <strong>PaymentPage:</strong> {t('rentalForm.importantNotes.paymentPage')}
                         </p>
                         <p>
-                          <strong>สาเหตุของความแตกต่าง:</strong> ราคาจริงอาจแตกต่างจากราคาโดยประมาณเนื่องจากค่าธรรมเนียมที่แท้จริง ค่าจัดส่ง และค่าอื่นๆ ที่จะถูกคำนวณเมื่อได้รับการอนุมัติ
+                          <strong>{t('rentalForm.importantNotes.reasonForDifference')}</strong>
                         </p>
                       </div>
                     </div>
@@ -1895,11 +1896,11 @@ export const ProductDetailPage: React.FC = () => {
                       <FaShoppingCart className="w-6 h-6" />
                       <span className="text-lg">
                         {rentalDays <= 0 
-                          ? 'เลือกวันที่เช่า'
+                          ? t('datePicker.selectDate')
                           : rentalDays < (product?.min_rental_duration_days || 1)
-                          ? `ระยะเวลาต้องอย่างน้อย ${product?.min_rental_duration_days || 1} วัน`
+                          ? t('rentalForm.rentalDurationTooShort', { minDays: product?.min_rental_duration_days || 1 })
                           : (product?.max_rental_duration_days ? rentalDays > product.max_rental_duration_days : false)
-                          ? `ระยะเวลาไม่เกิน ${product?.max_rental_duration_days} วัน`
+                          ? t('rentalForm.rentalDurationTooLong', { maxDays: product?.max_rental_duration_days })
                           : t('productDetailPage.submitRentalRequestButton')
                         }
                       </span>
@@ -1929,7 +1930,7 @@ export const ProductDetailPage: React.FC = () => {
               <button 
                 className="absolute top-4 right-4 text-white/80 hover:text-white text-2xl transition-colors duration-200 z-10" 
                 onClick={() => setShowAddAddress(false)} 
-                aria-label="ปิด"
+                aria-label={t('buttons.close')}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1942,11 +1943,11 @@ export const ProductDetailPage: React.FC = () => {
                     <FaMapMarkerAlt className="w-6 h-6" />
                   </div>
                   <h3 className="text-2xl font-bold">
-                    {t('productDetailPage.addNewAddressTitle', 'เพิ่มที่อยู่ใหม่')}
+                    {t('addressForm.addNewAddressTitle', 'เพิ่มที่อยู่ใหม่')}
                   </h3>
                 </div>
                 <p className="text-purple-100 text-sm leading-relaxed">
-                  กรอกข้อมูลที่อยู่สำหรับการจัดส่งสินค้า
+                  {t('addressForm.addNewAddressDescription')}
                 </p>
               </div>
             </div>
@@ -1963,7 +1964,7 @@ export const ProductDetailPage: React.FC = () => {
                     <FaExclamationTriangle className="w-5 h-5 text-red-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-red-800 font-medium">เกิดข้อผิดพลาด</p>
+                    <p className="text-red-800 font-medium">{t('addressForm.errorTitle')}</p>
                     <p className="text-red-600 text-sm">{addAddressError}</p>
                   </div>
                 </motion.div>
@@ -1973,12 +1974,12 @@ export const ProductDetailPage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('productDetailPage.recipientNamePlaceholder', 'ชื่อผู้รับ')}
+                      {t('addressForm.recipientName')}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input 
                       className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                      placeholder={t('productDetailPage.recipientNamePlaceholder', 'ชื่อผู้รับ')} 
+                      placeholder={t('addressForm.recipientName')} 
                       required 
                       value={newAddress.recipient_name} 
                       onChange={e => setNewAddress({ ...newAddress, recipient_name: e.target.value })} 
@@ -1987,12 +1988,12 @@ export const ProductDetailPage: React.FC = () => {
                   
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('productDetailPage.phoneNumberPlaceholder', 'เบอร์โทรศัพท์')}
+                      {t('addressForm.phoneNumber')}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input 
                       className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                      placeholder={t('productDetailPage.phoneNumberPlaceholder', 'เบอร์โทรศัพท์')} 
+                      placeholder={t('addressForm.phoneNumber')} 
                       required 
                       value={newAddress.phone_number} 
                       onChange={e => setNewAddress({ ...newAddress, phone_number: e.target.value })} 
@@ -2002,12 +2003,12 @@ export const ProductDetailPage: React.FC = () => {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    {t('productDetailPage.addressLine1Placeholder', 'ที่อยู่ (บรรทัดที่ 1)')}
+                    {t('addressForm.addressLine1')}
                     <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input 
                     className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                    placeholder={t('productDetailPage.addressLine1Placeholder', 'ที่อยู่ (บรรทัดที่ 1)')} 
+                    placeholder={t('addressForm.addressLine1')} 
                     required 
                     value={newAddress.address_line1} 
                     onChange={e => setNewAddress({ ...newAddress, address_line1: e.target.value })} 
@@ -2016,11 +2017,11 @@ export const ProductDetailPage: React.FC = () => {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    {t('productDetailPage.addressLine2Placeholder', 'ที่อยู่ (บรรทัดที่ 2)')}
+                    {t('addressForm.addressLine2')}
                   </label>
                   <input 
                     className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                    placeholder={t('productDetailPage.addressLine2Placeholder', 'ที่อยู่ (บรรทัดที่ 2)')} 
+                    placeholder={t('addressForm.addressLine2')} 
                     value={newAddress.address_line2} 
                     onChange={e => setNewAddress({ ...newAddress, address_line2: e.target.value })} 
                   />
@@ -2029,11 +2030,11 @@ export const ProductDetailPage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('productDetailPage.subDistrictPlaceholder', 'แขวง/ตำบล')}
+                      {t('addressForm.subDistrict')}
                     </label>
                     <input 
                       className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                      placeholder={t('productDetailPage.subDistrictPlaceholder', 'แขวง/ตำบล (ถ้ามี)')} 
+                      placeholder={t('addressForm.subDistrict')} 
                       value={newAddress.sub_district} 
                       onChange={e => setNewAddress({ ...newAddress, sub_district: e.target.value })} 
                     />
@@ -2041,12 +2042,12 @@ export const ProductDetailPage: React.FC = () => {
                   
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('productDetailPage.districtPlaceholder', 'เขต/อำเภอ')}
+                      {t('addressForm.district')}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input 
                       className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                      placeholder={t('productDetailPage.districtPlaceholder', 'เขต/อำเภอ')} 
+                      placeholder={t('addressForm.district')} 
                       required 
                       value={newAddress.district} 
                       onChange={e => setNewAddress({ ...newAddress, district: e.target.value })} 
@@ -2057,7 +2058,7 @@ export const ProductDetailPage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('productDetailPage.selectProvinceOption', 'จังหวัด')}
+                      {t('addressForm.selectProvince')}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <select 
@@ -2066,7 +2067,7 @@ export const ProductDetailPage: React.FC = () => {
                       value={newAddress.province_id} 
                       onChange={e => setNewAddress({ ...newAddress, province_id: Number(e.target.value) })}
                     >
-                      <option value="">{t('productDetailPage.selectProvinceOption', 'เลือกจังหวัด')}</option>
+                      <option value="">{t('addressForm.selectProvince')}</option>
                       {provinces.map(prov => (
                         <option key={prov.id} value={prov.id}>{prov.name_th}</option>
                       ))}
@@ -2075,12 +2076,12 @@ export const ProductDetailPage: React.FC = () => {
                   
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('productDetailPage.postalCodePlaceholder', 'รหัสไปรษณีย์')}
+                      {t('addressForm.postalCode')}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input 
                       className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                      placeholder={t('productDetailPage.postalCodePlaceholder', 'รหัสไปรษณีย์')} 
+                      placeholder={t('addressForm.postalCode')} 
                       required 
                       value={newAddress.postal_code} 
                       onChange={e => setNewAddress({ ...newAddress, postal_code: e.target.value })} 
@@ -2090,11 +2091,11 @@ export const ProductDetailPage: React.FC = () => {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    {t('productDetailPage.notesPlaceholder', 'หมายเหตุ')}
+                    {t('addressForm.notes')}
                   </label>
                   <textarea 
                     className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white resize-none" 
-                    placeholder={t('productDetailPage.notesPlaceholder', 'หมายเหตุ (ถ้ามี)')} 
+                    placeholder={t('addressForm.notes')} 
                     rows={3}
                     value={newAddress.notes} 
                     onChange={e => setNewAddress({ ...newAddress, notes: e.target.value })} 
@@ -2107,7 +2108,7 @@ export const ProductDetailPage: React.FC = () => {
                     onClick={() => setShowAddAddress(false)}
                     className="flex-1 py-4 px-6 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold"
                   >
-                    ยกเลิก
+                    {t('addressForm.cancel')}
                   </button>
                   <button 
                     type="submit" 
@@ -2117,10 +2118,10 @@ export const ProductDetailPage: React.FC = () => {
                     {addingAddress ? (
                       <div className="flex items-center justify-center gap-2">
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        {t('productDetailPage.savingAddress', 'กำลังบันทึก...')}
+                        {t('addressForm.saving')}
                       </div>
                     ) : (
-                      t('productDetailPage.saveAddress', 'บันทึกที่อยู่')
+                      t('addressForm.save')
                     )}
                   </button>
                 </div>
@@ -2148,7 +2149,7 @@ export const ProductDetailPage: React.FC = () => {
               <button 
                 className="absolute top-4 right-4 text-white/80 hover:text-white text-2xl transition-colors duration-200 z-10" 
                 onClick={() => setShowOwnerProfile(false)} 
-                aria-label="ปิด"
+                aria-label={t('buttons.close')}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2161,11 +2162,11 @@ export const ProductDetailPage: React.FC = () => {
                     <FaUser className="w-6 h-6" />
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-bold">
-                    โปรไฟล์เจ้าของสินค้า
+                    {t('ownerProfile.title')}
                   </h2>
                 </div>
                 <p className="text-blue-100 text-sm sm:text-base leading-relaxed">
-                  ข้อมูลและประวัติของเจ้าของสินค้า
+                  {t('ownerProfile.description')}
                 </p>
               </div>
             </div>
@@ -2230,13 +2231,13 @@ export const ProductDetailPage: React.FC = () => {
                 >
                   <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <FaEnvelope className="w-5 h-5 text-blue-600" />
-                    ข้อมูลติดต่อ
+                    {t('ownerProfile.contactInformation')}
                   </h4>
                   
                   {loadingOwnerProfile ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                      <p className="text-gray-600 mt-2">กำลังโหลดข้อมูล...</p>
+                      <p className="text-gray-600 mt-2">{t('ownerProfile.loadingProfile')}</p>
                     </div>
                   ) : ownerProfileError ? (
                     <div className="text-center py-8">
@@ -2251,7 +2252,7 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
                         <FaUser className="w-5 h-5 text-gray-500" />
                         <div className="flex-1">
-                          <p className="text-sm text-gray-600">ชื่อเจ้าของสินค้า</p>
+                          <p className="text-sm text-gray-600">{t('ownerProfile.basicInfo')}</p>
                           <p className="font-semibold text-gray-900">
                             {ownerDetailedProfile.first_name} {ownerDetailedProfile.last_name || ''}
                           </p>
@@ -2262,7 +2263,7 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
                         <FaUser className="w-5 h-5 text-gray-500" />
                         <div className="flex-1">
-                          <p className="text-sm text-gray-600">ชื่อผู้ใช้</p>
+                          <p className="text-sm text-gray-600">{t('ownerProfile.username')}</p>
                           <p className="font-semibold text-gray-900">@{ownerDetailedProfile.username}</p>
                         </div>
                       </div>
@@ -2272,16 +2273,16 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
                           <FaEnvelope className="w-5 h-5 text-gray-500" />
                           <div className="flex-1">
-                            <p className="text-sm text-gray-600">อีเมล</p>
+                            <p className="text-sm text-gray-600">{t('ownerProfile.email')}</p>
                             <p className="font-semibold text-gray-900 break-all">{ownerDetailedProfile.email}</p>
                           </div>
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(ownerDetailedProfile.email);
-                              alert('คัดลอกอีเมลแล้ว');
+                              alert(t('ownerProfile.emailCopied'));
                             }}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                            title="คัดลอกอีเมล"
+                            title={t('ownerProfile.copyEmail')}
                           >
                             <FaCopy className="w-4 h-4" />
                           </button>
@@ -2293,7 +2294,7 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
                           <FaPhone className="w-5 h-5 text-gray-500" />
                           <div className="flex-1">
-                            <p className="text-sm text-gray-600">เบอร์โทรศัพท์</p>
+                            <p className="text-sm text-gray-600">{t('ownerProfile.phoneNumber')}</p>
                             <p className="font-semibold text-gray-900">{ownerDetailedProfile.phone_number}</p>
                           </div>
                           <div className="flex gap-2">
@@ -2301,18 +2302,18 @@ export const ProductDetailPage: React.FC = () => {
                               onClick={() => {
                                 if (ownerDetailedProfile.phone_number) {
                                   navigator.clipboard.writeText(ownerDetailedProfile.phone_number);
-                                  alert('คัดลอกเบอร์โทรศัพท์แล้ว');
+                                  alert(t('ownerProfile.phoneCopied'));
                                 }
                               }}
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                              title="คัดลอกเบอร์โทรศัพท์"
+                              title={t('ownerProfile.copyPhone')}
                             >
                               <FaCopy className="w-4 h-4" />
                             </button>
                             <a
                               href={`tel:${ownerDetailedProfile.phone_number || ''}`}
                               className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
-                              title="โทรหา"
+                              title={t('ownerProfile.call')}
                             >
                               <FaPhone className="w-4 h-4" />
                             </a>
@@ -2325,7 +2326,7 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
                           <FaMapMarkerAlt className="w-5 h-5 text-gray-500" />
                           <div className="flex-1">
-                            <p className="text-sm text-gray-600">ที่อยู่</p>
+                            <p className="text-sm text-gray-600">{t('ownerProfile.address')}</p>
                             <p className="font-semibold text-gray-900">
                               {ownerDetailedProfile.address_line1}
                               {ownerDetailedProfile.address_line2 && `, ${ownerDetailedProfile.address_line2}`}
@@ -2342,10 +2343,10 @@ export const ProductDetailPage: React.FC = () => {
                                 ownerDetailedProfile.postal_code
                               ].filter(Boolean).join(', ');
                               navigator.clipboard.writeText(address);
-                              alert('คัดลอกที่อยู่แล้ว');
+                              alert(t('ownerProfile.addressCopied'));
                             }}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                            title="คัดลอกที่อยู่"
+                            title={t('ownerProfile.copyAddress')}
                           >
                             <FaCopy className="w-4 h-4" />
                           </button>
@@ -2356,10 +2357,10 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                         <h5 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
                           <FaComments className="w-4 h-4" />
-                          ติดต่อผ่านแพลตฟอร์ม
+                          {t('ownerProfile.contactViaPlatform')}
                         </h5>
                         <p className="text-sm text-blue-700 mb-3">
-                          ใช้ระบบส่งข้อความภายในแพลตฟอร์มเพื่อติดต่อเจ้าของสินค้า
+                          {t('ownerProfile.contactViaPlatformDescription')}
                         </p>
                         {product.owner.id !== authUser?.id && (
                           <Button
@@ -2371,7 +2372,7 @@ export const ProductDetailPage: React.FC = () => {
                             isLoading={contactingOwner}
                           >
                             <FaComments className="w-4 h-4 mr-2" />
-                            ส่งข้อความ
+                            {t('ownerProfile.sendMessage')}
                           </Button>
                         )}
                       </div>
@@ -2380,17 +2381,16 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                         <h5 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center gap-2">
                           <FaInfoCircle className="w-4 h-4" />
-                          หมายเหตุ
+                          {t('ownerProfile.privacyNote')}
                         </h5>
                         <p className="text-sm text-yellow-700">
-                          ข้อมูลการติดต่อที่แสดงขึ้นอยู่กับการตั้งค่าความเป็นส่วนตัวของเจ้าของสินค้า
-                          หากต้องการข้อมูลเพิ่มเติม กรุณาติดต่อผ่านระบบส่งข้อความภายในแพลตฟอร์ม
+                          {t('ownerProfile.privacyNoteDescription')}
                         </p>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-gray-600">ไม่สามารถโหลดข้อมูลได้</p>
+                      <p className="text-gray-600">{t('ownerProfile.cannotLoadProfile')}</p>
                     </div>
                   )}
                 </motion.div>
@@ -2404,7 +2404,7 @@ export const ProductDetailPage: React.FC = () => {
                 >
                   <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <FaShieldAlt className="w-5 h-5 text-green-600" />
-                    สถานะการยืนยันตัวตน
+                    {t('ownerProfile.verificationStatus')}
                   </h4>
                   
                   <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-green-200">
@@ -2412,8 +2412,8 @@ export const ProductDetailPage: React.FC = () => {
                       <FaCheckCircle className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-green-800">ยืนยันตัวตนแล้ว</p>
-                      <p className="text-sm text-green-600">ผู้ใช้ได้ยืนยันตัวตนกับระบบแล้ว</p>
+                      <p className="font-semibold text-green-800">{t('ownerProfile.verified')}</p>
+                      <p className="text-sm text-green-600">{t('ownerProfile.verifiedDescription')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -2435,7 +2435,7 @@ export const ProductDetailPage: React.FC = () => {
                       isLoading={contactingOwner}
                     >
                       <FaComments className="w-5 h-5 mr-2" />
-                      ส่งข้อความ
+                      {t('ownerProfile.sendMessage')}
                     </Button>
                   )}
                   
@@ -2445,7 +2445,7 @@ export const ProductDetailPage: React.FC = () => {
                     className="flex-1 border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
                     onClick={() => setShowOwnerProfile(false)}
                   >
-                    ปิด
+                    {t('buttons.close')}
                   </Button>
                 </motion.div>
               </div>

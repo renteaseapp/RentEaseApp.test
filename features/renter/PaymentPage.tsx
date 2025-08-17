@@ -67,32 +67,6 @@ export const PaymentPage: React.FC = () => {
     getRentalDetails(rentalId, authUser.id, 'renter')
       .then(async data => {
         console.log('Fetched rental:', data);
-        console.log('🔍 PaymentPage Debug - Rental Data:', {
-          id: data.id,
-          calculated_subtotal_rental_fee: data.calculated_subtotal_rental_fee,
-          security_deposit_at_booking: data.security_deposit_at_booking,
-          delivery_fee: data.delivery_fee,
-          platform_fee_renter: data.platform_fee_renter,
-          platform_fee_owner: data.platform_fee_owner,
-          total_amount_due: data.total_amount_due,
-          final_amount_paid: data.final_amount_paid
-        });
-        
-        // Calculate expected total
-        const expectedTotal = (data.calculated_subtotal_rental_fee || 0) + 
-                            (data.security_deposit_at_booking || 0) + 
-                            (data.delivery_fee || 0) + 
-                            (data.platform_fee_renter || 0);
-        
-        console.log('🔍 PaymentPage Debug - Expected Calculation:', {
-          subtotal: data.calculated_subtotal_rental_fee || 0,
-          securityDeposit: data.security_deposit_at_booking || 0,
-          deliveryFee: data.delivery_fee || 0,
-          platformFee: data.platform_fee_renter || 0,
-          expectedTotal,
-          actualTotalAmountDue: data.total_amount_due,
-          difference: expectedTotal - (data.total_amount_due || 0)
-        });
         
         setRental(data);
         if (data.product_id) {
@@ -164,9 +138,9 @@ export const PaymentPage: React.FC = () => {
     }
   };
 
-  if (isLoading) return <LoadingSpinner message="Loading payment details..." />;
+  if (isLoading) return <LoadingSpinner message={t('common.loading')} />;
   if (error && !rental) return <ErrorMessage message={error} />;
-  if (!rental) return <div className="p-4 text-center">Rental details not found.</div>;
+  if (!rental) return <div className="p-4 text-center">{t('paymentPage.rentalDetailsNotFound')}</div>;
   
   // --- Product Summary Section ---
   const product = productDetail || rental.product;
@@ -176,7 +150,7 @@ export const PaymentPage: React.FC = () => {
   // --- Modern Layout ---
   if (rental.payment_status === PaymentStatus.PAID) {
       return (
-          <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+          <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 pt-20">
             <div className="container mx-auto p-4 md:p-8">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -198,7 +172,7 @@ export const PaymentPage: React.FC = () => {
                   transition={{ duration: 0.6, delay: 0.4 }}
                   className="text-3xl font-bold text-green-600 mb-4"
                 >
-                  {t('paymentPage.paymentSuccessTitle', 'Payment Successful!')}
+                  {t('paymentPage.paymentSuccessTitle')}
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
@@ -220,7 +194,7 @@ export const PaymentPage: React.FC = () => {
                       className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
                       <FaEye className="h-5 w-5" />
-                      {t('paymentPage.viewRentalDetailBtn', 'View Rental Details')}
+                      {t('paymentPage.viewRentalDetailBtn')}
                     </motion.button>
                   </Link>
                 </motion.div>
@@ -232,7 +206,7 @@ export const PaymentPage: React.FC = () => {
 
   if (rental.rental_status === RentalStatus.PENDING_OWNER_APPROVAL) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-orange-50">
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-orange-50 pt-20">
         <div className="container mx-auto p-4 md:p-8">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -287,9 +261,9 @@ export const PaymentPage: React.FC = () => {
                         <FaHandshake className="h-4 w-4 text-blue-600" />
                       )}
                       <div>
-                        <span className="font-semibold text-gray-800">วิธีรับสินค้า:</span>
+                        <span className="font-semibold text-gray-800">{t('paymentPage.pickupMethodLabel')}:</span>
                         <p className="text-gray-700">
-                          {rental.pickup_method === 'delivery' ? 'จัดส่งถึงที่อยู่' : 'รับสินค้าเองที่ร้าน'}
+                          {rental.pickup_method === 'delivery' ? t('paymentPage.deliveryOption') : t('paymentPage.selfPickupOption')}
                         </p>
                       </div>
                     </div>
@@ -300,30 +274,17 @@ export const PaymentPage: React.FC = () => {
                 <div className="mb-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
                   <h3 className="font-semibold text-gray-800 flex items-center gap-2 mb-3">
                     <FaMoneyBillWave className="h-4 w-4 text-gray-600" />
-                    {t('paymentPage.costBreakdownTitle', 'Cost Breakdown')}
+                    {t('paymentPage.costBreakdownTitle')}
                   </h3>
                   
-                  {/* Debug Info */}
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs mb-4">
-                    <div className="font-semibold text-blue-800 mb-1">🔍 Debug Info:</div>
-                    <div className="text-blue-700 space-y-1">
-                      <div>• calculated_subtotal_rental_fee: ฿{(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}</div>
-                      <div>• security_deposit_at_booking: ฿{(rental.security_deposit_at_booking || 0).toLocaleString()}</div>
-                      <div>• delivery_fee: ฿{(rental.delivery_fee || 0).toLocaleString()}</div>
-                      <div>• platform_fee_renter: ฿{(rental.platform_fee_renter || 0).toLocaleString()}</div>
-                      <div>• total_amount_due: ฿{(rental.total_amount_due || 0).toLocaleString()}</div>
-                      <div className="font-semibold">
-                        Expected: ฿{((rental.calculated_subtotal_rental_fee || 0) + (rental.security_deposit_at_booking || 0) + (rental.delivery_fee || 0) + (rental.platform_fee_renter || 0)).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
+
                   
                   <div className="space-y-2">
                     {/* Rental Fee */}
                     <div className="flex justify-between items-center py-1">
                       <span className="text-gray-600 text-sm flex items-center gap-1">
                         <FaCalendarAlt className="h-3 w-3 text-blue-500" />
-                        {t('paymentPage.subtotalLabel', 'Rental Fee')}:
+                        {t('paymentPage.subtotalLabel')}:
                       </span>
                       <span className="font-semibold text-sm text-blue-600">฿{(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}</span>
                     </div>
@@ -333,7 +294,7 @@ export const PaymentPage: React.FC = () => {
                       <div className="flex justify-between items-center py-1">
                         <span className="text-gray-600 text-sm flex items-center gap-1">
                           <FaShieldAlt className="h-3 w-3 text-yellow-500" />
-                          {t('paymentPage.securityDepositLabel', 'Security Deposit')}:
+                          {t('paymentPage.securityDepositLabel')}:
                         </span>
                         <span className="font-semibold text-sm text-yellow-600">฿{rental.security_deposit_at_booking.toLocaleString()}</span>
                       </div>
@@ -344,7 +305,7 @@ export const PaymentPage: React.FC = () => {
                       <div className="flex justify-between items-center py-1">
                         <span className="text-gray-600 text-sm flex items-center gap-1">
                           <FaTruck className="h-3 w-3 text-green-500" />
-                          {t('paymentPage.deliveryFeeLabel', 'Delivery Fee')}:
+                          {t('paymentPage.deliveryFeeLabel')}:
                         </span>
                         <span className="font-semibold text-sm text-green-600">฿{rental.delivery_fee.toLocaleString()}</span>
                       </div>
@@ -355,7 +316,7 @@ export const PaymentPage: React.FC = () => {
                       <div className="flex justify-between items-center py-1">
                         <span className="text-gray-600 text-sm flex items-center gap-1">
                           <FaCreditCard className="h-3 w-3 text-purple-500" />
-                          {t('paymentPage.platformFeeLabel', 'Platform Fee')}:
+                          {t('paymentPage.platformFeeLabel')}:
                         </span>
                         <span className="font-semibold text-sm text-purple-600">฿{rental.platform_fee_renter.toLocaleString()}</span>
                       </div>
@@ -366,7 +327,7 @@ export const PaymentPage: React.FC = () => {
                       <div className="flex justify-between items-center py-1">
                         <span className="text-gray-600 text-sm flex items-center gap-1">
                           <FaExclamationTriangle className="h-3 w-3 text-red-500" />
-                          {t('paymentPage.lateFeeLabel', 'Late Fee')}:
+                          {t('paymentPage.lateFeeLabel')}:
                         </span>
                         <span className="font-semibold text-sm text-red-600">฿{rental.late_fee_calculated.toLocaleString()}</span>
                       </div>
@@ -421,7 +382,7 @@ export const PaymentPage: React.FC = () => {
                     className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     <FaEye className="h-4 w-4" />
-                    {t('paymentPage.viewRentalDetailBtn', 'View Rental Details')}
+                    {t('paymentPage.viewRentalDetailBtn')}
                   </motion.button>
                 </Link>
               </div>
@@ -434,7 +395,7 @@ export const PaymentPage: React.FC = () => {
 
   // --- Main Modern Layout ---
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-16">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-20">
       <div className="container mx-auto p-4 md:p-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -450,7 +411,7 @@ export const PaymentPage: React.FC = () => {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                 {t('paymentPage.title')}
               </h1>
-              <p className="text-gray-600 text-lg">ชำระเงินสำหรับการเช่า</p>
+              <p className="text-gray-600 text-lg">{t('paymentPage.subtitle')}</p>
             </div>
           </div>
         </motion.div>
@@ -614,9 +575,9 @@ export const PaymentPage: React.FC = () => {
                       <FaHandshake className="h-4 w-4 text-blue-600" />
                     )}
                     <div>
-                      <span className="font-semibold text-gray-800 text-sm">วิธีรับสินค้า:</span>
+                      <span className="font-semibold text-gray-800 text-sm">{t('paymentPage.pickupMethodLabel')}:</span>
                       <p className="text-gray-700 text-sm">
-                        {rental.pickup_method === 'delivery' ? 'จัดส่งถึงที่อยู่' : 'รับสินค้าเองที่ร้าน'}
+                        {rental.pickup_method === 'delivery' ? t('paymentPage.deliveryOption') : t('paymentPage.selfPickupOption')}
                       </p>
                     </div>
                   </div>
@@ -625,7 +586,7 @@ export const PaymentPage: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <FaClock className="h-4 w-4 text-orange-600" />
                     <div>
-                      <span className="font-semibold text-gray-800 text-sm">สถานะการเช่า:</span>
+                      <span className="font-semibold text-gray-800 text-sm">{t('paymentPage.rentalStatusLabel')}:</span>
                       <p className="text-gray-700 text-sm">
                         {rental.rental_status ? rental.rental_status.replace('_', ' ').toUpperCase() : '-'}
                       </p>
@@ -636,7 +597,7 @@ export const PaymentPage: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <FaCreditCard className="h-4 w-4 text-purple-600" />
                     <div>
-                      <span className="font-semibold text-gray-800 text-sm">สถานะการชำระเงิน:</span>
+                      <span className="font-semibold text-gray-800 text-sm">{t('paymentPage.paymentStatusLabel')}:</span>
                       <p className="text-gray-700 text-sm">
                         {rental.payment_status ? rental.payment_status.replace('_', ' ').toUpperCase() : '-'}
                       </p>
@@ -654,14 +615,14 @@ export const PaymentPage: React.FC = () => {
               >
                 <h3 className="font-semibold text-gray-800 flex items-center gap-2 mb-4">
                   <FaMoneyBillWave className="h-5 w-5 text-gray-600" />
-                  {t('paymentPage.costBreakdownTitle', 'Cost Breakdown')}
+                  {t('paymentPage.costBreakdownTitle')}
                 </h3>
                 <div className="space-y-3">
                   {/* Rental Fee (Subtotal) */}
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
                     <span className="text-gray-600 flex items-center gap-2">
                       <FaCalendarAlt className="h-4 w-4 text-blue-500" />
-                      {t('paymentPage.subtotalLabel', 'Rental Fee')}:
+                      {t('paymentPage.subtotalLabel')}:
                     </span>
                     <span className="font-semibold text-blue-600">{formatCurrency(rental.calculated_subtotal_rental_fee || 0)}</span>
                   </div>
@@ -671,7 +632,7 @@ export const PaymentPage: React.FC = () => {
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
                       <span className="text-gray-600 flex items-center gap-2">
                         <FaShieldAlt className="h-4 w-4 text-yellow-500" />
-                        {t('paymentPage.securityDepositLabel', 'Security Deposit')}:
+                        {t('paymentPage.securityDepositLabel')}:
                       </span>
                       <span className="font-semibold text-yellow-600">{formatCurrency(rental.security_deposit_at_booking)}</span>
                     </div>
@@ -682,7 +643,7 @@ export const PaymentPage: React.FC = () => {
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
                       <span className="text-gray-600 flex items-center gap-2">
                         <FaTruck className="h-4 w-4 text-green-500" />
-                        {t('paymentPage.deliveryFeeLabel', 'Delivery Fee')}:
+                        {t('paymentPage.deliveryFeeLabel')}:
                       </span>
                       <span className="font-semibold text-green-600">{formatCurrency(rental.delivery_fee)}</span>
                     </div>
@@ -693,7 +654,7 @@ export const PaymentPage: React.FC = () => {
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
                       <span className="text-gray-600 flex items-center gap-2">
                         <FaCreditCard className="h-4 w-4 text-purple-500" />
-                        {t('paymentPage.platformFeeLabel', 'Platform Fee')}:
+                        {t('paymentPage.platformFeeLabel')}:
                       </span>
                       <span className="font-semibold text-purple-600">{formatCurrency(rental.platform_fee_renter)}</span>
                     </div>
@@ -704,7 +665,7 @@ export const PaymentPage: React.FC = () => {
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
                       <span className="text-gray-600 flex items-center gap-2">
                         <FaExclamationTriangle className="h-4 w-4 text-red-500" />
-                        {t('paymentPage.lateFeeLabel', 'Late Fee')}:
+                        {t('paymentPage.lateFeeLabel')}:
                       </span>
                       <span className="font-semibold text-red-600">{formatCurrency(rental.late_fee_calculated)}</span>
                     </div>
@@ -714,20 +675,20 @@ export const PaymentPage: React.FC = () => {
                   <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <FaClock className="h-4 w-4 text-blue-600" />
-                      <span className="font-semibold text-blue-800 text-sm">ข้อมูลระยะเวลาการเช่า</span>
+                      <span className="font-semibold text-blue-800 text-sm">{t('paymentPage.rentalDurationInfoTitle')}</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                       <div className="flex items-center gap-1">
-                        <span className="text-blue-700">ระยะเวลาขั้นต่ำ:</span>
+                        <span className="text-blue-700">{t('paymentPage.minDurationLabel')}:</span>
                         <span className="font-semibold text-blue-800">
-                          {product?.min_rental_duration_days || 1} วัน
+                          {product?.min_rental_duration_days || 1} {t('paymentPage.daysLabel')}
                         </span>
                       </div>
                       {product?.max_rental_duration_days && (
                         <div className="flex items-center gap-1">
-                          <span className="text-blue-700">ระยะเวลาสูงสุด:</span>
+                          <span className="text-blue-700">{t('paymentPage.maxDurationLabel')}:</span>
                           <span className="font-semibold text-blue-800">
-                            {product.max_rental_duration_days} วัน
+                            {product.max_rental_duration_days} {t('paymentPage.daysLabel')}
                           </span>
                         </div>
                       )}
@@ -743,7 +704,7 @@ export const PaymentPage: React.FC = () => {
                   {/* Final Amount Paid (if different from total) */}
                   {rental.final_amount_paid && rental.final_amount_paid !== rental.total_amount_due && (
                     <div className="flex justify-between items-center py-2 bg-green-100 rounded-lg px-3 border border-green-200">
-                      <span className="text-green-800 font-semibold">{t('paymentPage.finalAmountPaidLabel', 'Final Amount Paid')}:</span>
+                      <span className="text-green-800 font-semibold">{t('paymentPage.finalAmountPaidLabel')}:</span>
                       <span className="font-bold text-lg text-green-800">{formatCurrency(rental.final_amount_paid)}</span>
                     </div>
                   )}
@@ -752,11 +713,11 @@ export const PaymentPage: React.FC = () => {
                   {rental.security_deposit_refund_amount !== undefined && rental.security_deposit_refund_amount !== null && rental.security_deposit_refund_amount > 0 && (
                     <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <div className="flex justify-between items-center mb-2">
-                        <span className="text-yellow-800 font-semibold">{t('paymentPage.securityDepositRefundLabel', 'Security Deposit Refund')}:</span>
+                        <span className="text-yellow-800 font-semibold">{t('paymentPage.securityDepositRefundLabel')}:</span>
                         <span className="font-bold text-yellow-800">{formatCurrency(rental.security_deposit_refund_amount)}</span>
                       </div>
                       <p className="text-sm text-yellow-700">
-                        {t('paymentPage.securityDepositRefundNote', 'Contact the owner via chat to arrange the refund')}
+                        {t('paymentPage.securityDepositRefundNote')}
                       </p>
                     </div>
                   )}
@@ -765,13 +726,13 @@ export const PaymentPage: React.FC = () => {
                   <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <FaInfoCircle className="h-5 w-5 text-yellow-600" />
-                      <h4 className="font-semibold text-yellow-800">หมายเหตุสำคัญ</h4>
+                      <h4 className="font-semibold text-yellow-800">{t('paymentPage.importantNoteTitle')}</h4>
                     </div>
                     <div className="text-sm text-yellow-700 space-y-1">
-                      <p>• ค่าธรรมเนียมที่แสดงในหน้านี้เป็นค่าจริงที่คำนวณจาก backend</p>
-                      <p>• ระบบปัจจุบันตั้งค่าให้ไม่มีค่าธรรมเนียมแพลตฟอร์มและค่าส่ง</p>
-                      <p>• ยอดรวมที่ต้องชำระ: ค่าเช่า + ค่ามัดจำ (ไม่มีค่าธรรมเนียมเพิ่มเติม)</p>
-                      <p>• หากมีข้อสงสัยเกี่ยวกับค่าใช้จ่าย กรุณาติดต่อเจ้าของสินค้าหรือผู้ดูแลระบบ</p>
+                      <p>{t('paymentPage.note1')}</p>
+                      <p>{t('paymentPage.note2')}</p>
+                      <p>{t('paymentPage.note3')}</p>
+                      <p>{t('paymentPage.note4')}</p>
                     </div>
                   </div>
                 </div>
@@ -831,7 +792,7 @@ export const PaymentPage: React.FC = () => {
                         className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                       >
                         <FaEye className="h-4 w-4" />
-                        {t('paymentPage.viewRentalDetailBtn', 'View Rental Details')}
+                        {t('paymentPage.viewRentalDetailBtn')}
                       </motion.button>
                     </Link>
                   </div>
@@ -919,7 +880,7 @@ export const PaymentPage: React.FC = () => {
                       <label htmlFor="payment_proof_image" className="block text-sm font-semibold text-gray-700 mb-3">
                         <span className="flex items-center gap-2">
                           <FaUpload className="h-5 w-5 text-blue-400" />
-                          {t('paymentPage.uploadProofLabel', 'Upload Payment Proof (e.g., transfer slip)')}
+                          {t('paymentPage.uploadProofLabel')}
                         </span>
                       </label>
                       <div 
@@ -939,7 +900,7 @@ export const PaymentPage: React.FC = () => {
                           className="hidden"
                         />
                         <FaUpload className="w-12 h-12 text-blue-300 mb-4" />
-                        <span className="text-blue-500 font-medium text-center">{t('paymentPage.dragDropOrClick', 'Drag & drop or click to select image')}</span>
+                        <span className="text-blue-500 font-medium text-center">{t('paymentPage.dragDropOrClick')}</span>
                         {imagePreview && (
                           <motion.img 
                             initial={{ opacity: 0, scale: 0.8 }}
@@ -965,12 +926,12 @@ export const PaymentPage: React.FC = () => {
                       {isSubmitting ? (
                         <>
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                          Submitting...
+                          {t('paymentPage.submitting')}
                         </>
                       ) : (
                         <>
                           <FaUpload className="h-5 w-5" />
-                          {t('paymentPage.submitProofBtn', 'Submit Payment Proof')}
+                          {t('paymentPage.submitProofBtn')}
                         </>
                       )}
                     </motion.button>
@@ -996,7 +957,7 @@ export const PaymentPage: React.FC = () => {
                         className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                       >
                         <FaEye className="h-4 w-4" />
-                        {t('paymentPage.viewRentalDetailBtn', 'View Rental Details')}
+                        {t('paymentPage.viewRentalDetailBtn')}
                       </motion.button>
                     </Link>
                   </div>

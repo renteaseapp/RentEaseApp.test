@@ -574,7 +574,7 @@ export const RenterRentalDetailPage: React.FC = () => {
                     <h4 className="font-semibold text-gray-800 mb-3">{t('renterRentalDetailPage.specifications')}:</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {Object.entries(productDetails?.specifications || rental.product?.specifications || {}).map(([key, value]) => (
-                        <div key={key} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+                        <div key={`spec-${key}`} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
                           <FaInfoCircle className="h-4 w-4 text-blue-500" />
                           <span className="text-sm capitalize">{key.replace(/_/g, ' ')}: <strong>{String(value)}</strong></span>
                         </div>
@@ -691,7 +691,7 @@ export const RenterRentalDetailPage: React.FC = () => {
                       <h4 className="font-semibold text-gray-800 mb-3">{t('renterRentalDetailPage.returnInfo.images')}</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {rental.return_condition_image_urls.map((imageUrl, index) => (
-                          <a key={index} href={imageUrl} target="_blank" rel="noopener noreferrer" className="group">
+                          <a key={`return-image-${index}`} href={imageUrl} target="_blank" rel="noopener noreferrer" className="group">
                             <img 
                               src={imageUrl} 
                               alt={`${t('renterRentalDetailPage.returnEvidence')} ${index + 1}`} 

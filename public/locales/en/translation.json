@@ -1213,6 +1213,7 @@
   },
   "paymentPage": {
     "title": "Complete Your Payment",
+    "subtitle": "Payment for rental",
     "rentalIdLabel": "Rental ID: {{id}}...",
     "forProduct": "for {{title}}",
     "totalAmountDueLabel": "Total Amount Due",
@@ -1242,7 +1243,32 @@
     "lateFeeLabel": "Late Fee",
     "finalAmountPaidLabel": "Final Amount Paid",
     "securityDepositRefundLabel": "Security Deposit Refund",
-    "securityDepositRefundNote": "Contact the owner via chat to arrange the refund"
+    "securityDepositRefundNote": "Contact the owner via chat to arrange the refund",
+    "paymentSuccessTitle": "Payment Successful!",
+    "paymentSuccessDesc": "Your payment for rental ID {{id}} has been confirmed.",
+    "viewRentalDetailBtn": "View Rental Details",
+    "pickupMethodLabel": "Pickup Method",
+    "deliveryOption": "Delivery to address",
+    "selfPickupOption": "Self-pickup at store",
+    "rentalStatusLabel": "Rental Status",
+    "rentalDurationInfoTitle": "Rental Duration Information",
+    "minDurationLabel": "Minimum duration",
+    "daysLabel": "days",
+    "maxDurationLabel": "Maximum duration",
+    "importantNoteTitle": "Important Note",
+    "note1": "• Fees displayed on this page are actual fees calculated from the backend.",
+    "note2": "• The current system is set to have no platform fees and delivery fees.",
+    "note3": "• Total amount due: Rental fee + Security deposit (no additional fees).",
+    "note4": "• If you have any questions about the charges, please contact the item owner or administrator.",
+    "submitting": "Submitting...",
+    "proofSubmittedSuccess": "Payment proof submitted! Awaiting owner/admin verification.",
+    "submitProofFailed": "Failed to submit payment proof.",
+    "rentalDetailsNotFound": "Rental details not found.",
+    "uploadProofRequired": "Please upload a payment proof image.",
+    "uploadProofLabel": "Upload Payment Proof (e.g., transfer slip)",
+    "dragDropOrClick": "Drag & drop or click to select image",
+    "submitProofBtn": "Submit Payment Proof",
+    "currentPaymentStatus": "Current payment status: {{status}}"
   },
   "chatInboxPage": {
     "title": "My Conversations",
@@ -1307,6 +1333,10 @@
       "locationDetailsPlaceholder": "e.g., Central World Mall, BTS Siam Station",
       "notesLabel": "Additional Notes",
       "submitButton": "Submit Return Request"
+    },
+    "initiateReturn": {
+      "success": "Return initiated successfully. Waiting for owner to confirm.",
+      "error": "Failed to initiate return."
     },
     "status": {
       "return_pending": "Return Pending",
@@ -1410,6 +1440,13 @@
           "noTimeSelected": "Please select a pickup time.",
           "general": "Failed to set actual pickup time. Please try again."
         }
+      },
+      "cancelRental": {
+        "title": "Cancel Rental",
+        "warning": "Are you sure you want to cancel this rental? This action cannot be undone.",
+        "reason": "Reason for cancellation",
+        "reasonPlaceholder": "Please provide a reason for cancelling this rental...",
+        "confirm": "Confirm Cancellation"
       }
     },
     "cancelDialog": {
