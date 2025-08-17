@@ -1,0 +1,62 @@
+{
+  "title": "แดชบอร์ดผู้ดูแลระบบ",
+  "subtitle": "จัดการทุกส่วนของแพลตฟอร์มได้จากที่เดียว",
+  "overviewTitle": "ภาพรวมแพลตฟอร์ม",
+  "overviewSubtitle": "สถิติและแนวโน้มสำคัญของแพลตฟอร์ม",
+  "overviewComingSoon": "สถิติและกราฟรายละเอียดจะแสดงที่นี่ (เร็วๆ นี้)",
+  "loadingOverview": "กำลังโหลดภาพรวม...",
+  "totalUsers": "ผู้ใช้ทั้งหมด",
+  "activeUsers": "ผู้ใช้ที่ใช้งาน",
+  "newUsers": "ผู้ใช้ใหม่",
+  "totalProducts": "สินค้าทั้งหมด",
+  "activeListings": "สินค้าที่เปิดให้เช่า",
+  "totalRentals": "การเช่าทั้งหมด",
+  "rentalsThisMonth": "การเช่าเดือนนี้",
+  "totalIncome": "รายได้รวม",
+  "complaints": "ข้อร้องเรียน",
+  "rentalsOverTime": "จำนวนการเช่าตามช่วงเวลา",
+  "newUsersOverTime": "ผู้ใช้ใหม่ตามช่วงเวลา",
+  "incomeOverTime": "รายได้ตามช่วงเวลา",
+  "topProducts": "สินค้ายอดนิยม",
+  "pendingApprovals": "รออนุมัติ",
+  "unresolvedComplaints": "ข้อร้องเรียนที่ยังไม่แก้ไข",
+  "systemHealth": "สถานะระบบ",
+  "noData": "ไม่มีข้อมูล",
+  "adminFeatures": "ฟีเจอร์ผู้ดูแลระบบ",
+  "adminFeaturesSubtitle": "เข้าถึงเครื่องมือการจัดการทั้งหมด",
+  "accessFeature": "เข้าถึงฟีเจอร์",
+  "quickActions": "การดำเนินการด่วน",
+  "viewUsers": "ดูผู้ใช้",
+  "handleComplaints": "จัดการข้อร้องเรียน",
+  "viewReports": "ดูรายงาน",
+  "features": {
+    "User Management": {
+      "title": "จัดการผู้ใช้",
+      "description": "ดู แก้ไข และจัดการบัญชีผู้ใช้"
+    },
+    "Product Management": {
+      "title": "จัดการสินค้า",
+      "description": "อนุมัติ แก้ไข หรือลบรายการสินค้า"
+    },
+    "Category Management": {
+      "title": "จัดการหมวดหมู่",
+      "description": "เพิ่ม แก้ไข หรือลบหมวดหมู่สินค้า"
+    },
+    "Complaints System": {
+      "title": "ระบบข้อร้องเรียน",
+      "description": "จัดการข้อร้องเรียนและการแก้ไขข้อพิพาท"
+    },
+    "System Settings": {
+      "title": "ตั้งค่าระบบ",
+      "description": "ตั้งค่าระบบและการทำงานของแอปพลิเคชัน"
+    },
+    "Reports & Analytics": {
+      "title": "รายงาน & สถิติ",
+      "description": "ดูรายงานและสถิติของระบบทั้งหมด"
+    },
+    "Admin Logs": {
+      "title": "ประวัติการกระทำ",
+      "description": "ดูประวัติการกระทำต่างๆ ของผู้ดูแลระบบ"
+    }
+  }
+} 

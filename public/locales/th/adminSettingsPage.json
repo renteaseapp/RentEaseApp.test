@@ -1,0 +1,23 @@
+{
+  "title": "การตั้งค่าระบบ",
+  "subtitle": "กำหนดการตั้งค่าและความชอบของแพลตฟอร์ม",
+  "loadingSettings": "กำลังโหลดการตั้งค่า...",
+  "errorLoadingSettings": "เกิดข้อผิดพลาดในการโหลดการตั้งค่า",
+  "errorSaving": "เกิดข้อผิดพลาดในการบันทึกการตั้งค่า",
+  "noSettings": "ไม่พบการตั้งค่า",
+  "retry": "ลองใหม่",
+  "refresh": "รีเฟรช",
+  "resetAll": "รีเซ็ตทั้งหมด",
+  "value": "ค่า",
+  "currentValue": "ค่าปัจจุบัน",
+  "lastUpdated": "อัปเดตล่าสุด",
+  "edit": "แก้ไข",
+  "save": "บันทึก",
+  "cancel": "ยกเลิก",
+  "encrypted": "เข้ารหัส",
+  "public": "สาธารณะ",
+  "validationRules": "กฎการตรวจสอบ",
+  "validationMin": "ค่าต้องไม่น้อยกว่า {{min}}",
+  "validationMax": "ค่าต้องไม่เกิน {{max}}",
+  "validationRequired": "ฟิลด์นี้จำเป็น"
+} 

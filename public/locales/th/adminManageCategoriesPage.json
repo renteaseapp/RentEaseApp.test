@@ -1,0 +1,56 @@
+{
+  "title": "จัดการหมวดหมู่",
+  "loadingCategories": "กำลังโหลดหมวดหมู่...",
+  "confirmDelete": "คุณแน่ใจหรือไม่ว่าต้องการลบหมวดหมู่นี้?",
+  "manageCategoriesDescription": "จัดการหมวดหมู่สินค้าและการจัดประเภท",
+  "noCategoriesFound": "ไม่พบหมวดหมู่",
+  "noCategoriesMatch": "ไม่มีหมวดหมู่ที่ตรงกับตัวกรองปัจจุบัน",
+  "error": {
+    "loadFailed": "ไม่สามารถโหลดหมวดหมู่ได้",
+    "saveFailed": "บันทึกหมวดหมู่ไม่สำเร็จ",
+    "deleteFailed": "ลบหมวดหมู่ไม่สำเร็จ"
+  },
+  "actions": {
+    "addNew": "เพิ่มหมวดหมู่ใหม่",
+    "cancel": "ยกเลิก",
+    "create": "สร้าง",
+    "update": "อัปเดต",
+    "edit": "แก้ไข",
+    "delete": "ลบ",
+    "search": "ค้นหา",
+    "clear": "ล้างค่า"
+  },
+  "form": {
+    "addTitle": "เพิ่มหมวดหมู่ใหม่",
+    "editTitle": "แก้ไขหมวดหมู่",
+    "name": "ชื่อหมวดหมู่",
+    "slug": "Slug",
+    "description": "คำอธิบาย",
+    "iconUrl": "URL ไอคอน",
+    "imageUrl": "URL รูปภาพ",
+    "sortOrder": "ลำดับการแสดงผล",
+    "active": "เปิดใช้งาน"
+  },
+  "table": {
+    "id": "รหัส",
+    "name": "ชื่อหมวดหมู่",
+    "slug": "Slug",
+    "status": "สถานะ",
+    "actions": "การดำเนินการ"
+  },
+  "status": {
+    "active": "เปิดใช้งาน",
+    "inactive": "ปิดใช้งาน"
+  },
+  "searchPlaceholder": "ค้นหาด้วยชื่อหรือ slug...",
+  "stats": {
+    "totalCategories": "หมวดหมู่ทั้งหมด",
+    "activeCategories": "หมวดหมู่ที่เปิดใช้งาน",
+    "inactiveCategories": "หมวดหมู่ที่ปิดใช้งาน"
+  },
+  "filters": {
+    "allCategories": "หมวดหมู่ทั้งหมด",
+    "active": "เปิดใช้งาน",
+    "inactive": "ปิดใช้งาน"
+  }
+} 

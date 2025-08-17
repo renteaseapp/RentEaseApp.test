@@ -1,0 +1,60 @@
+{
+  "title": "จัดการผู้ใช้",
+  "loadingUsers": "กำลังโหลดผู้ใช้...",
+  "manageUsersDescription": "จัดการบัญชีผู้ใช้และสิทธิ์การเข้าถึง",
+  "noUsersFound": "ไม่พบผู้ใช้",
+  "noUsersMatch": "ไม่มีผู้ใช้ที่ตรงกับตัวกรองปัจจุบัน",
+  "stats": {
+    "totalUsers": "ผู้ใช้ทั้งหมด",
+    "activeUsers": "ผู้ใช้ที่ใช้งานอยู่",
+    "inactiveUsers": "ผู้ใช้ที่ถูกระงับ",
+    "verifiedUsers": "ผู้ใช้ที่ยืนยันตัวตนแล้ว"
+  },
+  "filters": {
+    "allUsers": "ผู้ใช้ทั้งหมด",
+    "active": "ใช้งานอยู่",
+    "inactive": "ถูกระงับ",
+    "verified": "ยืนยันตัวตนแล้ว",
+    "unverified": "ยังไม่ยืนยันตัวตน"
+  },
+  "confirmDelete": "คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้?",
+  "table": {
+    "name": "ชื่อ",
+    "emailUsername": "อีเมล / ชื่อผู้ใช้",
+    "status": "สถานะ",
+    "idVerified": "ยืนยันตัวตน",
+    "actions": "การดำเนินการ"
+  },
+  "status": {
+    "active": "ใช้งานอยู่",
+    "inactive": "ถูกระงับ"
+  },
+  "idVerification": {
+    "not_submitted": "ยังไม่ได้ส่ง",
+    "pending": "รอตรวจสอบ",
+    "approved": "ยืนยันแล้ว",
+    "rejected": "ถูกปฏิเสธ"
+  },
+  "actions": {
+    "viewEdit": "ดู/แก้ไข",
+    "ban": "ระงับ",
+    "unban": "ปลดระงับ",
+    "search": "ค้นหา",
+    "clear": "ล้างค่า",
+    "actions": "การดำเนินการ",
+    "close": "ปิด"
+  },
+  "error": {
+    "loadFailed": "ไม่สามารถโหลดผู้ใช้ได้",
+    "banFailed": "ระงับผู้ใช้ไม่สำเร็จ",
+    "unbanFailed": "ปลดระงับผู้ใช้ไม่สำเร็จ",
+    "deleteFailed": "ลบผู้ใช้ไม่สำเร็จ"
+  },
+  "pagination": {
+    "prev": "ก่อนหน้า",
+    "next": "ถัดไป",
+    "page": "หน้า"
+  },
+  "searchPlaceholder": "ค้นหาด้วยชื่อ อีเมล หรือชื่อผู้ใช้...",
+  "noResults": "ไม่พบข้อมูล"
+} 

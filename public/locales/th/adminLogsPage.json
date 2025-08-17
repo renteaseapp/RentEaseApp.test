@@ -1,0 +1,59 @@
+{
+  "title": "ประวัติการกระทำของ Admin",
+  "subtitle": "ดูประวัติการกระทำต่างๆ ของผู้ดูแลระบบ",
+  "filters": {
+    "title": "ตัวกรอง",
+    "showFilters": "แสดงตัวกรอง",
+    "hideFilters": "ซ่อนตัวกรอง",
+    "actionType": "ประเภทการกระทำ",
+    "entityType": "ประเภท Entity",
+    "startDate": "วันที่เริ่มต้น",
+    "endDate": "วันที่สิ้นสุด",
+    "all": "ทั้งหมด",
+    "clearFilters": "ล้างตัวกรอง"
+  },
+  "table": {
+    "time": "เวลา",
+    "admin": "Admin",
+    "action": "การกระทำ",
+    "entity": "Entity",
+    "details": "รายละเอียด",
+    "ipAddress": "IP Address",
+    "viewDetails": "ดูรายละเอียด",
+    "noDetails": "ไม่มีรายละเอียด",
+    "loading": "กำลังโหลดข้อมูล...",
+    "noData": "ไม่พบข้อมูลการกระทำของ admin"
+  },
+  "pagination": {
+    "previous": "ก่อนหน้า",
+    "next": "ถัดไป",
+    "showing": "แสดง",
+    "to": "ถึง",
+    "from": "จาก",
+    "items": "รายการ"
+  },
+  "actionTypes": {
+    "USER_UPDATE": "อัปเดตผู้ใช้",
+    "USER_BAN": "แบนผู้ใช้",
+    "USER_UNBAN": "ยกเลิกการแบนผู้ใช้",
+    "USER_DELETE": "ลบผู้ใช้",
+    "USER_VERIFICATION_UPDATE": "อัปเดตการยืนยันตัวตน",
+    "PRODUCT_APPROVE": "อนุมัติสินค้า",
+    "CATEGORY_CREATE": "สร้างหมวดหมู่",
+    "CATEGORY_UPDATE": "อัปเดตหมวดหมู่",
+    "CATEGORY_DELETE": "ลบหมวดหมู่",
+    "SETTING_UPDATE": "อัปเดตการตั้งค่า",
+    "COMPLAINT_REPLY": "ตอบกลับร้องเรียน"
+  },
+  "entityTypes": {
+    "User": "ผู้ใช้",
+    "Product": "สินค้า",
+    "Category": "หมวดหมู่",
+    "Setting": "การตั้งค่า",
+    "Complaint": "ร้องเรียน",
+    "System": "ระบบ"
+  },
+  "error": {
+    "loadFailed": "เกิดข้อผิดพลาดในการโหลดข้อมูล"
+  }
+} 

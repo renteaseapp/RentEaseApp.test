@@ -1,0 +1,41 @@
+{
+  "loadingProduct": "Loading product details...",
+  "productNotFound": "Product Not Found",
+  "productNotFoundDescription": "The product you're looking for doesn't exist.",
+  "backToProducts": "Back to Products",
+  "productInfo": "Product ID: {{productId}} • Owner ID: {{ownerId}}",
+  "viewProductPage": "View Product Page",
+  "productImages": "Product Images",
+  "noImageAvailable": "No image available",
+  "productInformation": "Product Information",
+  "ownerId": "Owner ID",
+  "categoryId": "Category ID",
+  "provinceId": "Province ID",
+  "pricePerDay": "Price per Day",
+  "availabilityStatus": "Availability Status",
+  "available": "Available",
+  "adminApprovalStatus": "Admin Approval Status",
+  "createdAt": "Created At",
+  "description": "Description",
+  "adminActions": "Admin Actions",
+  "approvalNotes": "Approval Notes",
+  "approvalNotesPlaceholder": "Add notes about your decision...",
+  "processing": "Processing...",
+  "approveProduct": "Approve Product",
+  "rejectProduct": "Reject Product",
+  "quickStats": "Quick Stats",
+  "securityDeposit": "Security Deposit",
+  "quantityAvailable": "Quantity Available",
+  "minRentalDays": "Min Rental Days",
+  "averageRating": "Average Rating",
+  "notAvailable": "N/A",
+  "error": {
+    "loadFailed": "Failed to load product details.",
+    "updateApprovalFailed": "Failed to update approval status."
+  },
+  "approvalStatus": {
+    "approved": "APPROVED",
+    "pending": "PENDING",
+    "rejected": "REJECTED"
+  }
+} 

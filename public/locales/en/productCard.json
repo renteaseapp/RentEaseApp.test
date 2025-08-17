@@ -1,0 +1,18 @@
+{
+  "pricePerDay": "/day",
+  "pricePerWeek": "/week",
+  "pricePerMonth": "/month",
+  "quantityAvailable": "{{count}} available",
+  "viewCount": "{{count}} views",
+  "rating": "Rating {{rating}}",
+  "reviews": "{{count}} reviews",
+  "availability": {
+    "available": "Available",
+    "rented_out": "Rented Out",
+    "unavailable": "Unavailable",
+    "pending_approval": "Pending Approval",
+    "rejected": "Rejected",
+    "hidden": "Hidden",
+    "draft": "Draft"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "pricePerDay": "/วัน",
+  "pricePerWeek": "/สัปดาห์",
+  "pricePerMonth": "/เดือน",
+  "quantityAvailable": "มี {{count}} ชิ้น",
+  "viewCount": "เข้าชม {{count}} ครั้ง",
+  "rating": "คะแนน {{rating}}",
+  "reviews": "รีวิว {{count}} รายการ",
+  "availability": {
+    "available": "พร้อมให้เช่า",
+    "rented_out": "ถูกเช่าหมด",
+    "unavailable": "ไม่พร้อม",
+    "pending_approval": "รอการอนุมัติ",
+    "rejected": "ถูกปฏิเสธ",
+    "hidden": "ซ่อน",
+    "draft": "ร่าง"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "title": "Manage Products",
+  "loadingProducts": "Loading products...",
+  "manageProductsDescription": "Manage product listings and approvals",
+  "noProductsFound": "No products found",
+  "noProductsMatch": "No products match your current filters",
+  "table": {
+    "title": "Title",
+    "ownerId": "Owner ID",
+    "pricePerDay": "Price/Day",
+    "approvalStatus": "Approval Status",
+    "actions": "Actions"
+  },
+  "approvalStatus": {
+    "approved": "Approved",
+    "pending": "Pending",
+    "rejected": "Rejected"
+  },
+  "actions": {
+    "viewEdit": "View/Edit",
+    "approve": "Approve",
+    "reject": "Reject",
+    "search": "Search",
+    "clear": "Clear"
+  },
+  "error": {
+    "loadFailed": "Failed to load products.",
+    "updateApprovalFailed": "Failed to update product approval status."
+  },
+  "pagination": {
+    "prev": "Prev",
+    "next": "Next",
+    "page": "Page"
+  },
+  "searchPlaceholder": "Search by title or owner ID...",
+  "stats": {
+    "totalProducts": "Total Products",
+    "pendingReview": "Pending Review",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "filters": {
+    "allProducts": "All Products",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  }
+} 

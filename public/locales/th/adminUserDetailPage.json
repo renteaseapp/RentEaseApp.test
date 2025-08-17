@@ -1,0 +1,40 @@
+{
+  "loadingUserDetail": "กำลังโหลดรายละเอียดผู้ใช้...",
+  "userNotFound": "ไม่พบผู้ใช้",
+  "title": "รายละเอียดผู้ใช้: {{name}} (@{{username}})",
+  "accountInfo": "ข้อมูลบัญชี",
+  "profilePictureAlt": "รูปโปรไฟล์",
+  "email": "อีเมล",
+  "phone": "เบอร์โทร",
+  "status": "สถานะ",
+  "active": "ใช้งานอยู่",
+  "inactive": "ถูกระงับ",
+  "joined": "วันที่เข้าร่วม",
+  "lastLogin": "เข้าสู่ระบบล่าสุด",
+  "notAvailable": "ไม่มีข้อมูล",
+  "idVerification": "ยืนยันตัวตน",
+  "idDocumentFront": "บัตรประชาชน (ด้านหน้า)",
+  "idDocumentFrontAlt": "บัตรประชาชนด้านหน้า",
+  "idDocumentBack": "บัตรประชาชน (ด้านหลัง)",
+  "idDocumentBackAlt": "บัตรประชาชนด้านหลัง",
+  "selfieWithId": "เซลฟี่พร้อมบัตรประชาชน",
+  "selfieWithIdAlt": "เซลฟี่พร้อมบัตรประชาชน",
+  "idVerificationStatus": {
+    "notSubmitted": "ยังไม่ได้ส่ง",
+    "pending": "รอตรวจสอบ",
+    "verified": "ยืนยันแล้ว",
+    "rejected": "ถูกปฏิเสธ"
+  },
+  "verifyId": "ยืนยันตัวตน",
+  "rejectId": "ปฏิเสธการยืนยัน",
+  "processing": "กำลังดำเนินการ...",
+  "adminActions": "การจัดการแอดมิน",
+  "banUser": "ระงับผู้ใช้",
+  "unbanUser": "ปลดระงับผู้ใช้",
+  "error": {
+    "loadFailed": "ไม่สามารถโหลดรายละเอียดผู้ใช้ได้",
+    "banFailed": "ระงับผู้ใช้ไม่สำเร็จ",
+    "unbanFailed": "ปลดระงับผู้ใช้ไม่สำเร็จ",
+    "updateVerificationFailed": "อัปเดตสถานะการยืนยันตัวตนไม่สำเร็จ"
+  }
+} 

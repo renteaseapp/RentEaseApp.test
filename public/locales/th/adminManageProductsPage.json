@@ -1,0 +1,48 @@
+{
+  "title": "จัดการสินค้า",
+  "loadingProducts": "กำลังโหลดสินค้า...",
+  "manageProductsDescription": "จัดการรายการสินค้าและการอนุมัติ",
+  "noProductsFound": "ไม่พบสินค้า",
+  "noProductsMatch": "ไม่มีสินค้าที่ตรงกับตัวกรองปัจจุบัน",
+  "table": {
+    "title": "ชื่อสินค้า",
+    "ownerId": "รหัสเจ้าของ",
+    "pricePerDay": "ราคา/วัน",
+    "approvalStatus": "สถานะการอนุมัติ",
+    "actions": "การดำเนินการ"
+  },
+  "approvalStatus": {
+    "approved": "อนุมัติแล้ว",
+    "pending": "รอตรวจสอบ",
+    "rejected": "ถูกปฏิเสธ"
+  },
+  "actions": {
+    "viewEdit": "ดู/แก้ไข",
+    "approve": "อนุมัติ",
+    "reject": "ปฏิเสธ",
+    "search": "ค้นหา",
+    "clear": "ล้างค่า"
+  },
+  "error": {
+    "loadFailed": "ไม่สามารถโหลดสินค้าได้",
+    "updateApprovalFailed": "อัปเดตสถานะการอนุมัติสินค้าล้มเหลว"
+  },
+  "pagination": {
+    "prev": "ก่อนหน้า",
+    "next": "ถัดไป",
+    "page": "หน้า"
+  },
+  "searchPlaceholder": "ค้นหาด้วยชื่อหรือรหัสเจ้าของ...",
+  "stats": {
+    "totalProducts": "สินค้าทั้งหมด",
+    "pendingReview": "รอตรวจสอบ",
+    "approved": "อนุมัติแล้ว",
+    "rejected": "ถูกปฏิเสธ"
+  },
+  "filters": {
+    "allProducts": "สินค้าทั้งหมด",
+    "pending": "รอตรวจสอบ",
+    "approved": "อนุมัติแล้ว",
+    "rejected": "ถูกปฏิเสธ"
+  }
+} 

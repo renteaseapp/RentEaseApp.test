@@ -1,0 +1,59 @@
+{
+  "title": "Admin Action History",
+  "subtitle": "View all admin actions and audit trail",
+  "filters": {
+    "title": "Filters",
+    "showFilters": "Show Filters",
+    "hideFilters": "Hide Filters",
+    "actionType": "Action Type",
+    "entityType": "Entity Type",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "all": "All",
+    "clearFilters": "Clear Filters"
+  },
+  "table": {
+    "time": "Time",
+    "admin": "Admin",
+    "action": "Action",
+    "entity": "Entity",
+    "details": "Details",
+    "ipAddress": "IP Address",
+    "viewDetails": "View Details",
+    "noDetails": "No details available",
+    "loading": "Loading data...",
+    "noData": "No admin action data found"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "showing": "Showing",
+    "to": "to",
+    "from": "from",
+    "items": "items"
+  },
+  "actionTypes": {
+    "USER_UPDATE": "Update User",
+    "USER_BAN": "Ban User",
+    "USER_UNBAN": "Unban User",
+    "USER_DELETE": "Delete User",
+    "USER_VERIFICATION_UPDATE": "Update Verification Status",
+    "PRODUCT_APPROVE": "Approve Product",
+    "CATEGORY_CREATE": "Create Category",
+    "CATEGORY_UPDATE": "Update Category",
+    "CATEGORY_DELETE": "Delete Category",
+    "SETTING_UPDATE": "Update Settings",
+    "COMPLAINT_REPLY": "Reply to Complaint"
+  },
+  "entityTypes": {
+    "User": "User",
+    "Product": "Product",
+    "Category": "Category",
+    "Setting": "Setting",
+    "Complaint": "Complaint",
+    "System": "System"
+  },
+  "error": {
+    "loadFailed": "Failed to load data"
+  }
+} 

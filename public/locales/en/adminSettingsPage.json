@@ -1,0 +1,23 @@
+{
+  "title": "System Settings",
+  "subtitle": "Configure platform settings and preferences",
+  "loadingSettings": "Loading settings...",
+  "errorLoadingSettings": "Error loading settings",
+  "errorSaving": "Error saving setting",
+  "noSettings": "No settings found",
+  "retry": "Retry",
+  "refresh": "Refresh",
+  "resetAll": "Reset All",
+  "value": "Value",
+  "currentValue": "Current Value",
+  "lastUpdated": "Last Updated",
+  "edit": "Edit",
+  "save": "Save",
+  "cancel": "Cancel",
+  "encrypted": "Encrypted",
+  "public": "Public",
+  "validationRules": "Validation Rules",
+  "validationMin": "Value must be at least {{min}}",
+  "validationMax": "Value must be at most {{max}}",
+  "validationRequired": "This field is required"
+} 

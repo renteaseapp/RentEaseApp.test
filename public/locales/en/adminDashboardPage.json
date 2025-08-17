@@ -1,0 +1,62 @@
+{
+  "title": "Admin Dashboard",
+  "subtitle": "Manage all aspects of the platform from one place",
+  "overviewTitle": "Platform Overview",
+  "overviewSubtitle": "Key metrics and trends for your platform.",
+  "loadingOverview": "Loading overview...",
+  "totalUsers": "Total Users",
+  "activeUsers": "Active Users",
+  "newUsers": "New Users",
+  "totalProducts": "Total Products",
+  "activeListings": "Active Listings",
+  "totalRentals": "Total Rentals",
+  "rentalsThisMonth": "Rentals This Month",
+  "totalIncome": "Total Income",
+  "complaints": "Complaints",
+  "rentalsOverTime": "Rentals Over Time",
+  "newUsersOverTime": "New Users Over Time",
+  "incomeOverTime": "Income Over Time",
+  "topProducts": "Top Products",
+  "pendingApprovals": "Pending Approvals",
+  "unresolvedComplaints": "Unresolved Complaints",
+  "systemHealth": "System Health",
+  "noData": "No data available.",
+  "overviewComingSoon": "Detailed statistics and charts will be displayed here. (Coming Soon)",
+  "adminFeatures": "Admin Features",
+  "adminFeaturesSubtitle": "Access all management tools",
+  "accessFeature": "Access Feature",
+  "quickActions": "Quick Actions",
+  "viewUsers": "View Users",
+  "handleComplaints": "Handle Complaints",
+  "viewReports": "View Reports",
+  "features": {
+    "User Management": {
+      "title": "User Management",
+      "description": "View, edit, and manage user accounts."
+    },
+    "Product Management": {
+      "title": "Product Management",
+      "description": "Approve, edit, or remove product listings."
+    },
+    "Category Management": {
+      "title": "Category Management",
+      "description": "Add, edit, or remove product categories."
+    },
+    "Complaints System": {
+      "title": "Complaints System",
+      "description": "Handle user complaints and dispute resolution."
+    },
+    "System Settings": {
+      "title": "System Settings",
+      "description": "Configure global application settings."
+    },
+    "Reports & Analytics": {
+      "title": "Reports & Analytics",
+      "description": "View system-wide reports and analytics."
+    },
+    "Admin Logs": {
+      "title": "Admin Logs",
+      "description": "View admin action history and audit trail"
+    }
+  }
+} 

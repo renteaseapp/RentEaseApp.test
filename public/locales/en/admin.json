@@ -1,0 +1,22 @@
+{
+  "quantitySync": {
+    "title": "Quantity Management",
+    "description": "Sync and verify available product quantities",
+    "syncAllButton": "Sync All Product Quantities",
+    "syncSuccess": "Sync successful. Updated {{count}} products",
+    "noChanges": "No changes needed. All product quantities are correct",
+    "syncError": "Error occurred while syncing product quantities",
+    "singleSyncSuccess": "Successfully synced product ID {{productId}}",
+    "singleSyncError": "Error syncing product ID {{productId}}",
+    "errorTitle": "Error Occurred",
+    "resultsTitle": "Sync Results",
+    "syncedProducts": "Products Updated",
+    "changesDetails": "Change Details",
+    "quantityChange": "Quantity: {{old}} → {{new}}",
+    "activeRentals": "Active rentals: {{count}} items",
+    "instructionsTitle": "Instructions",
+    "instruction1": "Use this function when you find quantity discrepancies",
+    "instruction2": "System will check active rentals and adjust quantities accordingly",
+    "instruction3": "Run sync regularly to maintain data accuracy"
+  }
+}
