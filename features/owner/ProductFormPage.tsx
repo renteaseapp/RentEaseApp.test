@@ -334,7 +334,7 @@ export const ProductFormPage: React.FC = () => {
               whileTap={{ scale: 0.95 }}
             >
               <Link to={ROUTE_PATHS.MY_LISTINGS}>
-                <Button variant="primary" className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-xl font-semibold shadow-lg">
+                <Button variant="primary" className="bg-white text-black hover:bg-blue-50 hover:text-blue-600 px-6 py-3 rounded-xl font-semibold shadow-lg">
                   <FaArrowLeft className="h-4 w-4 mr-2" />
                   {t('productFormPage.backToListings')}
                 </Button>

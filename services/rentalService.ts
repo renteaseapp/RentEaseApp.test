@@ -134,7 +134,7 @@ export const submitPaymentProof = async (
   if (payload.amount_paid) formData.append('amount_paid', String(payload.amount_paid));
 
   const response = await api.put(`/rentals/${rentalId}/payment-proof`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
+    headers: { 'Content-Type': 'multipart/form-Type' }
   });
   return response.data.data.data;
 };
@@ -437,4 +437,14 @@ export const deleteReview = async (rentalId: number) => {
     console.error('Error deleting review:', error);
     throw error;
   }
-}; 
+};
+
+export const completeRentalDirectly = async (rentalIdOrUid: string | number): Promise<Rental> => {
+  try {
+    const response = await api.put(`/rentals/${rentalIdOrUid}/complete`);
+    return response.data.data.data;
+  } catch (error) {
+    console.error('Error completing rental directly:', error);
+    throw error;
+  }
+};

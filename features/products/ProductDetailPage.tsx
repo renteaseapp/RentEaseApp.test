@@ -4,7 +4,7 @@ import { Product, ApiError, User } from '../../types';
 import { getProductByID, getProvinces } from '../../services/productService';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import OutOfStockNotifier from '../../components/common/OutOfStockNotifier';
+
 import { Button } from '../../components/ui/Button';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
@@ -994,15 +994,7 @@ export const ProductDetailPage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Out of Stock Notifier */}
-                  {product.availability_status === 'rented_out' || (product.quantity_available || 0) === 0 ? (
-                    <OutOfStockNotifier
-                      productId={product.id}
-                      productTitle={product.title}
-                      isOutOfStock={true}
-                      className="mt-4"
-                    />
-                  ) : null}
+
                 </motion.div>
 
                 {/* Owner Info */}

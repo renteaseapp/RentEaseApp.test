@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { socketService } from '../../services/socketService';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -17,6 +18,7 @@ interface RealtimeNotificationProps {
 
 const RealtimeNotification: React.FC<RealtimeNotificationProps> = ({ onNotification }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -33,10 +35,19 @@ const RealtimeNotification: React.FC<RealtimeNotificationProps> = ({ onNotificat
 
       // Show browser notification if supported
       if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(notification.title, {
+        const browserNotification = new Notification(notification.title, {
           body: notification.message,
           icon: '/logo/vite.png'
         });
+        
+        // เพิ่มการจัดการการคลิกที่การแจ้งเตือน
+        browserNotification.onclick = () => {
+          window.focus(); // โฟกัสหน้าต่างเบราว์เซอร์
+          if (notification.link_url) {
+            navigate(notification.link_url); // นำทางไปยังหน้าที่เกี่ยวข้อง
+          }
+          browserNotification.close(); // ปิดการแจ้งเตือน
+        };
       }
     };
 
@@ -91,4 +102,4 @@ const RealtimeNotification: React.FC<RealtimeNotificationProps> = ({ onNotificat
   return null;
 };
 
-export default RealtimeNotification; 
+export default RealtimeNotification;

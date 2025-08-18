@@ -850,7 +850,9 @@
       "deposit": "เงินประกัน",
       "finalAmountPaid": "จำนวนเงินที่ชำระจริง",
       "estimatedPayout": "ยอดเงินที่คาดว่าจะได้รับ",
-      "lateFee": "ค่าปรับล่าช้า"
+      "lateFee": "ค่าปรับล่าช้า",
+      "platformFeeRenter": "ค่าธรรมเนียมแพลตฟอร์ม (ผู้เช่า)",
+      "platformFeeOwner": "ค่าธรรมเนียมแพลตฟอร์ม (เจ้าของ)"
     },
     "actions": {
       "approveRequest": "อนุมัติคำขอ",
@@ -948,11 +950,27 @@
     "paymentConfirmSuccess": "ยืนยันการชำระเงินสำเร็จ!",
     "deliveryStatusUpdateSuccess": "อัปเดตสถานะการจัดส่งสำเร็จ!",
     "claimChatSuccess": "ส่งข้อมูลการเช่าไปที่แชทสำเร็จ!",
+    "disputeResolveSuccess": "จบการพิพาทและสิ้นสุดการเช่าสำเร็จ!",
     "error": {
       "paymentConfirmFailed": "ไม่สามารถยืนยันการชำระเงินได้ กรุณาลองใหม่อีกครั้ง",
       "deliveryStatusUpdateFailed": "ไม่สามารถอัปเดตสถานะการจัดส่งได้ กรุณาลองใหม่อีกครั้ง",
       "claimChatFailed": "ไม่สามารถส่งข้อมูลการเช่าไปที่แชทได้ กรุณาลองใหม่อีกครั้ง",
-      "slipVerificationFailed": "ไม่สามารถตรวจสอบสลิปการชำระเงินได้ กรุณาลองใหม่อีกครั้ง"
+      "slipVerificationFailed": "ไม่สามารถตรวจสอบสลิปการชำระเงินได้ กรุณาลองใหม่อีกครั้ง",
+      "disputeResolveFailed": "ไม่สามารถจบการพิพาทได้ กรุณาลองใหม่อีกครั้ง"
+    },
+    "alerts": {
+      "statusPendingPayment": "สถานะการเช่าเปลี่ยนเป็นรอการชำระเงิน",
+      "statusConfirmed": "การเช่าได้รับการยืนยันแล้ว",
+      "statusActive": "การเช่าเริ่มต้นแล้ว",
+      "statusReturnPending": "รอการคืนสินค้า",
+      "statusCompleted": "การเช่าเสร็จสมบูรณ์แล้ว",
+      "statusCancelledByRenter": "การเช่าถูกยกเลิกโดยผู้เช่า",
+      "statusRejected": "การเช่าถูกปฏิเสธ",
+      "paymentConfirmed": "การชำระเงินได้รับการยืนยันแล้ว!",
+      "paymentUnderReview": "การชำระเงินอยู่ระหว่างการตรวจสอบ",
+      "productUpdated": "ข้อมูลสินค้าได้รับการอัปเดตแล้ว",
+      "lateReturnDetected": "ตรวจพบการคืนล่าช้า - กรุณาติดต่อผู้เช่าผ่านแชทเพื่อจัดการเงินประกันคืน",
+      "chatNotAvailable": "แชทไม่พร้อมใช้งาน"
     },
     "statusMessages": {
       "pending_owner_approval_title": "รอการอนุมัติจากเจ้าของ",
@@ -1002,6 +1020,7 @@
       "approveRequest": "อนุมัติคำขอเช่า",
       "approving": "กำลังอนุมัติ...",
       "rejectRequest": "ปฏิเสธคำขอ",
+      "rejectReasonTitle": "เหตุผลในการปฏิเสธ",
       "confirmingReject": "กำลังยืนยันการปฏิเสธ...",
       "confirmReject": "ยืนยันการปฏิเสธ",
       "confirmPayment": "ยืนยันการชำระเงิน",
@@ -1016,6 +1035,8 @@
       "verifySlip": "ตรวจสอบสลิปอัตโนมัติ",
       "verifyingSlip": "กำลังตรวจสอบ...",
       "invalidSlip": "แจ้งสลิปไม่ถูกต้อง",
+      "resolveDispute": "จบการพิพาท & สิ้นสุดการเช่า",
+      "resolvingDispute": "กำลังจบการพิพาท...",
       "noActionForStatus": "ไม่มี Action สำหรับสถานะนี้",
       "noReturnInfo": "ยังไม่มีข้อมูลการคืนสินค้า",
       "slipComparisonResult": "ผลการเปรียบเทียบข้อมูลสลิปกับบัญชีเจ้าของ",

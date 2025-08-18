@@ -120,10 +120,19 @@ export const Navbar: React.FC = () => {
             
             // Browser Notification เฉพาะเมื่อ permission เป็น granted
             if (window.Notification && Notification.permission === 'granted') {
-              new Notification(notification.title || 'New Notification', {
+              const browserNotification = new Notification(notification.title || 'New Notification', {
                 body: notification.message,
                 icon: '/logo/vite.png',
               });
+              
+              // เพิ่มการจัดการการคลิกที่การแจ้งเตือน
+              browserNotification.onclick = () => {
+                window.focus(); // โฟกัสหน้าต่างเบราว์เซอร์
+                if (notification.link_url) {
+                  navigate(notification.link_url); // นำทางไปยังหน้าที่เกี่ยวข้อง
+                }
+                browserNotification.close(); // ปิดการแจ้งเตือน
+              };
             }
             
             // แยกเสียงตาม type (ใช้ .wav)

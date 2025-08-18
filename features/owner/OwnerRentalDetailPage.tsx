@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getRentalByIdOrUid, getRentalDetails, approveRentalRequest, rejectRentalRequest, markPaymentSlipInvalid, processReturn, verifySlipByImage, verifyRentalPayment } from '../../services/rentalService';
+import { getRentalByIdOrUid, getRentalDetails, approveRentalRequest, rejectRentalRequest, markPaymentSlipInvalid, processReturn, verifySlipByImage, verifyRentalPayment, reportReturnByOwner, completeRentalDirectly } from '../../services/rentalService';
 import { Rental, ApiError, RentalReturnConditionStatus, PayoutMethod } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
@@ -429,6 +429,22 @@ export const OwnerRentalDetailPage: React.FC = () => {
     }
   };
 
+  const handleResolveDispute = async () => {
+    if (!rental) return;
+    setActionLoading(true);
+    try {
+      await completeRentalDirectly(rental.id);
+      showSuccess(t('ownerRentalDetailPage.disputeResolveSuccess'));
+      await fetchRental();
+    } catch (err) {
+      const apiError = err as ApiError;
+      showError(apiError.message || t('ownerRentalDetailPage.error.disputeResolveFailed'));
+      console.error('Error resolving dispute:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDeliveryStatusUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rental) return;
@@ -489,6 +505,7 @@ export const OwnerRentalDetailPage: React.FC = () => {
   // Determine actions based on rental status
   const showPaymentActions = ['pending_payment', 'pending_verification'].includes(rental.payment_status) && Boolean(rental.payment_proof_url);
   const showReturnActions = ['return_pending', 'late_return'].includes(rental.rental_status);
+  const showDisputeResolveButton = rental.rental_status === 'dispute';
   // Only show delivery update form if:
   // 1. Pickup method is delivery
   // 2. Rental status allows delivery updates
@@ -581,7 +598,7 @@ export const OwnerRentalDetailPage: React.FC = () => {
               whileTap={{ scale: 0.95 }}
             >
               <Link to={ROUTE_PATHS.OWNER_RENTAL_HISTORY}>
-                <Button variant="primary" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl font-semibold shadow-lg">
+                <Button variant="primary" className="bg-white text-black hover:bg-blue-50 hover:text-blue-600 px-8 py-4 rounded-xl font-semibold shadow-lg">
                   <FaArrowLeft className="h-5 w-5 mr-2" />
                   {t('ownerRentalDetailPage.backToHistory')}
                 </Button>
@@ -877,6 +894,11 @@ export const OwnerRentalDetailPage: React.FC = () => {
                     {showReturnActions && (
                       <Button variant="primary" className="w-full bg-indigo-600 hover:bg-indigo-700" onClick={() => setShowReturnModal(true)}>
                         {t('ownerRentalDetailPage.sidebar.confirmReturn')}
+                      </Button>
+                    )}
+                    {showDisputeResolveButton && (
+                      <Button onClick={handleResolveDispute} disabled={actionLoading} className="w-full bg-red-600 hover:bg-red-700">
+                        {actionLoading ? t('ownerRentalDetailPage.sidebar.resolvingDispute') : t('ownerRentalDetailPage.sidebar.resolveDispute')}
                       </Button>
                     )}
                     {showClaimButton && (

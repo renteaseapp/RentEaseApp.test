@@ -851,7 +851,9 @@
       "deposit": "Security Deposit",
       "finalAmountPaid": "Final Amount Paid",
       "estimatedPayout": "Estimated Payout",
-      "lateFee": "Late Fee"
+      "lateFee": "Late Fee",
+      "platformFeeRenter": "Platform Fee (Renter)",
+      "platformFeeOwner": "Platform Fee (Owner)"
     },
     "actions": {
       "approveRequest": "Approve Request",
@@ -949,11 +951,13 @@
     "paymentConfirmSuccess": "Payment confirmed successfully!",
     "deliveryStatusUpdateSuccess": "Delivery status updated successfully!",
     "claimChatSuccess": "Rental information sent to chat successfully!",
+    "disputeResolveSuccess": "Dispute resolved and rental ended successfully!",
     "error": {
       "paymentConfirmFailed": "Failed to confirm payment. Please try again.",
       "deliveryStatusUpdateFailed": "Failed to update delivery status. Please try again.",
       "claimChatFailed": "Failed to send rental information to chat. Please try again.",
-      "slipVerificationFailed": "Failed to verify payment slip. Please try again."
+      "slipVerificationFailed": "Failed to verify payment slip. Please try again.",
+      "disputeResolveFailed": "Failed to resolve dispute. Please try again."
     },
     "alerts": {
       "statusPendingPayment": "Rental status changed to pending payment",
@@ -1017,6 +1021,7 @@
       "approveRequest": "Approve Rental Request",
       "approving": "Approving...",
       "rejectRequest": "Reject Request",
+      "rejectReasonTitle": "Reason for Rejection",
       "confirmingReject": "Confirming Rejection...",
       "confirmReject": "Confirm Rejection",
       "confirmPayment": "Confirm Payment",
@@ -1031,6 +1036,8 @@
       "verifySlip": "Verify Slip Automatically",
       "verifyingSlip": "Verifying...",
       "invalidSlip": "Mark Slip as Invalid",
+      "resolveDispute": "Resolve Dispute & End Rental",
+      "resolvingDispute": "Resolving Dispute...",
       "noActionForStatus": "No actions available for this status",
       "noReturnInfo": "No return information available yet",
       "slipComparisonResult": "Slip Comparison Results",

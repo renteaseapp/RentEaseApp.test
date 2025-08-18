@@ -166,7 +166,7 @@ const OwnerReportPage: React.FC = () => {
             >
               <Button 
                 variant="primary" 
-                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl font-semibold shadow-lg"
+                className="bg-white text-black hover:bg-blue-50 hover:text-blue-600 px-8 py-4 rounded-xl font-semibold shadow-lg"
                 onClick={() => navigate(-1)} // Go back to previous page
               >
                 <FaArrowLeft className="h-5 w-5 mr-2" />

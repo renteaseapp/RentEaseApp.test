@@ -411,7 +411,7 @@ export const MyListingsPage: React.FC = () => {
               whileTap={{ scale: 0.95 }}
             >
               <Link to={ROUTE_PATHS.CREATE_PRODUCT}>
-                <Button variant="primary" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl font-semibold shadow-lg">
+                <Button variant="primary" className="bg-white text-black hover:bg-blue-50 hover:text-blue-600 px-8 py-4 rounded-xl font-semibold shadow-lg">
                   <FaPlus className="h-5 w-5 mr-2" />
                   {t('myListingsPage.addNewListing')}
                 </Button>
