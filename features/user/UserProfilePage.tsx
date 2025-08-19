@@ -845,7 +845,8 @@ export const UserProfilePage: React.FC = () => {
                         <div className="text-sm text-gray-700 space-y-1">
                           <p>{addr.address_line1}</p>
                           {addr.address_line2 && <p>{addr.address_line2}</p>}
-                          <p>{addr.sub_district || ''}{addr.district}, {addr.province_name || addr.province_id}</p>
+<p>{addr.sub_district ? `${addr.sub_district}, ` : ''}{addr.district}, {provinces.find(p => p.id === addr.province_id)?.name_th || `จังหวัด ID: ${addr.province_id}`}</p>
+                          <p>{addr.postal_code}</p>
                           <p className="text-gray-500">{addr.phone_number}</p>
                         </div>
                         {addr.notes && (

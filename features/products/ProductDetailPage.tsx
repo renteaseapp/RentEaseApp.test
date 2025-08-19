@@ -332,12 +332,20 @@ export const ProductDetailPage: React.FC = () => {
   useEffect(() => {
     if (showRentalModal && pickupMethod === RentalPickupMethod.DELIVERY && authUser) {
       setIsLoadingAddresses(true);
-      getUserAddresses()
-        .then(addresses => {
+      // Load provinces and addresses simultaneously
+      Promise.all([
+        getUserAddresses(),
+        getProvinces()
+      ])
+        .then(([addresses, provincesRes]) => {
           const shipping = addresses.filter(addr => addr.address_type === 'shipping');
           setAddresses(shipping.length > 0 ? shipping : addresses);
+          setProvinces(provincesRes.data);
         })
-        .catch(() => setAddresses([]))
+        .catch(() => {
+          setAddresses([]);
+          setProvinces([]);
+        })
         .finally(() => setIsLoadingAddresses(false));
     }
   }, [showRentalModal, pickupMethod, authUser]);
@@ -1534,7 +1542,7 @@ export const ProductDetailPage: React.FC = () => {
                           <option value="">{t('productDetailPage.selectAddressOption')}</option>
                           {addresses.map(addr => (
                             <option key={addr.id} value={addr.id}>
-                              {addr.recipient_name} - {addr.address_line1}, {addr.district}, {addr.province_name || addr.province_id}
+                              {addr.recipient_name} - {addr.address_line1}{addr.address_line2 ? `, ${addr.address_line2}` : ''}{addr.sub_district ? `, ${addr.sub_district}` : ''}, {addr.district}, {provinces.find(p => p.id === addr.province_id)?.name_th || `จังหวัด ID: ${addr.province_id}`}{addr.postal_code ? ` ${addr.postal_code}` : ''}
                             </option>
                           ))}
                         </select>
