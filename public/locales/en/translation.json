@@ -136,6 +136,10 @@
       "variety": "Wide variety of items",
       "support": "24/7 customer support"
     },
+    "buttons": {
+      "rentItem": "Rent Item",
+      "lendItem": "Lend Item"
+    },
     "steps": {
       "search": {
         "title": "Search for items",

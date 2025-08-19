@@ -119,6 +119,27 @@ export const HomePage: React.FC = () => {
                 </button>
               </form>
             </motion.div>
+            
+            {/* Action Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center mt-8"
+            >
+              <Link
+                to={ROUTE_PATHS.SEARCH_PRODUCTS}
+                className="bg-white text-blue-600 hover:bg-gray-100 transition-colors font-semibold px-8 py-3 rounded-lg shadow-lg flex items-center justify-center gap-2"
+              >
+                <FaBoxOpen /> {t('homePage.buttons.rentItem')}
+              </Link>
+              <Link
+                to={ROUTE_PATHS.MY_LISTINGS}
+                className="bg-yellow-400 hover:bg-yellow-500 transition-colors text-gray-900 font-semibold px-8 py-3 rounded-lg shadow-lg flex items-center justify-center gap-2"
+              >
+                <FaListOl /> {t('homePage.buttons.lendItem')}
+              </Link>
+            </motion.div>
           </div>
         </div>
       </section>
