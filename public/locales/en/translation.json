@@ -317,6 +317,14 @@
       "protectedDesc": "Your personal data is protected with security measures",
       "quick": "Quick and Easy",
       "quickDesc": "Recover your password in just a few steps"
+    },
+    "passwordRequirements": {
+      "title": "Password Requirements:",
+      "minLength": "At least 8 characters long",
+      "uppercase": "Contains at least one uppercase letter",
+      "lowercase": "Contains at least one lowercase letter",
+      "number": "Contains at least one number",
+      "special": "Contains at least one special character (!@#$%^&*)"
     }
   },
   "resetPasswordPage": {
@@ -348,6 +356,14 @@
       "temporaryDesc": "Reset tokens have limited lifespan for security",
       "verified": "Verified",
       "verifiedDesc": "Information has been verified and validated"
+    },
+    "passwordRequirements": {
+      "title": "Password Requirements:",
+      "minLength": "At least 8 characters long",
+      "uppercase": "Contains at least one uppercase letter",
+      "lowercase": "Contains at least one lowercase letter",
+      "number": "Contains at least one number",
+      "special": "Contains at least one special character (!@#$%^&*)"
     }
   },
   "searchPage": {

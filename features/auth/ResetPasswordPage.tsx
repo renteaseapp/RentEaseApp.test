@@ -19,7 +19,8 @@ import {
   FaArrowRight,
   FaLockOpen,
   FaClock,
-  FaCheckDouble
+  FaCheckDouble,
+  FaInfoCircle
 } from 'react-icons/fa';
 
 export const ResetPasswordPage: React.FC = () => {
@@ -273,6 +274,22 @@ export const ResetPasswordPage: React.FC = () => {
                           >
                             {showNewPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
                           </button>
+                        </div>
+                        {/* Password Requirements */}
+                        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <FaInfoCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            <div className="text-sm text-green-700">
+                              <p className="font-medium mb-1">{t('resetPasswordPage.passwordRequirements.title')}</p>
+                              <ul className="space-y-1 text-xs">
+                                <li>• {t('resetPasswordPage.passwordRequirements.minLength')}</li>
+                                <li>• {t('resetPasswordPage.passwordRequirements.uppercase')}</li>
+                                <li>• {t('resetPasswordPage.passwordRequirements.lowercase')}</li>
+                                <li>• {t('resetPasswordPage.passwordRequirements.number')}</li>
+                                <li>• {t('resetPasswordPage.passwordRequirements.special')}</li>
+                              </ul>
+                            </div>
+                          </div>
                         </div>
                       </div>
 

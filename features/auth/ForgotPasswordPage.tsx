@@ -17,7 +17,8 @@ import {
   FaArrowLeft,
   FaArrowRight,
   FaLockOpen,
-  FaUserShield
+  FaUserShield,
+  FaInfoCircle
 } from 'react-icons/fa';
 
 export const ForgotPasswordPage: React.FC = () => {
@@ -303,6 +304,22 @@ export const ForgotPasswordPage: React.FC = () => {
                           >
                             {showNewPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
                           </button>
+                        </div>
+                        {/* Password Requirements */}
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <FaInfoCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                            <div className="text-sm text-blue-700">
+                              <p className="font-medium mb-1">{t('forgotPasswordPage.passwordRequirements.title')}</p>
+                              <ul className="space-y-1 text-xs">
+                                <li>• {t('forgotPasswordPage.passwordRequirements.minLength')}</li>
+                                <li>• {t('forgotPasswordPage.passwordRequirements.uppercase')}</li>
+                                <li>• {t('forgotPasswordPage.passwordRequirements.lowercase')}</li>
+                                <li>• {t('forgotPasswordPage.passwordRequirements.number')}</li>
+                                <li>• {t('forgotPasswordPage.passwordRequirements.special')}</li>
+                              </ul>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
