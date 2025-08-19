@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { socketService } from '../../services/socketService';
 import { useAuth } from '../../contexts/AuthContext';
 import AlertNotification from '../../components/common/AlertNotification';
+import ActionGuidePopup from '../../components/common/ActionGuidePopup';
 import { useRealtimeRental } from '../../hooks/useRealtimeRental';
 
 
@@ -197,6 +198,13 @@ export const OwnerRentalDetailPage: React.FC = () => {
   const [invalidSlipReason, setInvalidSlipReason] = useState('');
   const [invalidSlipLoading, setInvalidSlipLoading] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
+  const [actionGuidePopup, setActionGuidePopup] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    nextSteps: [] as string[],
+    type: 'success' as 'success' | 'info' | 'warning' | 'error'
+  });
   const navigate = useNavigate();
   const [verifySlipLoading, setVerifySlipLoading] = useState(false);
   const [verifySlipResult, setVerifySlipResult] = useState<any>(null);
@@ -285,6 +293,18 @@ export const OwnerRentalDetailPage: React.FC = () => {
     try {
       await approveRentalRequest(rental.id);
       showSuccess(t('ownerRentalDetailPage.approveSuccess'));
+      setActionGuidePopup({
+        isOpen: true,
+        title: 'คำขอเช่าได้รับการอนุมัติแล้ว',
+        message: 'คำขอเช่าของลูกค้าได้รับการอนุมัติเรียบร้อยแล้ว ระบบจะแจ้งเตือนลูกค้าให้ทำการชำระเงิน',
+        nextSteps: [
+          'รอลูกค้าทำการชำระเงิน',
+          'ตรวจสอบสถานะการชำระเงินในแท็บ "การชำระเงิน"',
+          'เตรียมสินค้าสำหรับการจัดส่ง',
+          'ติดต่อลูกค้าผ่านแชทหากมีข้อสงสัย'
+        ],
+        type: 'success'
+      });
       await fetchRental();
     } catch (err) {
       const apiError = err as ApiError;
@@ -303,6 +323,17 @@ export const OwnerRentalDetailPage: React.FC = () => {
     try {
       await rejectRentalRequest(rental.id, rejectReason.trim());
       showSuccess(t('ownerRentalDetailPage.rejectSuccess'));
+      setActionGuidePopup({
+        isOpen: true,
+        title: 'คำขอเช่าถูกปฏิเสธแล้ว',
+        message: 'คำขอเช่าได้ถูกปฏิเสธเรียบร้อยแล้ว ระบบจะแจ้งเตือนลูกค้าพร้อมเหตุผลที่ระบุ',
+        nextSteps: [
+          'ลูกค้าจะได้รับการแจ้งเตือนเกี่ยวกับการปฏิเสธ',
+          'ตรวจสอบคำขอเช่าอื่นๆ ในรายการของคุณ',
+          'พิจารณาปรับปรุงข้อมูลสินค้าหากจำเป็น'
+        ],
+        type: 'info'
+      });
       await fetchRental();
       setShowRejectForm(false);
       setRejectReason("");
@@ -362,6 +393,18 @@ export const OwnerRentalDetailPage: React.FC = () => {
       await verifyRentalPayment(rental.id);
       await fetchRental();
       showSuccess(t('ownerRentalDetailPage.paymentConfirmSuccess'));
+      setActionGuidePopup({
+        isOpen: true,
+        title: 'การชำระเงินได้รับการยืนยันแล้ว',
+        message: 'การชำระเงินของลูกค้าได้รับการยืนยันเรียบร้อยแล้ว ตอนนี้คุณสามารถเตรียมสินค้าและจัดส่งได้',
+        nextSteps: [
+          'เตรียมสินค้าสำหรับการจัดส่ง',
+          'อัปเดตสถานะการจัดส่งในแท็บ "การจัดส่ง/คืนสินค้า"',
+          'ใส่หมายเลขติดตามพัสดุเมื่อจัดส่งแล้ว',
+          'ติดต่อลูกค้าหากมีข้อมูลเพิ่มเติมเกี่ยวกับการจัดส่ง'
+        ],
+        type: 'success'
+      });
     } catch (err) {
       showError(t('ownerRentalDetailPage.error.paymentConfirmFailed'));
     } finally {
@@ -397,6 +440,18 @@ export const OwnerRentalDetailPage: React.FC = () => {
       });
       await fetchRental();
       showSuccess(t('ownerRentalDetailPage.deliveryStatusUpdateSuccess'));
+      setActionGuidePopup({
+        isOpen: true,
+        title: 'สถานะการจัดส่งได้รับการอัปเดตแล้ว',
+        message: `สถานะการจัดส่งได้รับการอัปเดตเป็น "${deliveryStatus}" เรียบร้อยแล้ว ลูกค้าจะได้รับการแจ้งเตือน`,
+        nextSteps: [
+          'ลูกค้าจะได้รับการแจ้งเตือนเกี่ยวกับการอัปเดตสถานะ',
+          'ติดตามสถานะพัสดุผ่านหมายเลขติดตาม',
+          'ติดต่อลูกค้าหากมีปัญหาในการจัดส่ง',
+          'รอการยืนยันการรับสินค้าจากลูกค้า'
+        ],
+        type: 'success'
+      });
     } catch (err: any) {
       setDeliveryError(err?.message || t('ownerRentalDetailPage.error.deliveryStatusUpdateFailed'));
     } finally {
@@ -709,6 +764,16 @@ export const OwnerRentalDetailPage: React.FC = () => {
           </Modal>
         )}
       </AnimatePresence>
+      
+      <ActionGuidePopup
+        isOpen={actionGuidePopup.isOpen}
+        title={actionGuidePopup.title}
+        message={actionGuidePopup.message}
+        nextSteps={actionGuidePopup.nextSteps.map(step => ({ text: step }))}
+        type={actionGuidePopup.type}
+        onClose={() => setActionGuidePopup(prev => ({ ...prev, isOpen: false }))}
+        autoClose={true}
+      />
     </div>
   );
 };

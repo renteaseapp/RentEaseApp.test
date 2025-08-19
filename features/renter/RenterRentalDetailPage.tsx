@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../../utils/financialCalculations';
 import { socketService } from '../../services/socketService';
 import AlertNotification from '../../components/common/AlertNotification';
+import ActionGuidePopup from '../../components/common/ActionGuidePopup';
 import { 
   FaArrowLeft, FaCalendarAlt, FaUser, FaMoneyBillWave, FaClock, FaCheckCircle, 
   FaExclamationTriangle, FaTimes, FaCreditCard, FaBox, FaStar, FaEye, FaDownload,
@@ -69,6 +70,19 @@ export const RenterRentalDetailPage: React.FC = () => {
   }>({ isVisible: false, message: '', type: 'info' });
   const [contactingOwner, setContactingOwner] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [actionGuidePopup, setActionGuidePopup] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    nextSteps: { text: string; action?: () => void; link?: string }[];
+    type: 'success' | 'info' | 'warning' | 'error';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    nextSteps: [],
+    type: 'info'
+  });
 
   const { rental: realtimeRental, isConnected: isRealtimeConnected } = useRealtimeRental({ rentalId: rentalId || '' });
 
@@ -159,6 +173,27 @@ export const RenterRentalDetailPage: React.FC = () => {
       setShowCancelDialog(false);
       showSuccess(t('renterRentalDetailPage.alerts.cancelSuccess'));
       fetchRentalDetails();
+      
+      // แสดง popup แจ้งเตือนขั้นตอนต่อไป
+      setActionGuidePopup({
+        isOpen: true,
+        title: 'ยกเลิกการเช่าสำเร็จ',
+        message: 'การเช่าของคุณได้ถูกยกเลิกเรียบร้อยแล้ว',
+        type: 'success',
+        nextSteps: [
+          {
+            text: 'เงินจะถูกคืนภายใน 3-5 วันทำการ',
+          },
+          {
+            text: 'ตรวจสอบสถานะการคืนเงินในหน้าประวัติการเช่า',
+            link: '/rentals'
+          },
+          {
+            text: 'หากมีคำถามติดต่อฝ่ายสนับสนุน',
+            link: '/support'
+          }
+        ]
+      });
     } catch (err) {
       showError((err as ApiError).message || t('renterRentalDetailPage.alerts.cancelError'));
     } finally {
@@ -174,6 +209,30 @@ export const RenterRentalDetailPage: React.FC = () => {
       setShowReturnForm(false);
       showSuccess(t('renterRentalDetailPage.initiateReturn.success'));
       fetchRentalDetails();
+      
+      // แสดง popup แจ้งเตือนขั้นตอนต่อไป
+      setActionGuidePopup({
+        isOpen: true,
+        title: 'ส่งคำขอคืนสินค้าสำเร็จ',
+        message: 'คำขอคืนสินค้าของคุณได้ถูกส่งไปยังเจ้าของแล้ว',
+        type: 'success',
+        nextSteps: [
+          {
+            text: 'รอการตรวจสอบจากเจ้าของสินค้า',
+          },
+          {
+            text: 'เตรียมสินค้าให้พร้อมสำหรับการคืน',
+          },
+          {
+            text: 'ติดตามสถานะการคืนในหน้านี้',
+            action: () => window.location.reload()
+          },
+          {
+            text: 'หากมีปัญหาติดต่อเจ้าของผ่านแชท',
+            action: () => setContactingOwner(true)
+          }
+        ]
+      });
     } catch (err) {
       showError((err as ApiError).message || t('renterRentalDetailPage.initiateReturn.error'));
     } finally {
@@ -416,6 +475,18 @@ export const RenterRentalDetailPage: React.FC = () => {
       <AnimatePresence>
         {showCancelDialog && (<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowCancelDialog(false)}><motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}><div className="flex items-center justify-between mb-6"><h3 className="text-xl font-bold text-red-600 flex items-center gap-2"><FaBan className="h-5 w-5" />{t('renterRentalDetailPage.modals.cancelRental.title', 'Cancel Rental')}</h3><button onClick={() => setShowCancelDialog(false)} className="text-gray-400 hover:text-gray-600 transition-colors"><FaTimes className="h-6 w-6" /></button></div><div className="space-y-4"><div className="p-4 bg-red-50 border border-red-200 rounded-lg"><p className="text-red-700 text-sm">{t('renterRentalDetailPage.modals.cancelRental.warning', 'Are you sure you want to cancel this rental? This action cannot be undone.')}</p></div><div><label htmlFor="cancelReason" className="block text-sm font-medium text-gray-700 mb-2">{t('renterRentalDetailPage.modals.cancelRental.reason', 'Reason for cancellation')} *</label><textarea id="cancelReason" value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" rows={3} placeholder={t('renterRentalDetailPage.modals.cancelRental.reasonPlaceholder', 'Please provide a reason for cancelling this rental...')} required /></div>{cancelError && (<div className="p-3 bg-red-50 border border-red-200 rounded-lg"><p className="text-red-600 text-sm">{cancelError}</p></div>)}<div className="flex gap-3 pt-4"><button onClick={() => setShowCancelDialog(false)} className="flex-1 px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">{t('common.cancel')}</button><button onClick={handleCancelRental} disabled={!cancelReason.trim() || isCancelling} className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${!cancelReason.trim() || isCancelling ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'}`}>{isCancelling ? (<div className="flex items-center justify-center gap-2"><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>{t('common.loading')}</div>) : (t('renterRentalDetailPage.modals.cancelRental.confirm', 'Confirm Cancellation'))}</button></div></div></motion.div></motion.div>)}
       </AnimatePresence>
+
+      {/* Action Guide Popup */}
+      <ActionGuidePopup
+        isOpen={actionGuidePopup.isOpen}
+        onClose={() => setActionGuidePopup(prev => ({ ...prev, isOpen: false }))}
+        title={actionGuidePopup.title}
+        message={actionGuidePopup.message}
+        nextSteps={actionGuidePopup.nextSteps}
+        type={actionGuidePopup.type}
+        autoClose={true}
+        autoCloseDelay={8000}
+      />
     </div>
   );
 };

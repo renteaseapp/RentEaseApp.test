@@ -103,27 +103,59 @@ function UserComplaintsPage() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    
+    // Client-side validation
+    if (newComplaint.details.length < 20) {
+      setError('รายละเอียดต้องมีความยาวอย่างน้อย 20 ตัวอักษร');
+      setSubmitting(false);
+      return;
+    }
+    
+    if (newComplaint.subject_user_id && (isNaN(Number(newComplaint.subject_user_id)) || Number(newComplaint.subject_user_id) <= 0)) {
+      setError('รหัสผู้ใช้ต้องเป็นตัวเลขบวก');
+      setSubmitting(false);
+      return;
+    }
+    
+    if (newComplaint.related_product_id && (isNaN(Number(newComplaint.related_product_id)) || Number(newComplaint.related_product_id) <= 0)) {
+      setError('รหัสสินค้าต้องเป็นตัวเลขบวก');
+      setSubmitting(false);
+      return;
+    }
+    
     const formData = new FormData();
     formData.append('title', newComplaint.title);
     formData.append('details', newComplaint.details);
     formData.append('complaint_type', newComplaint.complaint_type);
     if (newComplaint.related_rental_id) formData.append('related_rental_id', newComplaint.related_rental_id);
-    if (newComplaint.related_product_id) formData.append('related_product_id', newComplaint.related_product_id);
-    if (newComplaint.subject_user_id) formData.append('subject_user_id', newComplaint.subject_user_id);
+    // Only append related_product_id if it's a valid positive number
+    if (newComplaint.related_product_id && !isNaN(Number(newComplaint.related_product_id)) && Number(newComplaint.related_product_id) > 0) {
+      formData.append('related_product_id', newComplaint.related_product_id);
+    }
+    // Only append subject_user_id if it's a valid positive number
+    if (newComplaint.subject_user_id && !isNaN(Number(newComplaint.subject_user_id)) && Number(newComplaint.subject_user_id) > 0) {
+      formData.append('subject_user_id', newComplaint.subject_user_id);
+    }
     newComplaint.attachments.forEach(file => formData.append('attachments', file));
+    
     try {
       const res = await fetch(`${API_BASE_URL}/complaints`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-      if (!res.ok) throw new Error('Failed to create complaint');
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to create complaint');
+      }
+      
       setShowNewForm(false);
       setNewComplaint({ title: '', details: '', complaint_type: '', related_rental_id: '', related_product_id: '', subject_user_id: '', attachments: [] });
       const data = await res.json();
       setComplaints((prev) => [data.data.data, ...prev]);
-    } catch (err) {
-      setError(t('complaints.error.create'));
+    } catch (err: any) {
+      setError(err.message || t('complaints.error.create'));
     } finally {
       setSubmitting(false);
     }
@@ -268,14 +300,33 @@ function UserComplaintsPage() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     {t('complaints.form.details')}
+                    <span className="text-red-500 ml-1">*</span>
+                    <span className="text-xs text-gray-500 ml-2">(อย่างน้อย 20 ตัวอักษร)</span>
                   </label>
                   <textarea
                     value={newComplaint.details}
                     onChange={e => setNewComplaint({ ...newComplaint, details: e.target.value })}
                     rows={4}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all resize-none"
+                    className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all resize-none ${
+                      newComplaint.details.length > 0 && newComplaint.details.length < 20 
+                        ? 'border-red-300 bg-red-50' 
+                        : 'border-gray-300'
+                    }`}
+                    placeholder="กรุณาอธิบายรายละเอียดของปัญหาที่พบ (อย่างน้อย 20 ตัวอักษร)"
                     required
                   />
+                  <div className="flex justify-between mt-1">
+                    <span className={`text-xs ${
+                      newComplaint.details.length < 20 ? 'text-red-500' : 'text-gray-500'
+                    }`}>
+                      {newComplaint.details.length}/20 ตัวอักษร
+                    </span>
+                    {newComplaint.details.length > 0 && newComplaint.details.length < 20 && (
+                      <span className="text-xs text-red-500">
+                        ต้องการอีก {20 - newComplaint.details.length} ตัวอักษร
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -309,25 +360,49 @@ function UserComplaintsPage() {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       {t('complaints.form.product')}
+                      <span className="text-xs text-gray-500 ml-2">(ตัวเลขบวกเท่านั้น)</span>
                     </label>
                     <input
                       type="number"
+                      min="1"
                       value={newComplaint.related_product_id}
                       onChange={e => setNewComplaint({ ...newComplaint, related_product_id: e.target.value })}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all ${
+                        newComplaint.related_product_id && (isNaN(Number(newComplaint.related_product_id)) || Number(newComplaint.related_product_id) <= 0)
+                          ? 'border-red-300 bg-red-50' 
+                          : 'border-gray-300'
+                      }`}
+                      placeholder="รหัสสินค้า (เช่น 456)"
                     />
+                    {newComplaint.related_product_id && (isNaN(Number(newComplaint.related_product_id)) || Number(newComplaint.related_product_id) <= 0) && (
+                      <span className="text-xs text-red-500 mt-1 block">
+                        กรุณาใส่ตัวเลขบวกเท่านั้น
+                      </span>
+                    )}
                   </div>
                   
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       {t('complaints.form.user')}
+                      <span className="text-xs text-gray-500 ml-2">(ตัวเลขบวกเท่านั้น)</span>
                     </label>
                     <input
                       type="number"
+                      min="1"
                       value={newComplaint.subject_user_id}
                       onChange={e => setNewComplaint({ ...newComplaint, subject_user_id: e.target.value })}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all ${
+                        newComplaint.subject_user_id && (isNaN(Number(newComplaint.subject_user_id)) || Number(newComplaint.subject_user_id) <= 0)
+                          ? 'border-red-300 bg-red-50' 
+                          : 'border-gray-300'
+                      }`}
+                      placeholder="รหัสผู้ใช้ (เช่น 123)"
                     />
+                    {newComplaint.subject_user_id && (isNaN(Number(newComplaint.subject_user_id)) || Number(newComplaint.subject_user_id) <= 0) && (
+                      <span className="text-xs text-red-500 mt-1 block">
+                        กรุณาใส่ตัวเลขบวกเท่านั้น
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -637,4 +712,4 @@ function UserComplaintsPage() {
   );
 }
 
-export default UserComplaintsPage; 
+export default UserComplaintsPage;
