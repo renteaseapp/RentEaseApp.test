@@ -295,14 +295,9 @@ export const OwnerRentalDetailPage: React.FC = () => {
       showSuccess(t('ownerRentalDetailPage.approveSuccess'));
       setActionGuidePopup({
         isOpen: true,
-        title: 'คำขอเช่าได้รับการอนุมัติแล้ว',
-        message: 'คำขอเช่าของลูกค้าได้รับการอนุมัติเรียบร้อยแล้ว ระบบจะแจ้งเตือนลูกค้าให้ทำการชำระเงิน',
-        nextSteps: [
-          'รอลูกค้าทำการชำระเงิน',
-          'ตรวจสอบสถานะการชำระเงินในแท็บ "การชำระเงิน"',
-          'เตรียมสินค้าสำหรับการจัดส่ง',
-          'ติดต่อลูกค้าผ่านแชทหากมีข้อสงสัย'
-        ],
+        title: t('actionGuidePopup:rentalApproved.title'),
+        message: t('actionGuidePopup:rentalApproved.message'),
+        nextSteps: t('actionGuidePopup:rentalApproved.steps', { returnObjects: true }) as string[],
         type: 'success'
       });
       await fetchRental();
@@ -325,13 +320,9 @@ export const OwnerRentalDetailPage: React.FC = () => {
       showSuccess(t('ownerRentalDetailPage.rejectSuccess'));
       setActionGuidePopup({
         isOpen: true,
-        title: 'คำขอเช่าถูกปฏิเสธแล้ว',
-        message: 'คำขอเช่าได้ถูกปฏิเสธเรียบร้อยแล้ว ระบบจะแจ้งเตือนลูกค้าพร้อมเหตุผลที่ระบุ',
-        nextSteps: [
-          'ลูกค้าจะได้รับการแจ้งเตือนเกี่ยวกับการปฏิเสธ',
-          'ตรวจสอบคำขอเช่าอื่นๆ ในรายการของคุณ',
-          'พิจารณาปรับปรุงข้อมูลสินค้าหากจำเป็น'
-        ],
+        title: t('actionGuidePopup:rentalRejected.title'),
+        message: t('actionGuidePopup:rentalRejected.message'),
+        nextSteps: t('actionGuidePopup:rentalRejected.steps', { returnObjects: true }) as string[],
         type: 'info'
       });
       await fetchRental();
@@ -395,14 +386,9 @@ export const OwnerRentalDetailPage: React.FC = () => {
       showSuccess(t('ownerRentalDetailPage.paymentConfirmSuccess'));
       setActionGuidePopup({
         isOpen: true,
-        title: 'การชำระเงินได้รับการยืนยันแล้ว',
-        message: 'การชำระเงินของลูกค้าได้รับการยืนยันเรียบร้อยแล้ว ตอนนี้คุณสามารถเตรียมสินค้าและจัดส่งได้',
-        nextSteps: [
-          'เตรียมสินค้าสำหรับการจัดส่ง',
-          'อัปเดตสถานะการจัดส่งในแท็บ "การจัดส่ง/คืนสินค้า"',
-          'ใส่หมายเลขติดตามพัสดุเมื่อจัดส่งแล้ว',
-          'ติดต่อลูกค้าหากมีข้อมูลเพิ่มเติมเกี่ยวกับการจัดส่ง'
-        ],
+        title: t('actionGuidePopup:paymentConfirmed.title'),
+        message: t('actionGuidePopup:paymentConfirmed.message'),
+        nextSteps: t('actionGuidePopup:paymentConfirmed.steps', { returnObjects: true }) as string[],
         type: 'success'
       });
     } catch (err) {
@@ -442,14 +428,9 @@ export const OwnerRentalDetailPage: React.FC = () => {
       showSuccess(t('ownerRentalDetailPage.deliveryStatusUpdateSuccess'));
       setActionGuidePopup({
         isOpen: true,
-        title: 'สถานะการจัดส่งได้รับการอัปเดตแล้ว',
-        message: `สถานะการจัดส่งได้รับการอัปเดตเป็น "${deliveryStatus}" เรียบร้อยแล้ว ลูกค้าจะได้รับการแจ้งเตือน`,
-        nextSteps: [
-          'ลูกค้าจะได้รับการแจ้งเตือนเกี่ยวกับการอัปเดตสถานะ',
-          'ติดตามสถานะพัสดุผ่านหมายเลขติดตาม',
-          'ติดต่อลูกค้าหากมีปัญหาในการจัดส่ง',
-          'รอการยืนยันการรับสินค้าจากลูกค้า'
-        ],
+        title: t('actionGuidePopup:deliveryStatusUpdated.title'),
+        message: t('actionGuidePopup:deliveryStatusUpdated.message', { status: deliveryStatus }),
+        nextSteps: t('actionGuidePopup:deliveryStatusUpdated.steps', { returnObjects: true }) as string[],
         type: 'success'
       });
     } catch (err: any) {

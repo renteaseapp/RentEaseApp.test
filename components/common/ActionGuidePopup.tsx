@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaCheckCircle, FaInfoCircle, FaExclamationTriangle, FaTimes, FaArrowRight } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 
 interface ActionGuidePopupProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export const ActionGuidePopup: React.FC<ActionGuidePopupProps> = ({
   autoClose = false,
   autoCloseDelay = 5000
 }) => {
+  const { t } = useTranslation('actionGuidePopup');
   React.useEffect(() => {
     if (isOpen && autoClose) {
       const timer = setTimeout(() => {
@@ -102,7 +104,7 @@ export const ActionGuidePopup: React.FC<ActionGuidePopupProps> = ({
               <div className="px-6 pb-6">
                 <h4 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   <FaArrowRight className="h-4 w-4" />
-                  ขั้นตอนต่อไป:
+                  {t('nextSteps')}
                 </h4>
                 <div className="space-y-3">
                   {nextSteps.map((step, index) => (
@@ -149,7 +151,7 @@ export const ActionGuidePopup: React.FC<ActionGuidePopupProps> = ({
                 onClick={onClose}
                 className="w-full bg-white/80 hover:bg-white text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm"
               >
-                เข้าใจแล้ว
+                {t('understood')}
               </button>
             </div>
           </motion.div>

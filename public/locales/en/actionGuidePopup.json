@@ -1,0 +1,62 @@
+{
+  "nextSteps": "Next Steps:",
+  "understood": "Understood",
+  "rentalApproved": {
+    "title": "Rental Request Approved",
+    "message": "The customer's rental request has been approved successfully. The system will notify the customer to make payment.",
+    "steps": [
+      "Wait for customer payment",
+      "Check payment status in the \"Payment\" tab",
+      "Prepare item for delivery",
+      "Contact customer via chat if you have any questions"
+    ]
+  },
+  "rentalRejected": {
+    "title": "Rental Request Rejected",
+    "message": "The rental request has been rejected successfully. The system will notify the customer with the specified reason.",
+    "steps": [
+      "Customer will be notified about the rejection",
+      "Check other rental requests in your list",
+      "Consider updating product information if necessary"
+    ]
+  },
+  "paymentConfirmed": {
+    "title": "Payment Confirmed",
+    "message": "The customer's payment has been confirmed successfully. You can now prepare and ship the item.",
+    "steps": [
+      "Prepare item for delivery",
+      "Update delivery status in the \"Delivery/Return\" tab",
+      "Add tracking number when shipped",
+      "Contact customer if you have additional delivery information"
+    ]
+  },
+  "deliveryStatusUpdated": {
+    "title": "Delivery Status Updated",
+    "message": "Delivery status has been updated to \"{status}\" successfully. The customer will be notified.",
+    "steps": [
+      "Customer will be notified about the status update",
+      "Track package status via tracking number",
+      "Contact customer if there are delivery issues",
+      "Wait for delivery confirmation from customer"
+    ]
+  },
+  "rentalCancelled": {
+    "title": "Rental Cancelled Successfully",
+    "message": "Your rental has been cancelled successfully.",
+    "steps": [
+      "Refund will be processed within 3-5 business days",
+      "Check refund status in rental history page",
+      "Contact support if you have any questions"
+    ]
+  },
+  "returnRequested": {
+    "title": "Return Request Submitted Successfully",
+    "message": "Your return request has been sent to the owner.",
+    "steps": [
+      "Wait for owner's review",
+      "Prepare item for return",
+      "Track return status on this page",
+      "Contact owner via chat if you have issues"
+    ]
+  }
+}

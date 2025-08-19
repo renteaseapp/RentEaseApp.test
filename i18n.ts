@@ -11,7 +11,7 @@ i18n
   .init({
     fallbackLng: 'en', // Fallback language if detected language is not available
     debug: true, // Set to false in production
-    ns: ['translation', 'adminLogsPage', 'productDetailPage'], // Default namespace
+    ns: ['translation', 'adminLogsPage', 'productDetailPage', 'actionGuidePopup'], // Default namespace
     defaultNS: 'translation',
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json', // Path to your translation files

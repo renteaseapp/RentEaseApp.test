@@ -175,21 +175,22 @@ export const RenterRentalDetailPage: React.FC = () => {
       fetchRentalDetails();
       
       // แสดง popup แจ้งเตือนขั้นตอนต่อไป
+      const steps = t('actionGuidePopup:rentalCancelled.steps', { returnObjects: true }) as string[];
       setActionGuidePopup({
         isOpen: true,
-        title: 'ยกเลิกการเช่าสำเร็จ',
-        message: 'การเช่าของคุณได้ถูกยกเลิกเรียบร้อยแล้ว',
+        title: t('actionGuidePopup:rentalCancelled.title'),
+        message: t('actionGuidePopup:rentalCancelled.message'),
         type: 'success',
         nextSteps: [
           {
-            text: 'เงินจะถูกคืนภายใน 3-5 วันทำการ',
+            text: steps[0],
           },
           {
-            text: 'ตรวจสอบสถานะการคืนเงินในหน้าประวัติการเช่า',
+            text: steps[1],
             link: '/rentals'
           },
           {
-            text: 'หากมีคำถามติดต่อฝ่ายสนับสนุน',
+            text: steps[2],
             link: '/support'
           }
         ]
@@ -211,24 +212,25 @@ export const RenterRentalDetailPage: React.FC = () => {
       fetchRentalDetails();
       
       // แสดง popup แจ้งเตือนขั้นตอนต่อไป
+      const steps = t('actionGuidePopup:returnRequested.steps', { returnObjects: true }) as string[];
       setActionGuidePopup({
         isOpen: true,
-        title: 'ส่งคำขอคืนสินค้าสำเร็จ',
-        message: 'คำขอคืนสินค้าของคุณได้ถูกส่งไปยังเจ้าของแล้ว',
+        title: t('actionGuidePopup:returnRequested.title'),
+        message: t('actionGuidePopup:returnRequested.message'),
         type: 'success',
         nextSteps: [
           {
-            text: 'รอการตรวจสอบจากเจ้าของสินค้า',
+            text: steps[0],
           },
           {
-            text: 'เตรียมสินค้าให้พร้อมสำหรับการคืน',
+            text: steps[1],
           },
           {
-            text: 'ติดตามสถานะการคืนในหน้านี้',
+            text: steps[2],
             action: () => window.location.reload()
           },
           {
-            text: 'หากมีปัญหาติดต่อเจ้าของผ่านแชท',
+            text: steps[3],
             action: () => setContactingOwner(true)
           }
         ]
