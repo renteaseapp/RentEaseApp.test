@@ -348,7 +348,7 @@ export const OwnerRentalDetailPage: React.FC = () => {
       const res = await fetch(rental.payment_proof_url);
       const blob = await res.blob();
       const file = new File([blob], 'slip.jpg', { type: blob.type });
-      const token = 'e4360c24-5b50-4d89-a673-6fed9d8a109e';
+      const token = '0575f08b-0651-4db5-95a8-d0d35c816a2f';
       const result = await verifySlipByImage({ file, token });
       setVerifySlipResult(result);
     } catch (err: any) {
