@@ -803,6 +803,11 @@
       "rentalNotFound": "Rental not found.",
       "accessDenied": "Access denied. You are not the owner of this rental."
     },
+    "tabs": {
+      "overview": "Overview",
+      "deliveryReturn": "Delivery & Return",
+      "paymentVerification": "Payment Verification"
+    },
     "sections": {
       "rentalInformation": "Rental Information",
       "financialDetails": "Financial Details",
@@ -853,7 +858,19 @@
       "estimatedPayout": "Estimated Payout",
       "lateFee": "Late Fee",
       "platformFeeRenter": "Platform Fee (Renter)",
-      "platformFeeOwner": "Platform Fee (Owner)"
+      "platformFeeOwner": "Platform Fee (Owner)",
+      "returnInitiatedAt": "Return Initiated At",
+      "returnDetails": "Return Details",
+      "carrier": "Carrier",
+      "returnTrackingNumber": "Return Tracking Number",
+      "returnDatetime": "Return Datetime",
+      "returnShippingReceipt": "Return Shipping Receipt",
+      "viewReturnReceipt": "View Return Receipt"
+    },
+    "deliveryStatus": {
+      "alreadyDelivered": "Item has already been delivered",
+      "noFurtherUpdates": "This item has been marked as delivered. No further delivery status updates are allowed.",
+      "onlyDeliveredAllowed": "Only 'delivered' status updates are allowed"
     },
     "actions": {
       "approveRequest": "Approve Request",
@@ -1302,6 +1319,11 @@
   "all_statuses": "All",
   "search": "Search",
   "renterRentalDetailPage": {
+    "tabs": {
+      "overview": "Overview",
+      "deliveryReturn": "Delivery & Return",
+      "payment": "Payment"
+    },
     "initiateReturnForm": {
       "title": "Initiate Item Return",
       "subtitle": "Fill in the details for returning the item.",
@@ -1466,6 +1488,7 @@
       "confirm": "Confirm Cancellation",
       "cancelling": "Cancelling..."
     },
+    "costBreakdown": "Cost Breakdown",
     "alerts": {
       "cancelSuccess": "Rental cancelled successfully.",
       "cancelError": "Failed to cancel rental.",

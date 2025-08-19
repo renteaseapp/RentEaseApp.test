@@ -324,6 +324,10 @@ export interface Rental {
   return_condition_image_urls?: string[];
   payment_verified_at?: string | null;
   payment_verification_notes?: string | null;
+  // Return tracking
+  return_initiated_at?: string | null;
+  return_details?: string | Record<string, any>;
+  return_shipping_receipt_url?: string | null;
   // --- เพิ่มฟิลด์สำหรับ delivery status ---
   delivery_status?: 'pending' | 'shipped' | 'delivered' | 'failed' | 'returned';
   tracking_number?: string | null;

@@ -802,6 +802,11 @@
       "rentalNotFound": "ไม่พบข้อมูลการเช่า",
       "accessDenied": "การเข้าถึงถูกปฏิเสธ คุณไม่ใช่เจ้าของการเช่านี้"
     },
+    "tabs": {
+      "overview": "ภาพรวม",
+      "deliveryReturn": "การจัดส่งและรับคืน",
+      "paymentVerification": "ตรวจสอบการชำระเงิน"
+    },
     "sections": {
       "rentalInformation": "ข้อมูลการเช่า",
       "financialDetails": "รายละเอียดทางการเงิน",
@@ -852,7 +857,19 @@
       "estimatedPayout": "ยอดเงินที่คาดว่าจะได้รับ",
       "lateFee": "ค่าปรับล่าช้า",
       "platformFeeRenter": "ค่าธรรมเนียมแพลตฟอร์ม (ผู้เช่า)",
-      "platformFeeOwner": "ค่าธรรมเนียมแพลตฟอร์ม (เจ้าของ)"
+      "platformFeeOwner": "ค่าธรรมเนียมแพลตฟอร์ม (เจ้าของ)",
+      "returnInitiatedAt": "เริ่มการคืนสินค้าเมื่อ",
+      "returnDetails": "รายละเอียดการคืนสินค้า",
+      "carrier": "ผู้ให้บริการขนส่ง",
+      "returnTrackingNumber": "เลขพัสดุการคืนสินค้า",
+      "returnDatetime": "วันเวลาการคืนสินค้า",
+      "returnShippingReceipt": "ใบเสร็จการจัดส่งคืนสินค้า",
+      "viewReturnReceipt": "ดูใบเสร็จการคืนสินค้า"
+    },
+    "deliveryStatus": {
+      "alreadyDelivered": "สินค้าจัดส่งสำเร็จแล้ว",
+      "noFurtherUpdates": "สินค้านี้ได้ถูกทำเครื่องหมายว่าจัดส่งสำเร็จแล้ว ไม่สามารถอัปเดตสถานะการจัดส่งเพิ่มเติมได้",
+      "onlyDeliveredAllowed": "อนุญาตให้อัปเดตสถานะเป็น 'จัดส่งสำเร็จ' เท่านั้น"
     },
     "actions": {
       "approveRequest": "อนุมัติคำขอ",
@@ -1378,6 +1395,11 @@
   "all_statuses": "ทั้งหมด",
   "search": "ค้นหา",
   "renterRentalDetailPage": {
+    "tabs": {
+      "overview": "ภาพรวม",
+      "deliveryReturn": "การจัดส่งและรับคืน",
+      "payment": "การชำระเงิน"
+    },
     "initiateReturnForm": {
       "title": "แจ้งคืนสินค้า",
       "subtitle": "กรอกรายละเอียดสำหรับการคืนสินค้า",
@@ -1542,6 +1564,7 @@
       "confirm": "ยืนยันการยกเลิก",
       "cancelling": "กำลังยกเลิก..."
     },
+    "costBreakdown": "รายละเอียดค่าใช้จ่าย",
     "alerts": {
       "cancelSuccess": "ยกเลิกการเช่าสำเร็จ",
       "cancelError": "ไม่สามารถยกเลิกการเช่าได้",
