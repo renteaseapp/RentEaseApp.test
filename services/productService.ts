@@ -1,6 +1,6 @@
 import { Product, Category, Province, ApiError, ProductAdminApprovalStatus, ProductAvailabilityStatus, ProductSearchParams, PaginatedResponse } from '../types';
 
-const API_BASE_URL = 'https://renteaseapi-test.onrender.com/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export const getFeaturedProducts = async (limit: number = 8): Promise<{ data: Product[] }> => {
   try {
@@ -162,5 +162,114 @@ export const getPopularProducts = async (limit: number = 5): Promise<{ data: Pro
     console.error('Error fetching popular products:', error);
     // Return empty array instead of throwing error to prevent app crash
     return { data: [] };
+  }
+};
+
+export const getProductRentals = async (productId: number, yearMonth: string): Promise<{ booked_dates: string[] }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products/${productId}/availability/${yearMonth}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to fetch product availability');
+    }
+    const responseData = await response.json();
+    return responseData.data || { booked_dates: [] };
+  } catch (error) {
+    console.error('Error fetching product availability:', error);
+    throw error;
+  }
+};
+
+export const getProductRentalDetails = async (productId: number, yearMonth: string): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products/${productId}/rentals/${yearMonth}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to fetch product rental details');
+    }
+    const responseData = await response.json();
+    return responseData.data || [];
+  } catch (error) {
+    console.error('Error fetching product rental details:', error);
+    throw error;
+  }
+};
+
+export const getBufferTimeSettings = async (): Promise<{
+  enabled: boolean;
+  delivery_buffer_days: number;
+  return_buffer_days: number;
+}> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/settings/public`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to fetch buffer time settings');
+    }
+    const responseData = await response.json();
+    const settings = responseData.data || {};
+    
+    return {
+      enabled: settings.enable_buffer_time === 'true',
+      delivery_buffer_days: parseInt(settings.delivery_buffer_days || '1'),
+      return_buffer_days: parseInt(settings.return_buffer_days || '1')
+    };
+  } catch (error) {
+    console.error('Error fetching buffer time settings:', error);
+    // Return default values if fetch fails
+    return {
+      enabled: true,
+      delivery_buffer_days: 1,
+      return_buffer_days: 1
+    };
+  }
+};
+
+export const getProductRentalCount = async (productId: number): Promise<{ rental_count: number }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products/${productId}/rental-count`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch product rental count');
+    }
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Error fetching product rental count:', error);
+    throw error;
+  }
+};
+
+export const checkProductAvailabilityWithBuffer = async (
+  productId: number, 
+  startDate: string, 
+  endDate: string
+): Promise<{
+  available: boolean;
+  conflicts: any[];
+  buffer_settings: {
+    enabled: boolean;
+    delivery_buffer_days: number;
+    return_buffer_days: number;
+  };
+}> => {
+  try {
+    // Always use quantity = 1 for single item rental
+    const quantity = 1;
+    const response = await fetch(
+      `${API_BASE_URL}/products/${productId}/check-availability-with-buffer?start_date=${startDate}&end_date=${endDate}&quantity=${quantity}`
+    );
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to check product availability');
+    }
+    const responseData = await response.json();
+    return responseData.data || {
+      available: false,
+      conflicts: [],
+      buffer_settings: { enabled: false, delivery_buffer_days: 1, return_buffer_days: 1 }
+    };
+  } catch (error) {
+    console.error('Error checking product availability:', error);
+    throw error;
   }
 };

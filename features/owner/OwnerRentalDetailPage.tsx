@@ -18,6 +18,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import AlertNotification from '../../components/common/AlertNotification';
 import ActionGuidePopup from '../../components/common/ActionGuidePopup';
 import { useRealtimeRental } from '../../hooks/useRealtimeRental';
+import OpenStreetMapPicker from '../../components/common/OpenStreetMapPicker';
 
 
 // Import icons for a richer UI
@@ -252,6 +253,97 @@ export const OwnerRentalDetailPage: React.FC = () => {
       }
       
       const data = await getRentalDetails(rentalId, user.id, 'owner');
+// ... existing code ...
+{rental?.return_details && (
+  <div className="mt-4">
+    <p className="text-sm font-medium text-gray-500 mb-2">{t('ownerRentalDetailPage.labels.returnDetails')}</p>
+    <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+      {(() => {
+        try {
+          const details = typeof rental?.return_details === 'string' ? JSON.parse(rental?.return_details) : rental?.return_details;
+          return (
+            <div className="space-y-2 text-sm">
+              {details.carrier && (
+                <div className="flex items-center gap-2">
+                  <FaTruck className="text-blue-500" />
+                  <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.carrier')}:</span>
+                  <span className="text-gray-800">{details.carrier}</span>
+                </div>
+              )}
+              {details.tracking_number && (
+                <div className="flex items-center gap-2">
+                  <FaIdCard className="text-blue-500" />
+                  <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnTrackingNumber')}:</span>
+                  <span className="text-gray-800">{details.tracking_number}</span>
+                </div>
+              )}
+              {details.return_datetime && (
+                <div className="flex items-center gap-2">
+                  <FaCalendarAlt className="text-blue-500" />
+                  <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnDatetime')}:</span>
+                  <span className="text-gray-800">{new Date(details.return_datetime).toLocaleString()}</span>
+                </div>
+              )}
+              {details.locationDetails && (
+                <div className="flex items-center gap-2">
+                  <FaMapMarkerAlt className="text-blue-500" />
+                  <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.meetingLocation')}:</span>
+                  <span className="text-gray-800">{details.locationDetails}</span>
+                </div>
+              )}
+              {details.notes && (
+                <div className="flex items-start gap-2">
+                  <FaInfoCircle className="text-blue-500 mt-0.5" />
+                  <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.renterNotes')}:</span>
+                  <span className="text-gray-800">{details.notes}</span>
+                </div>
+              )}
+              {details.latitude && details.longitude && (
+                <div className="mt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FaMapMarkerAlt className="text-blue-500" />
+                    <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.meetingLocationMap')}:</span>
+                  </div>
+                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                    <OpenStreetMapPicker
+                      latitude={details.latitude}
+                      longitude={details.longitude}
+                      onLocationSelect={() => {}} // Read-only mode
+                      height="300px"
+                      zoom={15}
+                      readOnly={true}
+                      showSearch={false}
+                      showCurrentLocation={false}
+                    />
+                  </div>
+                  <div className="mt-2 flex justify-end">
+                    <button
+                      onClick={() => {
+                        const googleMapsUrl = `https://www.google.com/maps?q=${details.latitude},${details.longitude}`;
+                        window.open(googleMapsUrl, '_blank');
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    >
+                      <FaMapMarkerAlt className="w-4 h-4" />
+                      {t('ownerRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        } catch (e) {
+          return <span className="text-gray-600">{rental?.return_details as string}</span>;
+        }
+      })()
+    }
+    </div>
+  </div>
+)}
+// ... existing code ...      console.log('Rental data received:', data);
+      console.log('Product data:', data.product);
+      console.log('Product latitude:', data.product?.latitude);
+      console.log('Product longitude:', data.product?.longitude);
       setRental(data);
       setDeliveryStatus(data.delivery_status || 'pending');
       setTrackingNumber(data.tracking_number || '');
@@ -468,7 +560,16 @@ export const OwnerRentalDetailPage: React.FC = () => {
   const rentalTotalAmount = rental?.total_amount_due || 0;
   const isAccountMatch = slip && ownerPayout && slip.account_number === ownerPayout.account_number && slip.bank_name?.trim().toLowerCase() === ownerPayout.bank_name?.trim().toLowerCase() && slip.account_name?.replace(/\s+/g, '').toLowerCase() === ownerPayout.account_name?.replace(/\s+/g, '').toLowerCase();
   const isAmountMatch = slip && rental && slipAmount && Math.abs(Number(slipAmount) - Number(rentalTotalAmount)) < 5;
-  const isDateMatch = slip && rental && slip.date && (() => { const slipDate = new Date(slip.date); const rentalCreatedDate = new Date(rental.created_at); const toleranceMs = 2 * 24 * 60 * 60 * 1000; const minDate = new Date(rentalCreatedDate.getTime() - toleranceMs); const maxDate = new Date(rental.updated_at ? new Date(rental.updated_at).getTime() + toleranceMs : new Date().getTime() + toleranceMs); return slipDate >= minDate && slipDate <= maxDate; })();
+  const isDateMatch = slip && rental && slip.date && rental.created_at && (() => {
+    const slipDate = new Date(slip.date);
+    const rentalCreatedDate = new Date(rental.created_at!);
+    const toleranceMs = 2 * 24 * 60 * 60 * 1000;
+    const minDate = new Date(rentalCreatedDate.getTime() - toleranceMs);
+    const maxDate = rental.updated_at 
+      ? new Date(new Date(rental.updated_at).getTime() + toleranceMs) 
+      : new Date(new Date().getTime() + toleranceMs);
+    return slipDate >= minDate && slipDate <= maxDate;
+  })();
 
   if (isLoading && !rental) {
     return <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-16 flex items-center justify-center"><LoadingSpinner message={t('ownerRentalDetailPage.loadingDetails')} /></div>;
@@ -528,8 +629,111 @@ export const OwnerRentalDetailPage: React.FC = () => {
                                 <DetailItem icon={<FaCalendarAlt />} label={t('ownerRentalDetailPage.labels.rentalPeriod')} value={`${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}`} color="text-purple-500" />
                                 <DetailItem icon={<FaTruck />} label={t('ownerRentalDetailPage.labels.pickupMethod')} value={<span className="capitalize">{rental.pickup_method ? t(`ownerRentalDetailPage.pickupMethod.${rental.pickup_method.toLowerCase()}`) : '-'}</span>} color="text-orange-500" />
                                 {rental.pickup_method === 'delivery' && rental.delivery_address && (
-                                    <DetailItem icon={<FaMapMarkerAlt />} label={t('ownerRentalDetailPage.labels.deliveryAddress')} value={<div><div><b>{rental.delivery_address.recipient_name}</b> ({rental.delivery_address.phone_number})</div><div>{rental.delivery_address.address_line1}{rental.delivery_address.address_line2 && <>, {rental.delivery_address.address_line2}</>}</div><div>{rental.delivery_address.sub_district && rental.delivery_address.sub_district + ', '}{rental.delivery_address.district && rental.delivery_address.district + ', '}{provinces.find(p => p.id === rental.delivery_address?.province_id)?.name_th || rental.delivery_address.province_name || rental.delivery_address.province_id}, {rental.delivery_address.postal_code}</div>{rental.delivery_address.notes && <div className="text-xs text-gray-500 mt-1 italic">Notes: {rental.delivery_address.notes}</div>}</div>} color="text-red-500" />
+                                    <div>
+                                        <DetailItem icon={<FaMapMarkerAlt />} label={t('ownerRentalDetailPage.labels.deliveryAddress')} value={<div><div><b>{rental.delivery_address.recipient_name}</b> ({rental.delivery_address.phone_number})</div><div>{rental.delivery_address.address_line1}{rental.delivery_address.address_line2 && <>, {rental.delivery_address.address_line2}</>}</div><div>{rental.delivery_address.sub_district && rental.delivery_address.sub_district + ', '}{rental.delivery_address.district && rental.delivery_address.district + ', '}{provinces.find(p => p.id === rental.delivery_address?.province_id)?.name_th || rental.delivery_address.province_name || rental.delivery_address.province_id}, {rental.delivery_address.postal_code}</div>{rental.delivery_address.notes && <div className="text-xs text-gray-500 mt-1 italic">Notes: {rental.delivery_address.notes}</div>}</div>} color="text-red-500" />
+                                        {rental.delivery_address.latitude && rental.delivery_address.longitude && (
+                                            <div className="mt-4">
+                                                <h4 className="text-sm font-medium text-gray-700 mb-2">ที่อยู่จัดส่ง (Delivery Address)</h4>
+                                                <div className="mt-3 bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                    <OpenStreetMapPicker
+                                                        latitude={rental.delivery_address.latitude}
+                                                        longitude={rental.delivery_address.longitude}
+                                                        onLocationSelect={() => {}} // Read-only mode
+                                                        height="300px"
+                                                        zoom={15}
+                                                        readOnly={true}
+                                                        showSearch={false}
+                                                        showCurrentLocation={false}
+                                                    />
+                                                </div>
+                                                <div className="mt-2 flex justify-end">
+                                                    <button
+                                                        onClick={() => {
+                                                            const googleMapsUrl = `https://www.google.com/maps?q=${rental.delivery_address?.latitude},${rental.delivery_address?.longitude}`;
+                                                            window.open(googleMapsUrl, '_blank');
+                                                        }}
+                                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                                    >
+                                                        <FaMapMarkerAlt className="w-4 h-4" />
+                                                        {t('ownerRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {rental.product?.latitude && rental.product?.longitude && (
+                                            <div className="mt-6">
+                                                <h4 className="text-sm font-medium text-gray-700 mb-2">{rental.product?.title || t('ownerRentalDetailPage.productLabel')} - {t('ownerRentalDetailPage.deliveryLocationTitle')}</h4>
+                                                <DetailItem icon={<FaMapMarkerAlt />} label={t('ownerRentalDetailPage.labels.pickupLocation')} value={rental.product?.address_details || '-'} color="text-blue-500" />
+                                                <div className="mt-3 bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                    <OpenStreetMapPicker
+                                                        latitude={rental.product.latitude}
+                                                        longitude={rental.product.longitude}
+                                                        onLocationSelect={() => {}} // Read-only mode
+                                                        height="300px"
+                                                        zoom={15}
+                                                        readOnly={true}
+                                                        showSearch={false}
+                                                        showCurrentLocation={false}
+                                                    />
+                                                </div>
+                                                <div className="mt-2 flex justify-end">
+                                                    <button
+                                                        onClick={() => {
+                                                            const googleMapsUrl = `https://www.google.com/maps?q=${rental.product?.latitude},${rental.product?.longitude}`;
+                                                            window.open(googleMapsUrl, '_blank');
+                                                        }}
+                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                                                    >
+                                                        <FaMapMarkerAlt className="w-4 h-4" />
+                                                        {t('ownerRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
+                                {rental.pickup_method === 'self_pickup' && (
+                                    <div className="mt-4">
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">{rental.product?.title || t('ownerRentalDetailPage.productLabel')} - {t('ownerRentalDetailPage.selfPickupLocationTitle')}</h4>
+                                        <DetailItem icon={<FaMapMarkerAlt />} label={t('ownerRentalDetailPage.labels.pickupLocation')} value={rental.product?.address_details || '-'} color="text-blue-500" />
+                                        {rental.product?.latitude && rental.product?.longitude ? (
+                                            <div>
+                                                <div className="mt-3 bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                    <OpenStreetMapPicker
+                                                        latitude={rental.product.latitude}
+                                                        longitude={rental.product.longitude}
+                                                        onLocationSelect={() => {}} // Read-only mode
+                                                        height="300px"
+                                                        zoom={15}
+                                                        readOnly={true}
+                                                        showSearch={false}
+                                                        showCurrentLocation={false}
+                                                    />
+                                                </div>
+                                                <div className="mt-2 flex justify-end">
+                                                    <button
+                                                        onClick={() => {
+                                                            const googleMapsUrl = `https://www.google.com/maps?q=${rental.product?.latitude},${rental.product?.longitude}`;
+                                                            window.open(googleMapsUrl, '_blank');
+                                                        }}
+                                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                                    >
+                                                        <FaMapMarkerAlt className="w-4 h-4" />
+                                                        {t('ownerRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="mt-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                                <div className="flex items-center gap-2 text-yellow-800">
+                                                    <FaExclamationTriangle className="h-4 w-4" />
+                                                    <span className="text-sm">{t('ownerRentalDetailPage.noLocationData')}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
                             </div>
                         </div>
                       </CardContent>
@@ -540,6 +744,30 @@ export const OwnerRentalDetailPage: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                <div className="space-y-3">
                                   <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-yellow-500" />} label={t('ownerRentalDetailPage.labels.pricePerDay')} value={`฿${rental.rental_price_per_day_at_booking.toLocaleString()}`} color="text-yellow-500" />
+                                  {rental.rental_price_per_week_at_booking && (
+                                    <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-blue-500" />} label="ราคารายสัปดาห์" value={`฿${rental.rental_price_per_week_at_booking.toLocaleString()}`} color="text-blue-500" />
+                                  )}
+                                  {rental.rental_price_per_month_at_booking && (
+                                    <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-green-500" />} label="ราคารายเดือน" value={`฿${rental.rental_price_per_month_at_booking.toLocaleString()}`} color="text-green-500" />
+                                  )}
+                                  {rental.rental_pricing_type_used && (
+                                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                      <div className="flex items-center gap-3">
+                                        <FaInfoCircle className="h-5 w-5 text-blue-500" />
+                                        <div className="flex-1">
+                                          <span className="text-sm text-gray-500">ชนิดราคาที่ใช้คำนวณ:</span>
+                                          <p className="font-semibold text-blue-700">
+                                            {rental.rental_pricing_type_used === 'daily' && 'คำนวณด้วยเรตรายวัน'}
+                                            {rental.rental_pricing_type_used === 'weekly' && 'คำนวณด้วยเรตรายสัปดาห์'}
+                                            {rental.rental_pricing_type_used === 'monthly' && 'คำนวณด้วยเรตรายเดือน'}
+                                          </p>
+                                          <p className="text-xs text-gray-600 mt-1">
+                                            ระบบเลือกเรตที่คุ้มค่าที่สุดให้อัตโนมัติ
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
                                   <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-blue-500" />} label={t('ownerRentalDetailPage.labels.subtotal')} value={`฿${(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}`} color="text-blue-500" />
                                   {typeof rental.security_deposit_at_booking === 'number' && (<DetailItem icon={<FaShieldAlt className="h-5 w-5 text-blue-500" />} label={t('ownerRentalDetailPage.labels.deposit')} value={`฿${rental.security_deposit_at_booking.toLocaleString()}`} color="text-blue-500" />)}
                                   {typeof rental.delivery_fee === 'number' && rental.delivery_fee > 0 && (<DetailItem icon={<FaTruck className="h-5 w-5 text-green-500" />} label={t('ownerRentalDetailPage.labels.deliveryFee')} value={`฿${rental.delivery_fee.toLocaleString()}`} color="text-green-500" />)}
@@ -602,7 +830,7 @@ export const OwnerRentalDetailPage: React.FC = () => {
                               {rental.return_initiated_at && (<DetailItem icon={<FaClock />} label={t('ownerRentalDetailPage.labels.returnInitiatedAt')} value={new Date(rental.return_initiated_at).toLocaleString()} />)}
                             </div>
                             {rental.notes_from_owner_on_return && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-1">{t('ownerRentalDetailPage.labels.ownerNote')}:</p><p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">{rental.notes_from_owner_on_return}</p></div>)}
-                            {rental.return_details && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{t('ownerRentalDetailPage.labels.returnDetails')}</p><div className="bg-gray-50 p-3 rounded-lg border border-gray-200">{(() => { try { const details = typeof rental.return_details === 'string' ? JSON.parse(rental.return_details) : rental.return_details; return ( <div className="space-y-2 text-sm"> {details.carrier && (<div className="flex items-center gap-2"><FaTruck className="text-blue-500" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.carrier')}:</span><span className="text-gray-800">{details.carrier}</span></div>)} {details.tracking_number && (<div className="flex items-center gap-2"><FaIdCard className="text-blue-500" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnTrackingNumber')}:</span><span className="text-gray-800">{details.tracking_number}</span></div>)} {details.return_datetime && (<div className="flex items-center gap-2"><FaCalendarAlt className="text-blue-500" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnDatetime')}:</span><span className="text-gray-800">{new Date(details.return_datetime).toLocaleString()}</span></div>)} </div> ); } catch (e) { return <span className="text-gray-600">{rental.return_details as string}</span>; } })()}</div></div>)}
+                            {rental.return_details && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{t('ownerRentalDetailPage.labels.returnDetails')}</p><div className="bg-gray-50 p-3 rounded-lg border border-gray-200">{(() => { try { const details = typeof rental.return_details === 'string' ? JSON.parse(rental.return_details) : rental.return_details; return ( <div className="space-y-2 text-sm"> {details.location && (<div className="flex items-start gap-2"><FaMapMarkerAlt className="text-blue-500 mt-0.5" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnLocation')}:</span><span className="text-gray-800">{details.location}</span></div>)} {details.latitude && details.longitude && (<div className="mt-3"><div className="flex items-center gap-2 mb-2"><FaMapMarkerAlt className="text-blue-500" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.meetingLocationMap')}:</span></div><div className="bg-white p-2 rounded-lg border border-gray-200"><OpenStreetMapPicker latitude={details.latitude} longitude={details.longitude} readOnly={true} height="200px" onLocationSelect={() => {}} /></div><button onClick={() => { const googleMapsUrl = `https://www.google.com/maps?q=${details.latitude},${details.longitude}`; window.open(googleMapsUrl, '_blank'); }} className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors"><FaMapMarkerAlt className="w-4 h-4" />{t('ownerRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}</button></div>)} {details.return_datetime && (<div className="flex items-center gap-2"><FaCalendarAlt className="text-blue-500" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnDatetime')}:</span><span className="text-gray-800">{new Date(details.return_datetime).toLocaleString()}</span></div>)} {details.carrier && (<div className="flex items-center gap-2"><FaTruck className="text-blue-500" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.carrier')}:</span><span className="text-gray-800">{details.carrier}</span></div>)} {details.tracking_number && (<div className="flex items-center gap-2"><FaIdCard className="text-blue-500" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnTrackingNumber')}:</span><span className="text-gray-800">{details.tracking_number}</span></div>)} </div> ); } catch (e) { return <span className="text-gray-600">{rental.return_details as string}</span>; } })()}</div></div>)}
                             {rental.return_shipping_receipt_url && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{t('ownerRentalDetailPage.labels.returnShippingReceipt')}</p><a href={rental.return_shipping_receipt_url} target="_blank" rel="noopener noreferrer" className="block relative group overflow-hidden rounded-lg max-w-xs"><img src={rental.return_shipping_receipt_url} alt={t('ownerRentalDetailPage.labels.viewReturnReceipt')} className="w-full h-auto object-contain rounded-lg shadow-md border border-gray-200 transition-transform duration-300 group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a></div>)}
                             <div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{t('ownerRentalDetailPage.labels.returnConditionImages')}</p>{Array.isArray(rental.return_condition_image_urls) && rental.return_condition_image_urls.length > 0 ? (<div className="flex flex-wrap gap-2">{rental.return_condition_image_urls.map((imageUrl: string, idx: number) => (<a key={idx} href={imageUrl} target="_blank" rel="noopener noreferrer" className="block relative group"><img src={imageUrl} alt={t('ownerRentalDetailPage.labels.returnConditionImageAlt', { idx: idx + 1 })} className="w-24 h-24 object-cover rounded-lg border border-gray-200 shadow-sm transition-all group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a>))}</div>) : <p className="text-sm text-gray-400 italic">{t('ownerRentalDetailPage.labels.noReturnImages')}</p>}</div>
                           </CardContent>

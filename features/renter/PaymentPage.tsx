@@ -280,13 +280,28 @@ export const PaymentPage: React.FC = () => {
 
                   
                   <div className="space-y-2">
-                    {/* Rental Fee */}
-                    <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-600 text-sm flex items-center gap-1">
-                        <FaCalendarAlt className="h-3 w-3 text-blue-500" />
-                        {t('paymentPage.subtotalLabel')}:
-                      </span>
-                      <span className="font-semibold text-sm text-blue-600">฿{(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}</span>
+                    {/* Rental Fee with Pricing Type Info */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-600 text-sm flex items-center gap-1">
+                          <FaCalendarAlt className="h-3 w-3 text-blue-500" />
+                          {t('paymentPage.subtotalLabel')}:
+                        </span>
+                        <span className="font-semibold text-sm text-blue-600">฿{(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}</span>
+                      </div>
+                      {rental.rental_pricing_type_used && (
+                        <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                          <FaInfoCircle className="h-4 w-4 text-blue-500" />
+                          <div className="flex-1">
+                            <span className="text-xs text-gray-500">ชนิดราคาที่ใช้คำนวณ:</span>
+                            <p className="font-semibold text-xs text-blue-700">
+                              {rental.rental_pricing_type_used === 'daily' && 'คำนวณด้วยเรตรายวัน'}
+                              {rental.rental_pricing_type_used === 'weekly' && 'คำนวณด้วยเรตรายสัปดาห์'}
+                              {rental.rental_pricing_type_used === 'monthly' && 'คำนวณด้วยเรตรายเดือน'}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     {/* Security Deposit */}
@@ -618,13 +633,31 @@ export const PaymentPage: React.FC = () => {
                   {t('paymentPage.costBreakdownTitle')}
                 </h3>
                 <div className="space-y-3">
-                  {/* Rental Fee (Subtotal) */}
-                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-gray-600 flex items-center gap-2">
-                      <FaCalendarAlt className="h-4 w-4 text-blue-500" />
-                      {t('paymentPage.subtotalLabel')}:
-                    </span>
-                    <span className="font-semibold text-blue-600">{formatCurrency(rental.calculated_subtotal_rental_fee || 0)}</span>
+                  {/* Rental Fee (Subtotal) with Pricing Type */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                      <span className="text-gray-600 flex items-center gap-2">
+                        <FaCalendarAlt className="h-4 w-4 text-blue-500" />
+                        {t('paymentPage.subtotalLabel')}:
+                      </span>
+                      <span className="font-semibold text-blue-600">{formatCurrency(rental.calculated_subtotal_rental_fee || 0)}</span>
+                    </div>
+                    {rental.rental_pricing_type_used && (
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <FaInfoCircle className="h-5 w-5 text-blue-500" />
+                        <div className="flex-1">
+                          <span className="text-sm text-gray-500">ชนิดราคาที่ใช้คำนวณ:</span>
+                          <p className="font-semibold text-blue-700">
+                            {rental.rental_pricing_type_used === 'daily' && 'คำนวณด้วยเรตรายวัน'}
+                            {rental.rental_pricing_type_used === 'weekly' && 'คำนวณด้วยเรตรายสัปดาห์'}
+                            {rental.rental_pricing_type_used === 'monthly' && 'คำนวณด้วยเรตรายเดือน'}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            ระบบเลือกเรตที่คุ้มค่าที่สุดให้อัตโนมัติ
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Security Deposit */}

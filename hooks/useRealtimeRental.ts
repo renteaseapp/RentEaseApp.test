@@ -28,6 +28,8 @@ interface Rental {
   late_fee_amount?: number;
   created_at: string;
   updated_at: string;
+  // New optional field from backend
+  rental_pricing_type_used?: 'daily' | 'weekly' | 'monthly';
   [key: string]: any;
 }
 
@@ -85,4 +87,4 @@ export const useRealtimeRental = ({ rentalId }: UseRealtimeRentalProps) => {
     isConnected,
     setInitialRental
   };
-}; 
+};

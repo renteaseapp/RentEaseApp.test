@@ -2,7 +2,7 @@
   "pricePerDay": "/วัน",
   "pricePerWeek": "/สัปดาห์",
   "pricePerMonth": "/เดือน",
-  "quantityAvailable": "มี {{count}} ชิ้น",
+  "quantityAvailable": "จำนวนสินค้าที่พร้อมใช้งาน {{quantity}} ชิ้น",
   "viewCount": "เข้าชม {{count}} ครั้ง",
   "rating": "คะแนน {{rating}}",
   "reviews": "รีวิว {{count}} รายการ",

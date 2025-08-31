@@ -25,7 +25,7 @@
   "rejectProduct": "ปฏิเสธสินค้า",
   "quickStats": "สถิติด่วน",
   "securityDeposit": "เงินประกัน",
-  "quantityAvailable": "จำนวนที่มี",
+  "quantityAvailable": "จำนวนสินค้าที่พร้อมใช้งาน",
   "minRentalDays": "จำนวนวันเช่าขั้นต่ำ",
   "averageRating": "คะแนนเฉลี่ย",
   "notAvailable": "ไม่มีข้อมูล",
@@ -38,4 +38,4 @@
     "pending": "รอการอนุมัติ",
     "rejected": "ปฏิเสธแล้ว"
   }
-} 
+}

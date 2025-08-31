@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.VITE_API_URL || 'https://renteaseapi-test.onrender.com/api/admin';
+const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:3001/api/admin';
 
 const getAuthHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem('authToken')}`,

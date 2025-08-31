@@ -197,7 +197,7 @@ export const ChatRoomPage: React.FC = () => {
       formData.append('file', file);
       if (messageContent) formData.append('message_content', messageContent);
       const token = localStorage.getItem('authToken');
-      const API_BASE_URL = process.env.VITE_API_URL || 'https://renteaseapi-test.onrender.com/api';
+      const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:3001/api';
       const res = await fetch(
         `${API_BASE_URL}/chat/conversations/${conversationId}/messages/upload`,
         {

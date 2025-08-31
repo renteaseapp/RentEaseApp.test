@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useAlert } from '../../contexts/AlertContext';
 import { InitiateReturnForm } from './InitiateReturnForm';
 import { motion, AnimatePresence } from 'framer-motion';
+import OpenStreetMapPicker from '../../components/common/OpenStreetMapPicker';
 import { formatCurrency } from '../../utils/financialCalculations';
 import { socketService } from '../../services/socketService';
 import AlertNotification from '../../components/common/AlertNotification';
@@ -19,7 +20,7 @@ import ActionGuidePopup from '../../components/common/ActionGuidePopup';
 import { 
   FaArrowLeft, FaCalendarAlt, FaUser, FaMoneyBillWave, FaClock, FaCheckCircle, 
   FaExclamationTriangle, FaTimes, FaCreditCard, FaBox, FaStar, FaEye, FaDownload,
-  FaShieldAlt, FaMapMarkerAlt, FaHistory, FaInfoCircle, FaBan, FaTruck, FaWifi, FaComments, FaReceipt
+  FaShieldAlt, FaMapMarkerAlt, FaHistory, FaInfoCircle, FaBan, FaTruck, FaWifi, FaComments, FaReceipt, FaQuestionCircle
 } from 'react-icons/fa';
 import { useRealtimeRental } from '../../hooks/useRealtimeRental';
 
@@ -387,7 +388,77 @@ export const RenterRentalDetailPage: React.FC = () => {
                       <div className="flex items-center gap-3 mb-6"><div className="p-2 bg-blue-100 rounded-xl"><FaMapMarkerAlt className="h-6 w-6 text-blue-600" /></div><h3 className="text-2xl font-bold text-gray-800">{t('renterRentalDetailPage.pickupMethod')}</h3></div>
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaMapMarkerAlt className="h-5 w-5 text-blue-500" /><div><span className="text-sm text-gray-500">{t('renterRentalDetailPage.method')}</span><p className="font-semibold">{t(`pickupMethod.${rental.pickup_method}`, rental.pickup_method?.replace('_',' ').toUpperCase() || rental.pickup_method || '-')}</p></div></div>
                       {rental.delivery_address && (
-                        <div className="p-4 mt-4 bg-blue-50 border border-blue-200 rounded-xl"><div className="flex items-center gap-2 mb-3"><FaMapMarkerAlt className="h-5 w-5 text-blue-600" /><span className="font-semibold text-blue-800">{t('renterRentalDetailPage.deliveryAddress')}</span></div><div className="space-y-2 text-sm"><div className="flex items-center gap-2"><FaUser className="h-4 w-4 text-gray-500" /><span><strong>{rental.delivery_address.recipient_name}</strong> ({rental.delivery_address.phone_number})</span></div><div className="flex items-center gap-2"><FaMapMarkerAlt className="h-4 w-4 text-gray-500" /><span>{rental.delivery_address.address_line1}{rental.delivery_address.address_line2 && <> {rental.delivery_address.address_line2}</>}</span></div><div className="flex items-center gap-2"><FaMapMarkerAlt className="h-4 w-4 text-gray-500" /><span>{rental.delivery_address.sub_district && rental.delivery_address.sub_district + ', '}{rental.delivery_address.district && rental.delivery_address.district + ', '}{rental.delivery_address.province_name || rental.delivery_address.province_id}, {rental.delivery_address.postal_code}</span></div>{rental.delivery_address.notes && (<div className="flex items-center gap-2"><FaInfoCircle className="h-4 w-4 text-gray-500" /><span className="text-gray-600">{rental.delivery_address.notes}</span></div>)}</div></div>
+                        <div className="p-4 mt-4 bg-blue-50 border border-blue-200 rounded-xl">
+                          <div className="flex items-center gap-2 mb-3"><FaMapMarkerAlt className="h-5 w-5 text-blue-600" /><span className="font-semibold text-blue-800">{t('renterRentalDetailPage.deliveryAddress')}</span></div>
+                          <div className="space-y-2 text-sm mb-4">
+                            <div className="flex items-center gap-2"><FaUser className="h-4 w-4 text-gray-500" /><span><strong>{rental.delivery_address.recipient_name}</strong> ({rental.delivery_address.phone_number})</span></div>
+                            <div className="flex items-center gap-2"><FaMapMarkerAlt className="h-4 w-4 text-gray-500" /><span>{rental.delivery_address.address_line1}{rental.delivery_address.address_line2 && <> {rental.delivery_address.address_line2}</>}</span></div>
+                            <div className="flex items-center gap-2"><FaMapMarkerAlt className="h-4 w-4 text-gray-500" /><span>{rental.delivery_address.sub_district && rental.delivery_address.sub_district + ', '}{rental.delivery_address.district && rental.delivery_address.district + ', '}{rental.delivery_address.province_name || rental.delivery_address.province_id}, {rental.delivery_address.postal_code}</span></div>
+                            {rental.delivery_address.notes && (<div className="flex items-center gap-2"><FaInfoCircle className="h-4 w-4 text-gray-500" /><span className="text-gray-600">{rental.delivery_address.notes}</span></div>)}
+                          </div>
+                          {rental.delivery_address.latitude && rental.delivery_address.longitude && (
+                            <div>
+                              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-3">
+                                <OpenStreetMapPicker
+                                  latitude={rental.delivery_address.latitude}
+                                  longitude={rental.delivery_address.longitude}
+                                  onLocationSelect={() => {}} // Read-only mode
+                                  height="300px"
+                                  zoom={15}
+                                  readOnly={true}
+                                  showSearch={false}
+                                  showCurrentLocation={false}
+                                />
+                              </div>
+                              <div className="flex justify-end">
+                                <button
+                                  onClick={() => {
+                                    const googleMapsUrl = `https://www.google.com/maps?q=${rental.delivery_address?.latitude},${rental.delivery_address?.longitude}`;
+                                    window.open(googleMapsUrl, '_blank');
+                                  }}
+                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                >
+                                  <FaMapMarkerAlt className="w-4 h-4" />
+                                  {t('renterRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {rental.pickup_method !== 'delivery' && (productDetails?.latitude || rental.product?.latitude) && (productDetails?.longitude || rental.product?.longitude) && (
+                        <div className="p-4 mt-4 bg-green-50 border border-green-200 rounded-xl">
+                          <div className="flex items-center gap-2 mb-3"><FaMapMarkerAlt className="h-5 w-5 text-green-600" /><span className="font-semibold text-green-800">{t('renterRentalDetailPage.pickupLocation')}</span></div>
+                          <div className="space-y-2 text-sm mb-4">
+                            <div className="flex items-center gap-2"><FaMapMarkerAlt className="h-4 w-4 text-gray-500" /><span>{productDetails?.address_details || rental.product?.address_details || '-'}</span></div>
+                          </div>
+                          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-3">
+                            <OpenStreetMapPicker
+                              latitude={productDetails?.latitude || rental.product?.latitude || 0}
+                              longitude={productDetails?.longitude || rental.product?.longitude || 0}
+                              onLocationSelect={() => {}} // Read-only mode
+                              height="300px"
+                              zoom={15}
+                              readOnly={true}
+                              showSearch={false}
+                              showCurrentLocation={false}
+                            />
+                          </div>
+                          <div className="flex justify-end">
+                            <button
+                              onClick={() => {
+                                const lat = productDetails?.latitude || rental.product?.latitude;
+                                const lng = productDetails?.longitude || rental.product?.longitude;
+                                const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+                                window.open(googleMapsUrl, '_blank');
+                              }}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                            >
+                              <FaMapMarkerAlt className="w-4 h-4" />
+                              {t('renterRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </div>
                     {rental.pickup_method === 'delivery' && rental.delivery_status && (
@@ -422,6 +493,35 @@ export const RenterRentalDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3 mb-6"><div className="p-2 bg-green-100 rounded-xl"><FaMoneyBillWave className="h-6 w-6 text-green-600" /></div><h3 className="text-2xl font-bold text-gray-800">{t('renterRentalDetailPage.costBreakdown')}</h3></div>
                         <div className="space-y-3">
                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaMoneyBillWave className="h-5 w-5 text-yellow-500" /><div><span className="text-sm text-gray-500">{t('renterRentalDetailPage.pricePerDay')}</span><p className="font-semibold">{formatCurrency(rental.rental_price_per_day_at_booking)}</p></div></div>
+                            {rental.rental_price_per_week_at_booking && (
+                              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaMoneyBillWave className="h-5 w-5 text-blue-500" /><div><span className="text-sm text-gray-500">ราคารายสัปดาห์</span><p className="font-semibold">{formatCurrency(rental.rental_price_per_week_at_booking)}</p></div></div>
+                            )}
+                            {rental.rental_price_per_month_at_booking && (
+                              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaMoneyBillWave className="h-5 w-5 text-green-500" /><div><span className="text-sm text-gray-500">ราคารายเดือน</span><p className="font-semibold">{formatCurrency(rental.rental_price_per_month_at_booking)}</p></div></div>
+                            )}
+                            {rental.rental_pricing_type_used && (
+                              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-200">
+                                <FaInfoCircle className="h-5 w-5 text-blue-500" />
+                                <div className="flex-1">
+                                  <span className="text-sm text-gray-500">ชนิดราคาที่ใช้คำนวณ</span>
+                                  <p className="font-semibold text-blue-700">
+                                    {rental.rental_pricing_type_used === 'daily' && 'คำนวณด้วยเรตรายวัน'}
+                                    {rental.rental_pricing_type_used === 'weekly' && 'คำนวณด้วยเรตรายสัปดาห์'}
+                                    {rental.rental_pricing_type_used === 'monthly' && 'คำนวณด้วยเรตรายเดือน'}
+                                  </p>
+                                </div>
+                                <div className="relative group">
+                                  <FaQuestionCircle className="h-4 w-4 text-blue-400 cursor-help" />
+                                  <div className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                                    <div className="text-center">
+                                      <strong>ระบบเลือกเรตที่คุ้มค่าที่สุดให้อัตโนมัติ</strong>
+                                      <br />เพื่อให้คุณได้ราคาที่ดีที่สุดสำหรับระยะเวลาการเช่าของคุณ
+                                    </div>
+                                    <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                             {typeof rental.security_deposit_at_booking === 'number' && (<div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaShieldAlt className="h-5 w-5 text-blue-500" /><div><span className="text-sm text-gray-500">{t('renterRentalDetailPage.deposit')}</span><p className="font-semibold">{formatCurrency(rental.security_deposit_at_booking)}</p></div></div>)}
                             {typeof rental.delivery_fee === 'number' && (<div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaTruck className="h-5 w-5 text-green-500" /><div><span className="text-sm text-gray-500">{t('renterRentalDetailPage.deliveryFee')}</span><p className="font-semibold">{formatCurrency(rental.delivery_fee)}</p></div></div>)}
                             {typeof rental.platform_fee_renter === 'number' && (<div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaCreditCard className="h-5 w-5 text-purple-500" /><div><span className="text-sm text-gray-500">{t('renterRentalDetailPage.platformFee')}</span><p className="font-semibold">{formatCurrency(rental.platform_fee_renter)}</p></div></div>)}

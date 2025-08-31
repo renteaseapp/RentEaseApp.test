@@ -1,0 +1,74 @@
+/* Buffer Events Styles for React Big Calendar */
+.rbc-event.delivery-buffer {
+  background-color: #fb923c !important; /* Orange color for delivery buffer */
+  border: 1px solid #ea580c !important;
+  color: white !important;
+  opacity: 0.8;
+}
+
+.rbc-event.return-buffer {
+  background-color: #a855f7 !important; /* Purple color for return buffer */
+  border: 1px solid #7c3aed !important;
+  color: white !important;
+  opacity: 0.8;
+}
+
+/* Rental events styling */
+.rbc-event {
+  background-color: #3b82f6 !important; /* Blue color for rental events */
+  border: 1px solid #1d4ed8 !important;
+  color: white !important;
+}
+
+/* Calendar styling improvements */
+.rbc-calendar {
+  font-family: 'Inter', sans-serif;
+}
+
+.rbc-month-view {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rbc-header {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.rbc-date-cell {
+  padding: 4px;
+}
+
+.rbc-today {
+  background-color: #fef3c7;
+}
+
+.rbc-off-range-bg {
+  background-color: #f9fafb;
+}
+
+/* Event text styling */
+.rbc-event-content {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Hover effects */
+.rbc-event:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
+/* Buffer event specific hover effects */
+.rbc-event.delivery-buffer:hover {
+  background-color: #ea580c !important;
+}
+
+.rbc-event.return-buffer:hover {
+  background-color: #7c3aed !important;
+}

@@ -47,6 +47,8 @@ export interface UserAddress {
   province_id: number;
   province_name?: string; // Joined
   postal_code: string;
+  latitude?: number | null;
+  longitude?: number | null;
   is_default?: boolean;
   notes?: string | null;
   created_at?: string;
@@ -168,8 +170,17 @@ export interface ProductOwner {
   id: number;
   first_name: string | null;
   last_name?: string | null;
+  username: string;
   profile_picture_url?: string | null;
+  email: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+  country?: string;
   created_at?: string; // User creation date
+  updated_at?: string;
   average_owner_rating?: number | null;
 }
 
@@ -186,6 +197,7 @@ export interface Product {
   owner?: ProductOwner;
   average_rating?: number | null;
   total_reviews?: number;
+  rental_count?: number; // จำนวนครั้งที่ถูกเช่าทั้งหมด
   owner_id?: number;
   category_id?: number;
   province_id?: number;
@@ -299,6 +311,8 @@ export interface Rental {
   actual_pickup_time?: string | null; // ISO Date string
   actual_return_time?: string | null;
   rental_price_per_day_at_booking: number;
+  rental_price_per_week_at_booking?: number | null;
+  rental_price_per_month_at_booking?: number | null;
   security_deposit_at_booking?: number;
   security_deposit_refund_amount?: number; // Added this field
   calculated_subtotal_rental_fee: number;
@@ -308,6 +322,10 @@ export interface Rental {
   late_fee_calculated?: number;
   total_amount_due: number;
   final_amount_paid?: number;
+  delivery_status?: string;
+  tracking_number?: string;
+  carrier_code?: string;
+  review_by_renter?: boolean;
   pickup_method: RentalPickupMethod;
   return_method?: RentalPickupMethod; // Can be same as pickup or different
   delivery_address_id?: number | null;
@@ -324,23 +342,19 @@ export interface Rental {
   return_condition_image_urls?: string[];
   payment_verified_at?: string | null;
   payment_verification_notes?: string | null;
+  // New: pricing type actually used by backend for calculation
+  rental_pricing_type_used?: 'daily' | 'weekly' | 'monthly';
   // Return tracking
   return_initiated_at?: string | null;
   return_details?: string | Record<string, any>;
   return_shipping_receipt_url?: string | null;
-  // --- เพิ่มฟิลด์สำหรับ delivery status ---
-  delivery_status?: 'pending' | 'shipped' | 'delivered' | 'failed' | 'returned';
-  tracking_number?: string | null;
-  carrier_code?: string | null;
   // Timestamps
-  created_at: string;
-  updated_at: string;
-  // Joined data typically
-  product?: Partial<Product>;
-  renter?: Partial<User>;
-  owner?: Partial<User>;
-  review_by_renter?: Partial<Review>;
-  review_by_owner?: Partial<Review>;
+  created_at?: string | null;
+  updated_at?: string | null;
+  // Joined data from related tables
+  owner?: ProductOwner; // Joined owner data
+  product?: Product; // Joined product data
+  renter?: Pick<User, 'id' | 'first_name' | 'last_name' | 'profile_picture_url' | 'username'>; // Joined renter data
 }
 
 export enum RentalPickupMethod {
@@ -389,6 +403,7 @@ export interface CreateRentalPayload {
   delivery_address_id?: number;
   new_delivery_address?: Omit<UserAddress, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'province_name'>;
   notes_from_renter?: string;
+  rental_type?: 'daily' | 'weekly' | 'monthly';
 }
 
 export interface InitiateReturnPayload {

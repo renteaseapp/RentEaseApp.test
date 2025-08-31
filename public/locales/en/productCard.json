@@ -2,7 +2,7 @@
   "pricePerDay": "/day",
   "pricePerWeek": "/week",
   "pricePerMonth": "/month",
-  "quantityAvailable": "{{count}} available",
+  "quantityAvailable": "{{quantity}} available",
   "viewCount": "{{count}} views",
   "rating": "Rating {{rating}}",
   "reviews": "{{count}} reviews",

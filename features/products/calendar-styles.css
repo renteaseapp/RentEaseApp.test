@@ -1,0 +1,375 @@
+/* ./calendar-styles.css */
+
+/* General container style */
+.rbc-calendar {
+  border-radius: 1rem; /* rounded-2xl */
+  border: none;
+  height: 100% !important;
+  max-height: 80vh; /* จำกัดความสูงสูงสุด */
+  font-family: inherit; /* Use the font from the parent */
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  overflow-y: auto; /* เพิ่ม vertical scroll */
+  overflow-x: hidden; /* ซ่อน horizontal scroll */
+  position: relative;
+  z-index: 1;
+}
+
+/* Toolbar style */
+.rbc-toolbar {
+  border-bottom: none;
+  padding: 0;
+  margin-bottom: 0 !important;
+  background: transparent;
+}
+
+.rbc-toolbar .rbc-toolbar-label {
+  font-size: 1.5rem; /* text-2xl */
+  font-weight: 800; /* font-extrabold */
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Header row (Sun, Mon, Tue...) */
+.rbc-header {
+  padding: 1rem 0;
+  text-align: center;
+  font-weight: 700; /* font-bold */
+  color: #374151; /* text-gray-700 */
+  border: none;
+  font-size: 0.875rem; /* text-sm */
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 2px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Each day cell */
+.rbc-day-bg {
+  border-left: 1px solid #f1f5f9; /* border-l border-slate-100 */
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 0 !important; /* ให้ z-index ต่ำสุดเพื่อไม่บัง event */
+  min-height: 120px; /* กำหนดความสูงขั้นต่ำสำหรับ cell */
+  height: auto; /* ให้ความสูงปรับตามเนื้อหา */
+  display: flex;
+  flex-direction: column;
+}
+.rbc-day-bg:first-child {
+  border-left: none;
+}
+.rbc-day-bg:hover {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+.rbc-month-row {
+  border-bottom: 1px solid #f1f5f9; /* border-b border-slate-100 */
+  position: relative;
+  z-index: 0 !important; /* ให้ z-index ต่ำสุดเพื่อไม่บัง event */
+  min-height: 120px; /* กำหนดความสูงขั้นต่ำสำหรับแถว */
+  height: auto; /* ให้ความสูงปรับตามเนื้อหา */
+  overflow: visible; /* ให้ events แสดงได้เต็มที่ */
+}
+.rbc-month-row:last-child {
+  border-bottom: none;
+}
+
+/* Today's cell */
+.rbc-today {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  position: relative;
+}
+.rbc-today::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+  pointer-events: none;
+}
+.rbc-day-slot .rbc-time-slot {
+  border-top: 1px solid #f1f5f9; /* border-t border-slate-100 */
+}
+
+/* Event item styling */
+.rbc-event {
+  padding: 6px 12px;
+  position: relative !important;
+  z-index: 1000 !important;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 600;
+  border: none !important;
+  opacity: 0.95;
+  margin-bottom: 3px; /* เพิ่มระยะห่างระหว่าง events */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+}
+
+.rbc-event:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.rbc-event:hover {
+  z-index: 1001 !important; /* ยกระดับ z-index ให้สูงสุดเมื่อ hover */
+  transform: scale(1.05) translateY(-2px); /* ขยายและยกขึ้นเมื่อ hover */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  filter: brightness(1.1);
+}
+
+/* แก้ไขปัญหาการซ้อนทับของ events - ย้ายไปรวมด้านล่าง */
+
+/* เพิ่ม z-index สำหรับ event content */
+.rbc-event-content {
+  position: relative;
+  z-index: 1002 !important;
+  pointer-events: auto;
+}
+
+/* Event allday styling - ย้ายไปรวมด้านล่าง */
+
+/* ปรับแต่งสำหรับ events ที่ต่อเนื่อง */
+.rbc-event-continues-prior,
+.rbc-event-continues-after {
+  margin-bottom: 2px !important;
+}
+
+.rbc-event-continues-prior {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.rbc-event-continues-after {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+/* "Show more" link */
+.rbc-show-more {
+  color: #3b82f6; /* text-blue-500 */
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 600;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+}
+.rbc-show-more:hover {
+  color: #1d4ed8; /* text-blue-700 */
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* Date number styling - รวมกับ styling ใหม่ด้านล่าง */
+
+.rbc-date-cell:hover {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 6px;
+}
+
+/* ปรับแต่ง button ใน date cell */
+.rbc-date-cell .rbc-button-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10 !important; /* ให้ z-index ต่ำกว่า event แต่สูงกว่า background */
+  pointer-events: auto;
+  margin-bottom: 0;
+  display: inline-block;
+  line-height: 1.2;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Weekend styling */
+.rbc-off-range-bg {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  position: relative;
+  z-index: -1 !important; /* ให้ z-index ติดลบเพื่อไม่บัง event */
+}
+
+/* Month view specific */
+.rbc-month-view {
+  border-radius: 0 0 1rem 1rem;
+  overflow: visible; /* เปลี่ยนเป็น visible เพื่อให้ event แสดงได้เต็มที่ */
+  min-height: fit-content; /* ให้ความสูงปรับตามเนื้อหา */
+}
+
+/* Date cell container สำหรับจัดวาง event */
+.rbc-date-cell {
+  padding: 8px; /* ปรับ padding ให้เท่ากันทุกด้าน */
+  font-weight: 600;
+  color: #374151;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 0 !important; /* ให้ z-index ต่ำกว่า event */
+  min-height: 30px; /* เพิ่มความสูงขั้นต่ำ */
+  max-height: none; /* ไม่จำกัดความสูงสูงสุด */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+  align-items: stretch; /* ให้ events ยืดเต็มความกว้าง */
+  overflow: visible; /* ให้ events แสดงได้เต็มที่ */
+}
+
+/* Event container ใน date cell */
+.rbc-row-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px; /* ลดระยะห่างระหว่าง events */
+  margin-top: 0px; /* ลบ margin-top เพื่อให้ events อยู่ใกล้กับเลขวันมากที่สุด */
+  justify-content: flex-start; /* เปลี่ยนเป็น flex-start เพื่อให้ events เริ่มจากด้านบน */
+  align-items: stretch;
+}
+
+/* Event wrapper สำหรับจัดวาง event ใน cell */
+.rbc-row-segment {
+  position: relative;
+  z-index: 999 !important;
+  margin-bottom: 3px; /* เพิ่มระยะห่างระหว่าง events */
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+/* ปรับแต่ง event ให้พอดีกับ cell */
+.rbc-event-allday {
+  margin-bottom: 1px !important;
+  height: auto !important;
+  min-height: 20px; /* ลดความสูงขั้นต่ำ */
+  border-radius: 6px;
+  position: relative !important;
+  z-index: 1000 !important;
+  overflow: visible !important;
+  width: calc(100% - 8px); /* ลดความกว้างเพื่อไม่ให้ชิดขอบ */
+  margin-left: 4px;
+  margin-right: 4px;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2px 6px; /* ลด padding เพื่อให้ events เล็กลง */
+  font-size: 11px; /* ลดขนาดฟอนต์เล็กน้อย */
+  line-height: 1.2;
+}
+
+/* สีของ event ตามสถานะ */
+.rbc-event.bg-green-500 {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+  border: 1px solid #047857 !important;
+}
+
+.rbc-event.bg-blue-500 {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
+  border: 1px solid #1d4ed8 !important;
+}
+
+.rbc-event.bg-gray-500 {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
+  color: white !important;
+  border: 1px solid #374151 !important;
+}
+
+.rbc-event.bg-yellow-500 {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: white !important;
+  border: 1px solid #b45309 !important;
+}
+
+.rbc-event.bg-orange-500 {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  color: white !important;
+  border: 1px solid #c2410c !important;
+}
+
+.rbc-event.bg-red-500 {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: white !important;
+  border: 1px solid #b91c1c !important;
+}
+
+.rbc-event.bg-gray-400 {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%) !important;
+  color: white !important;
+  border: 1px solid #4b5563 !important;
+}
+
+/* สีสำหรับ buffer events */
+.rbc-event.bg-orange-300 {
+  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%) !important;
+  color: #9a3412 !important;
+  border: 2px solid #fb923c !important;
+}
+
+.rbc-event.bg-purple-300 {
+  background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%) !important;
+  color: #7c2d12 !important;
+  border: 2px solid #c084fc !important;
+}
+
+/* Add subtle animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rbc-event {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Custom scrollbar for better aesthetics */
+.rbc-calendar {
+  scroll-behavior: smooth; /* เพิ่ม smooth scrolling */
+}
+
+.rbc-calendar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rbc-calendar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+  margin: 4px 0;
+}
+
+.rbc-calendar::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.rbc-calendar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+  transform: scale(1.1);
+}
+
+/* เพิ่ม scroll indicator สำหรับ mobile */
+@media (max-width: 768px) {
+  .rbc-calendar {
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 #f1f5f9;
+  }
+  
+  .rbc-calendar::-webkit-scrollbar {
+    width: 6px;
+  }
+}

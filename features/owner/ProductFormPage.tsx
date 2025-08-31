@@ -11,6 +11,7 @@ import { InputField } from '../../components/ui/InputField';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
 import { motion, } from 'framer-motion';
+import { OpenStreetMapPicker } from "../../components/common/OpenStreetMapPicker";
 import { 
   FaPlus,
   FaEdit,
@@ -50,6 +51,7 @@ export const ProductFormPage: React.FC = () => {
     province_id: undefined,
     rental_price_per_day: 0,
     quantity: 1,
+    quantity_available: 1, // เพิ่ม quantity_available
     availability_status: ProductAvailabilityStatus.DRAFT,
     specifications: undefined, // Ensure specifications is part of the initial state
   });
@@ -92,6 +94,7 @@ export const ProductFormPage: React.FC = () => {
             rental_price_per_month: product.rental_price_per_month || undefined,
             security_deposit: product.security_deposit || undefined,
             quantity: product.quantity || 1,
+            quantity_available: product.quantity_available || product.quantity || 1,
             min_rental_duration_days: product.min_rental_duration_days || 1,
             max_rental_duration_days: product.max_rental_duration_days || undefined,
             latitude: product.latitude || undefined,
@@ -221,7 +224,7 @@ export const ProductFormPage: React.FC = () => {
         showError(t('productFormPage.validationErrors.priceTooHigh'));
         return;
     }
-    if (!formData.quantity || formData.quantity < 0) {
+    if (!formData.quantity_available || formData.quantity_available < 1) {
         showError(t('productFormPage.validationErrors.quantityInvalid'));
         return;
     }
@@ -500,19 +503,40 @@ export const ProductFormPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label={t('productFormPage.securityDepositLabel')} name="security_deposit" type="number" value={formData.security_deposit || ''} onChange={handleChange} min="0" />
             <div>
-              <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="quantity_available" className="block text-sm font-medium text-gray-700 mb-1">
                 {t('productFormPage.quantityLabel')} <span className="text-red-500">*</span>
               </label>
               <input
-                id="quantity"
-                name="quantity"
+                id="quantity_available"
+                name="quantity_available"
                 type="number"
-                value={formData.quantity || ''}
-                onChange={handleChange}
+                value={formData.quantity_available || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const numValue = value === '' ? undefined : Number(value);
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    quantity_available: numValue,
+                    quantity: numValue // ตั้งค่า quantity = quantity_available
+                  }));
+                }}
                 required
                 min="1"
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
+              <p className="mt-1 text-sm text-gray-500">
+                {t('productFormPage.quantityNote')}
+              </p>
+              {isEditMode && (
+                <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                  <p className="text-sm text-blue-700">
+                    <span className="font-medium">จำนวนปัจจุบัน:</span> {formData.quantity || 1} ชิ้น
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    ระบบเช่าทีละ 1 ชิ้นเท่านั้น
+                  </p>
+                </div>
+              )}
             </div>
         </div>
         
@@ -530,6 +554,29 @@ export const ProductFormPage: React.FC = () => {
             <InputField label={t('productFormPage.longitudeLabel')} name="longitude" type="number" value={formData.longitude || ''} onChange={handleChange} step="any" min="-180" max="180" placeholder={t('productFormPage.longitudePlaceholder')} />
         </div>
         <p className="text-xs text-gray-500 -mt-4">{t('productFormPage.coordinatesHelp')}</p>
+        
+        {/* Google Maps Location Picker */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <FaMapMarkerAlt className="h-4 w-4 text-blue-500" />
+            {t('googleMaps.selectLocation')}
+          </label>
+          <OpenStreetMapPicker
+            onLocationSelect={(location) => {
+              setFormData(prev => ({
+                ...prev,
+                latitude: location.lat,
+                longitude: location.lng,
+                address_details: location.address || prev.address_details
+              }));
+            }}
+            initialLocation={formData.latitude && formData.longitude ? {
+              lat: Number(formData.latitude),
+              lng: Number(formData.longitude)
+            } : undefined}
+            height="300px"
+          />
+        </div>
         
         <InputField label={t('productFormPage.conditionNotesLabel')} name="condition_notes" value={formData.condition_notes || ''} onChange={handleChange} placeholder={t('productFormPage.conditionNotesPlaceholder')} />
         

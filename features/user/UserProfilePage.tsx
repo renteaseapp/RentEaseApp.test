@@ -33,6 +33,7 @@ import {
   FaTrash
 } from 'react-icons/fa';
 import { TimezoneSettings } from '../../components/common/TimezoneSettings';
+import { OpenStreetMapPicker } from '../../components/common/OpenStreetMapPicker';
 
 const compressImage = (file: File): Promise<File> => {
   return new Promise((resolve, reject) => {
@@ -1032,6 +1033,23 @@ export const UserProfilePage: React.FC = () => {
                         onChange={e => setNewAddress({...newAddress, postal_code: e.target.value})} 
                       />
                     </div>
+                  </div>
+                  
+                  {/* Google Maps Location Picker */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <FaMapMarkerAlt className="h-4 w-4 text-green-600" />
+                      {t('googleMaps.selectLocation')}
+                    </label>
+                    <OpenStreetMapPicker
+                      onLocationSelect={(location) => {
+                        setNewAddress(prev => ({
+                          ...prev,
+                          address_line1: location.address || prev.address_line1
+                        }));
+                      }}
+                      height="250px"
+                    />
                   </div>
                   
                   <div className="space-y-2">

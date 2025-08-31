@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { User, UserProfileData, ApiError, UserIdVerificationStatus, UserIdVerificationData as UserIdVerificationDataType, IdVerificationSubmissionPayload as IdVerificationSubmissionPayloadType,UserAddress, ApiResponse } from '../types';
 
-const API_URL = 'https://renteaseapi-test.onrender.com/api';
+const API_URL = 'http://localhost:3001/api';
 
 // Create axios instance with base URL
 const api = axios.create({

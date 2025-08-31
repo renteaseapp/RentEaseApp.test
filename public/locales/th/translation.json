@@ -48,6 +48,22 @@
     "contactEmail": "rentease.com@gmail.com",
     "copyright": "© {{year}} RentEase, Inc. สงวนลิขสิทธิ์."
   },
+  "googleMaps": {
+    "searchPlaceholder": "ค้นหาตำแหน่ง...",
+    "search": "ค้นหา",
+    "currentLocation": "ตำแหน่งปัจจุบัน",
+    "clear": "ล้าง",
+    "selectedLocation": "ตำแหน่งที่เลือก",
+    "coordinates": "พิกัด",
+    "loading": "กำลังโหลด...",
+    "searchNotFound": "ไม่พบตำแหน่งที่ค้นหา",
+    "locationError": "ไม่สามารถเข้าถึงตำแหน่งปัจจุบันได้",
+    "geolocationNotSupported": "เบราว์เซอร์ไม่รองรับการหาตำแหน่ง",
+    "instruction": "คลิกบนแผนที่เพื่อเลือกตำแหน่ง หรือใช้ช่องค้นหาด้านบน",
+    "selectLocation": "เลือกตำแหน่งบนแผนที่",
+    "mapPreview": "แสดงตัวอย่างแผนที่",
+    "locationOptional": "การเลือกตำแหน่งเป็นทางเลือก (ไม่บังคับ)"
+  },
   "loginPage": {
     "title": "เข้าสู่ระบบ RentEase",
     "subtitle": "เข้าสู่ระบบเพื่อเข้าถึงบริการของเรา",
@@ -161,7 +177,9 @@
   "productCard": {
     "pricePerDay": "/วัน",
     "pricePerWeek": "/สัปดาห์",
-    "pricePerMonth": "/เดือน"
+    "pricePerMonth": "/เดือน",
+    "quantityAvailable": "จำนวนสินค้าที่พร้อมใช้งาน {{quantity}} ชิ้น",
+    "rentalCount": "เช่าแล้ว {{count}} ครั้ง"
   },
   "productDetailPage": {
     "loadingDetails": "กำลังโหลดรายละเอียดสินค้า...",
@@ -201,6 +219,9 @@
     "selfPickupOption": "รับเอง",
     "deliveryOption": "จัดส่ง",
     "deliveryAddressLabel": "ที่อยู่จัดส่ง",
+    "singleItemRental": "เช่าได้ทีละ 1 ชิ้นเท่านั้น",
+    "quantityNote": "สินค้าที่มีอยู่:",
+    "pieces": "ชิ้น",
     "loadingAddresses": "กำลังโหลดที่อยู่...",
     "selectAddressOption": "เลือกที่อยู่",
     "noAddressesFound": "ไม่พบที่อยู่ กรุณาเพิ่มในโปรไฟล์",
@@ -478,6 +499,7 @@
     "pricePerMonthLabel": "ราคาต่อเดือน (฿)",
     "securityDepositLabel": "เงินประกัน (฿)",
     "quantityLabel": "จำนวน",
+    "quantityNote": "แม้ว่าจะมีสินค้าหลายชิ้น แต่ผู้เช่าสามารถเช่าได้ทีละ 1 ชิ้นเท่านั้น",
     "minRentalDurationLabel": "ระยะเวลาเช่าขั้นต่ำ (วัน)",
     "maxRentalDurationLabel": "ระยะเวลาเช่าสูงสุด (วัน)",
     "addressDetailsLabel": "รายละเอียดที่อยู่",
@@ -518,7 +540,7 @@
       "descriptionRequired": "กรุณาระบุรายละเอียดสินค้า",
       "priceRequired": "ราคาเช่ารายวันเป็นสิ่งจำเป็นและต้องมากกว่า 0",
       "priceTooHigh": "ราคาเช่ารายวันต้องไม่เกิน 999,999.99",
-      "quantityInvalid": "จำนวนต้องเป็น 0 หรือมากกว่า",
+      "quantityInvalid": "จำนวนต้องเป็น 1 หรือมากกว่า",
       "minRentalDurationInvalid": "ระยะเวลาเช่าขั้นต่ำต้องอย่างน้อย 1 วัน",
       "maxRentalDurationInvalid": "ระยะเวลาเช่าสูงสุดต้องมากกว่าหรือเท่ากับระยะเวลาเช่าขั้นต่ำ",
       "addressTooLong": "รายละเอียดที่อยู่ต้องมีความยาวไม่เกิน 255 ตัวอักษร",
@@ -595,6 +617,7 @@
       "created": "สร้างเมื่อ",
       "description": "รายละเอียด",
       "quantity": "จำนวน",
+      "singleRentalNote": "ผู้เช่าสามารถเช่าได้ทีละ 1 ชิ้นเท่านั้น",
       "unknown": "ไม่ทราบ"
     },
     "actions": {
@@ -619,7 +642,7 @@
     "outOfStock": "หมดแล้ว",
     "lowStock": "เหลือน้อย ({{count}} ชิ้น)",
     "inStock": "มีสินค้า ({{count}} ชิ้น)",
-    "quantityAvailable": "มี {{count}} ชิ้น",
+    "quantityAvailable": "จำนวนสินค้าที่พร้อมใช้งาน {{quantity}} ชิ้น",
     "quantity": "จำนวน",
     "status": "สถานะ",
     "adminApproval": "การอนุมัติ",
@@ -825,7 +848,8 @@
     "tabs": {
       "overview": "ภาพรวม",
       "deliveryReturn": "การจัดส่งและรับคืน",
-      "paymentVerification": "ตรวจสอบการชำระเงิน"
+      "paymentVerification": "ตรวจสอบการชำระเงิน",
+      "noPaymentSlip": "ยังไม่มีการอัปโหลดสลิปการชำระเงิน"
     },
     "sections": {
       "rentalInformation": "ข้อมูลการเช่า",
@@ -844,6 +868,7 @@
       "renter": "ผู้เช่า:",
       "rentalPeriod": "ระยะเวลาเช่า:",
       "pickupMethod": "วิธีรับสินค้า:",
+      "pickupLocation": "ที่อยู่สินค้า (Product Location) - ที่ลูกค้าจะมารับเอง",
       "pricePerDay": "ราคาต่อวัน:",
       "subtotal": "ยอดรวมย่อย:",
       "securityDeposit": "เงินประกัน:",
@@ -880,6 +905,7 @@
       "platformFeeOwner": "ค่าธรรมเนียมแพลตฟอร์ม (เจ้าของ)",
       "returnInitiatedAt": "เริ่มการคืนสินค้าเมื่อ",
       "returnDetails": "รายละเอียดการคืนสินค้า",
+      "returnLocation": "สถานที่คืนสินค้า",
       "carrier": "ผู้ให้บริการขนส่ง",
       "returnTrackingNumber": "เลขพัสดุการคืนสินค้า",
       "returnDatetime": "วันเวลาการคืนสินค้า",
@@ -957,6 +983,11 @@
       "error": "ไม่สามารถแจ้งสลิปไม่ถูกต้องได้ กรุณาลองใหม่อีกครั้ง",
       "saving": "กำลังบันทึก..."
     },
+    "openInGoogleMaps": "เปิดใน Google Maps",
+    "noLocationData": "ไม่พบข้อมูลพิกัดของสินค้า กรุณาเพิ่มข้อมูลตำแหน่งสินค้าในการตั้งค่าสินค้า",
+    "selfPickupLocationTitle": "ที่อยู่ที่ลูกค้าจะมารับเอง",
+    "deliveryLocationTitle": "ที่คุณต้องไปเอาสินค้ามาส่ง",
+    "productLabel": "สินค้า",
     "backToMyRentals": "← กลับไปที่รายการเช่าของฉัน",
     "rentalDetailsTitle": "รายละเอียดการเช่า",
     "itemTitle": "สินค้า",

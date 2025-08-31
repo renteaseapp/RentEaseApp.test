@@ -5,7 +5,7 @@
   "backToSearch": "กลับไปค้นหา",
   "viewedCount": "เข้าชม {{count}} ครั้ง",
   "statusLabel": "สถานะ:",
-  "quantityAvailable": "จำนวนที่มี: {{count}} ชิ้น",
+  "quantityAvailable": "จำนวนสินค้าที่พร้อมใช้งาน: {{quantity}} ชิ้น",
   "pricePerDay": "บาท/วัน",
   "pricePerWeek": "บาท/สัปดาห์",
   "pricePerMonth": "บาท/เดือน",

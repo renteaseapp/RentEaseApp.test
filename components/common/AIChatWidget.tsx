@@ -1,13 +1,51 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAIChat } from '../../contexts/AIChatContext';
 import { aiChatService } from '../../services/aiChatService';
-import { X, Send, Bot, MessageCircle, Trash2 } from 'lucide-react';
+import { X, Send, Bot, MessageCircle, Trash2, Search, ShoppingBag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AIChatWidget: React.FC = () => {
-  const { isOpen, messages, isLoading, error, closeChat, sendMessage, clearChat } = useAIChat();
+  const { isOpen, messages, isLoading, error, enableProductSearch, enableWebSearch, closeChat, sendMessage, clearChat, toggleProductSearch, toggleWebSearch } = useAIChat();
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+
+  // Function to render message content with clickable links
+  const renderMessageContent = (content: string) => {
+    // Split content by lines to handle each line separately
+    const lines = content.split('\n');
+    
+    return lines.map((line, lineIndex) => {
+      // Check if line contains a product link pattern
+      const linkMatch = line.match(/🔗 ดูรายละเอียด: \/products\/([^\s]+)/);
+      
+      if (linkMatch) {
+        const slug = linkMatch[1];
+        const beforeLink = line.substring(0, linkMatch.index);
+        const afterLink = line.substring(linkMatch.index! + linkMatch[0].length);
+        
+        return (
+          <div key={lineIndex}>
+            {beforeLink}
+            <button
+              onClick={() => {
+                navigate(`/products/${slug}`);
+                closeChat();
+              }}
+              className="text-blue-600 hover:text-blue-800 underline cursor-pointer ml-1"
+            >
+              🔗 ดูรายละเอียด
+            </button>
+            {afterLink}
+          </div>
+        );
+      }
+      
+      // For regular lines, just return the text
+      return <div key={lineIndex}>{line}</div>;
+    });
+  };
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -47,6 +85,34 @@ const AIChatWidget: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Bot className="w-5 h-5" />
             <span className="font-semibold">AI Assistant</span>
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={toggleProductSearch}
+                className={`px-2 py-1 text-xs rounded transition-colors flex items-center space-x-1 ${
+                  enableProductSearch 
+                    ? 'bg-green-600 hover:bg-green-700' 
+                    : 'bg-gray-600 hover:bg-gray-700'
+                }`}
+                title={enableProductSearch ? "ปิดการค้นหาสินค้า" : "เปิดการค้นหาสินค้า"}
+              >
+                {enableProductSearch ? <ShoppingBag className="w-3 h-3" /> : <Search className="w-3 h-3" />}
+                <span>{enableProductSearch ? 'สินค้า ON' : 'สินค้า OFF'}</span>
+              </button>
+              
+              <button
+                onClick={toggleWebSearch}
+                className={`px-2 py-1 text-xs rounded transition-colors flex items-center space-x-1 ${
+                  enableWebSearch 
+                    ? 'bg-orange-600 hover:bg-orange-700' 
+                    : 'bg-gray-600 hover:bg-gray-700'
+                }`}
+                title={enableWebSearch ? "ปิดการเปรียบเทียบเว็บ" : "เปิดการเปรียบเทียบเว็บ"}
+                disabled={!enableProductSearch}
+              >
+                <span className="text-xs">🌐</span>
+                <span>{enableWebSearch ? 'เว็บ ON' : 'เว็บ OFF'}</span>
+              </button>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <button
@@ -73,6 +139,33 @@ const AIChatWidget: React.FC = () => {
               <Bot className="w-12 h-12 mx-auto mb-3 text-gray-300" />
               <p className="text-sm">สวัสดี! ฉันเป็น AI Assistant ที่จะช่วยคุณใช้งาน RentEase</p>
               <p className="text-xs mt-2">ลองถามเกี่ยวกับการเช่าสินค้า, การใช้งานระบบ, หรือปัญหาต่างๆ</p>
+              
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg text-left">
+                <p className="text-xs font-semibold text-blue-800 mb-1">💡 คำแนะนำ:</p>
+                <p className="text-xs text-blue-700">
+                  {enableProductSearch 
+                    ? (enableWebSearch 
+                        ? "✅ เปิดใช้งานการค้นหาสินค้าและเปรียบเทียบเว็บแล้ว! ลองถาม 'เปรียบเทียบราคากล้อง' หรือ 'กล้องในตลาดราคาเท่าไหร่'"
+                        : "✅ เปิดใช้งานการค้นหาสินค้าแล้ว! ลองถามว่า 'อยากเช่าอะไรดี' หรือ 'มีกล้องให้เช่าไหม' (เปิด 🌐 เพื่อเปรียบเทียบราคาเว็บ)")
+                    : "🔍 กดปุ่ม 'สินค้า' เพื่อให้ AI ช่วยแนะนำสินค้าได้"
+                  }
+                </p>
+                
+                <div className="mt-2 text-xs text-blue-600">
+                  <p className="font-medium">ตัวอย่างคำถาม:</p>
+                  <ul className="list-disc list-inside ml-2">
+                    <li>"มีอะไรให้เช่าบ้าง"</li>
+                    <li>"แนะนำกล้องหน่อย"</li>
+                    <li>"เช่าโทรศัพท์ราคาเท่าไหร่"</li>
+                    {enableWebSearch && (
+                      <>
+                        <li>"เปรียบเทียบราคากล้อง"</li>
+                        <li>"กล้องในตลาดราคาเท่าไหร่"</li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+              </div>
             </div>
           )}
 
@@ -88,7 +181,13 @@ const AIChatWidget: React.FC = () => {
                     : 'bg-gray-100 text-gray-800'
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <div className="text-sm whitespace-pre-wrap">
+                  {message.role === 'user' ? (
+                    <p>{message.content}</p>
+                  ) : (
+                    renderMessageContent(message.content)
+                  )}
+                </div>
                 <p className={`text-xs mt-1 ${
                   message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
                 }`}>
@@ -148,4 +247,4 @@ const AIChatWidget: React.FC = () => {
   );
 };
 
-export default AIChatWidget; 
+export default AIChatWidget;

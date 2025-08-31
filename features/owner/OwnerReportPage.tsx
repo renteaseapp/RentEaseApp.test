@@ -15,7 +15,7 @@ import {
   FaArrowLeft, FaMoneyBillWave, FaRankingStar
 } from 'react-icons/fa6'; // Using Fa6 for newer icons like FaRankingStar
 
-const API_URL = 'https://renteaseapi-test.onrender.com/api/owners/me/report';
+const API_URL = 'http://localhost:3001/api/owners/me/report';
 // Define a more consistent and appealing color palette for charts
 const CHART_COLORS = [
   '#6366F1', // Indigo-500 (Primary Blue)

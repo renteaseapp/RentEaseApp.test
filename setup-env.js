@@ -28,7 +28,7 @@ if (fs.existsSync(envPath)) {
 VITE_OPENROUTER_API_KEY=your_openrouter_api_key_here
 
 # Socket URL (if needed)
-VITE_SOCKET_URL=https://renteaseapi-test.onrender.com
+VITE_SOCKET_URL=http://localhost:3001
 `;
 
   fs.writeFileSync(envPath, envContent);

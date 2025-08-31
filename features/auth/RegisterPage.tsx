@@ -21,8 +21,10 @@ import {
   FaShieldAlt,
   FaUsers,
   FaRocket,
-  FaArrowRight
+  FaArrowRight,
+  FaMapMarkerAlt
 } from 'react-icons/fa';
+import { OpenStreetMapPicker } from '../../components/common/OpenStreetMapPicker';
 
 export const RegisterPage: React.FC = () => {
   const { t } = useTranslation();
@@ -434,6 +436,24 @@ export const RegisterPage: React.FC = () => {
                     {fieldErrors.phone_number && (
                       <p className="text-red-500 text-sm">{fieldErrors.phone_number.join(', ')}</p>
                     )}
+                  </div>
+
+                  {/* Google Maps Location Picker */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <FaMapMarkerAlt className="h-4 w-4 text-blue-600" />
+                      {t('googleMaps.selectLocation')}
+                    </label>
+                    <OpenStreetMapPicker
+                      onLocationSelect={(location) => {
+                        // Optional: You can store the location data if needed
+                        console.log('Selected location:', location);
+                      }}
+                      height="250px"
+                    />
+                    <p className="text-xs text-gray-500">
+                      {t('googleMaps.locationOptional')}
+                    </p>
                   </div>
 
                   {/* Submit Button */}

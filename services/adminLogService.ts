@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ApiResponse, ApiError } from '../types';
 
-const API_URL = 'https://renteaseapi-test.onrender.com/api';
+const API_URL = 'http://localhost:3001/api';
 
 const api = axios.create({ baseURL: API_URL });
 api.interceptors.request.use((config) => {

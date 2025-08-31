@@ -49,6 +49,22 @@
     "contactEmail": "rentease.com@gmail.com",
     "copyright": "&copy; {{year}} RentEase, Inc. All rights reserved."
   },
+  "googleMaps": {
+    "searchPlaceholder": "Search for location...",
+    "search": "Search",
+    "currentLocation": "Current Location",
+    "clear": "Clear",
+    "selectedLocation": "Selected Location",
+    "coordinates": "Coordinates",
+    "loading": "Loading...",
+    "searchNotFound": "Location not found",
+    "locationError": "Unable to access current location",
+    "geolocationNotSupported": "Geolocation is not supported by this browser",
+    "instruction": "Click on the map to select a location or use the search box above",
+    "selectLocation": "Select location on map",
+    "mapPreview": "Map Preview",
+    "locationOptional": "Location selection is optional"
+  },
   "loginPage": {
     "title": "Sign in to RentEase",
     "subtitle": "Sign in to access our services",
@@ -162,7 +178,9 @@
   "productCard": {
     "pricePerDay": "/day",
     "pricePerWeek": "/week",
-    "pricePerMonth": "/month"
+    "pricePerMonth": "/month",
+    "quantityAvailable": "{{quantity}} available",
+    "rentalCount": "Rented {{count}} times"
   },
   "productDetailPage": {
     "loadingDetails": "Loading product details...",
@@ -201,6 +219,9 @@
     "pickupMethodLabel": "Pickup Method",
     "selfPickupOption": "Self Pickup",
     "deliveryOption": "Delivery",
+    "singleItemRental": "Only one item can be rented at a time",
+    "quantityNote": "Available quantity:",
+    "pieces": "pieces",
     "deliveryAddressLabel": "Delivery Address",
     "loadingAddresses": "Loading addresses...",
     "selectAddressOption": "Select an address",
@@ -479,6 +500,7 @@
     "pricePerMonthLabel": "Price per Month (฿)",
     "securityDepositLabel": "Security Deposit (฿)",
     "quantityLabel": "Quantity",
+    "quantityNote": "Even with multiple items in stock, renters can only rent one item at a time.",
     "minRentalDurationLabel": "Minimum Rental Duration (days)",
     "maxRentalDurationLabel": "Maximum Rental Duration (days)",
     "addressDetailsLabel": "Address Details",
@@ -519,7 +541,7 @@
       "descriptionRequired": "Product description is required.",
       "priceRequired": "Daily rental price is required and must be greater than 0.",
       "priceTooHigh": "Daily rental price cannot exceed 999,999.99.",
-      "quantityInvalid": "Quantity must be 0 or greater.",
+      "quantityInvalid": "Quantity must be 1 or greater.",
       "minRentalDurationInvalid": "Minimum rental duration must be at least 1 day.",
       "maxRentalDurationInvalid": "Maximum rental duration must be greater than or equal to minimum rental duration.",
       "addressTooLong": "Address details must be less than 255 characters.",
@@ -596,6 +618,7 @@
       "created": "Created",
       "description": "Description",
       "quantity": "Quantity",
+      "singleRentalNote": "Renters can only rent one item at a time",
       "unknown": "Unknown"
     },
     "actions": {
@@ -620,7 +643,7 @@
     "outOfStock": "Out of Stock",
     "lowStock": "Low Stock ({{count}} items)",
     "inStock": "In Stock ({{count}} items)",
-    "quantityAvailable": "{{count}} available",
+    "quantityAvailable": "{{quantity}} available",
     "quantity": "Quantity",
     "status": "Status",
     "adminApproval": "Admin Approval",
@@ -826,7 +849,8 @@
     "tabs": {
       "overview": "Overview",
       "deliveryReturn": "Delivery & Return",
-      "paymentVerification": "Payment Verification"
+      "paymentVerification": "Payment Verification",
+      "noPaymentSlip": "No payment slip uploaded yet"
     },
     "sections": {
       "rentalInformation": "Rental Information",
@@ -873,6 +897,7 @@
       "noReturnImages": "No return condition images available",
       "returnConditionImageAlt": "Return condition image {{idx}}",
       "deliveryAddress": "Delivery Address",
+      "pickupLocation": "Product Location - Where customer will pick up",
       "deposit": "Security Deposit",
       "finalAmountPaid": "Final Amount Paid",
       "estimatedPayout": "Estimated Payout",
@@ -881,6 +906,7 @@
       "platformFeeOwner": "Platform Fee (Owner)",
       "returnInitiatedAt": "Return Initiated At",
       "returnDetails": "Return Details",
+      "returnLocation": "Return Location",
       "carrier": "Carrier",
       "returnTrackingNumber": "Return Tracking Number",
       "returnDatetime": "Return Datetime",
@@ -958,6 +984,11 @@
       "error": "Failed to mark slip as invalid. Please try again.",
       "saving": "Saving..."
     },
+    "openInGoogleMaps": "Open in Google Maps",
+    "noLocationData": "No product location data found. Please add product location information in product settings",
+    "selfPickupLocationTitle": "Self-pickup location",
+    "deliveryLocationTitle": "Where you need to pick up the product for delivery",
+    "productLabel": "Product",
     "backToMyRentals": "← Back to My Rentals",
     "rentalDetailsTitle": "Rental Details",
     "itemTitle": "Item",

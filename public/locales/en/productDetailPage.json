@@ -5,7 +5,7 @@
   "backToSearch": "Back to search",
   "viewedCount": "Viewed {{count}} times",
   "statusLabel": "Status:",
-  "quantityAvailable": "Available: {{count}} pieces",
+  "quantityAvailable": "Available: {{quantity}} pieces",
   "pricePerDay": "Baht/day",
   "pricePerWeek": "Baht/week",
   "pricePerMonth": "Baht/month",

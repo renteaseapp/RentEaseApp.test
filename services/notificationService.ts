@@ -1,6 +1,6 @@
 import { AppNotification, ApiError } from '../types';
 
-const API_BASE_URL = process.env.VITE_API_URL || 'https://renteaseapi-test.onrender.com/api';
+const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export const getNotifications = async (params: { page?: number, limit?: number } = {}): Promise<AppNotification[]> => {
   const token = localStorage.getItem('authToken');

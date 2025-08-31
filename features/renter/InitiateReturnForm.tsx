@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InitiateReturnPayload } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { OpenStreetMapPicker } from '../../components/common/OpenStreetMapPicker';
 import { 
   FaBox, 
   FaTruck, 
@@ -23,6 +24,13 @@ interface InitiateReturnFormProps {
   isLoading: boolean;
 }
 
+interface Location {
+  lat: number;
+  lng: number;
+  address?: string;
+  formattedAddress?: string;
+}
+
 export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId, onSubmit, onCancel, isLoading }) => {
   const { t } = useTranslation();
   const [returnMethod, setReturnMethod] = useState<'shipping' | 'in_person'>('shipping');
@@ -30,9 +38,15 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
   const [trackingNumber, setTrackingNumber] = useState('');
   const [proposedDateTime, setProposedDateTime] = useState('');
   const [locationDetails, setLocationDetails] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [notes, setNotes] = useState('');
   const [returnProofImage, setReturnProofImage] = useState<File | null>(null);
   const [error, setError] = useState('');
+
+  const handleLocationSelect = (location: Location) => {
+    setSelectedLocation(location);
+    setLocationDetails(location.formattedAddress || location.address || `${location.lat}, ${location.lng}`);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +100,7 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
         return;
       }
       
-      if (!locationDetails) {
+      if (!locationDetails && !selectedLocation) {
         setError(t('renterRentalDetailPage.initiateReturnForm.errorInPersonDetailsRequired'));
         return;
       }
@@ -96,6 +110,10 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
         return_details: {
           return_datetime: dateObj.toISOString(),
           location: locationDetails, // Use 'location' as expected by schema
+          ...(selectedLocation && {
+            latitude: selectedLocation.lat,
+            longitude: selectedLocation.lng
+          })
         },
         notes,
       };
@@ -308,14 +326,31 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
                     <FaMapMarkerAlt className="h-4 w-4 text-green-500" />
                     {t('renterRentalDetailPage.initiateReturnForm.locationDetailsLabel')}
                   </label>
+                  
+                  {/* Map Picker */}
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <OpenStreetMapPicker
+                      onLocationSelect={handleLocationSelect}
+                      height="300px"
+                      placeholder={t('renterRentalDetailPage.initiateReturnForm.locationDetailsPlaceholder')}
+                      showSearch={true}
+                      showCurrentLocation={true}
+                      zoom={15}
+                      className="w-full"
+                    />
+                  </div>
+                  
+                  {/* Text input as fallback/additional info */}
                   <input
                     id="locationDetails"
                     value={locationDetails}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocationDetails(e.target.value)}
                     placeholder={t('renterRentalDetailPage.initiateReturnForm.locationDetailsPlaceholder')}
-                    required
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                   />
+                  <p className="text-xs text-gray-500">
+                    {t('renterRentalDetailPage.initiateReturnForm.locationHelpText', 'เลือกตำแหน่งบนแผนที่หรือกรอกรายละเอียดสถานที่เพิ่มเติม')}
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -399,4 +434,4 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
       </motion.div>
     </motion.div>
   );
-}; 
+};

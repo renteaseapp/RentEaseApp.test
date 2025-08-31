@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../../types';
 import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { useTranslation } from 'react-i18next';
+import { getProductRentalCount } from '../../services/productService';
 
 interface ProductCardProps {
   product: Product;
@@ -18,7 +19,22 @@ const LocationMarkerIcon = () => (
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { t } = useTranslation();
+  const [rentalCount, setRentalCount] = useState<number | null>(null);
   const detailUrl = ROUTE_PATHS.PRODUCT_DETAIL.replace(':slugOrId', product.slug || String(product.id));
+
+  useEffect(() => {
+    const fetchRentalCount = async () => {
+      try {
+        const result = await getProductRentalCount(product.id);
+        setRentalCount(result.rental_count);
+      } catch (error) {
+        console.error('Error fetching rental count:', error);
+        setRentalCount(0);
+      }
+    };
+
+    fetchRentalCount();
+  }, [product.id]);
 
   return (
     <Link to={detailUrl} className="block group">
@@ -87,10 +103,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     ? 'bg-blue-100 text-blue-700'
                     : 'bg-gray-100 text-gray-700'
                 }`}>
-                  {t('productCard.quantityAvailable', { count: product.quantity_available })}
+                  {t('productCard.quantityAvailable', { quantity: product.quantity_available })}
                 </span>
               )}
             </div>
+            
+            {/* Rental Count */}
+             {rentalCount !== null && (
+               <div className="mb-2">
+                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                   📊 {t('productCard.rentalCount', { count: rentalCount })}
+                 </span>
+               </div>
+             )}
             
             <p className="text-xl font-bold text-blue-600">
               ฿{product.rental_price_per_day.toLocaleString()} <span className="text-sm font-normal text-gray-500">{t('productCard.pricePerDay')}</span>

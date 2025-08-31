@@ -73,7 +73,7 @@ const HighlightText: React.FC<{ text: string; searchTerm: string }> = ({ text, s
   );
 };
 
-// Filter products based on search term
+// Filter products based on search term with fuzzy matching
 const filterProductsBySearch = (products: Product[], searchTerm: string): Product[] => {
   if (!searchTerm.trim()) {
     return products;
@@ -81,31 +81,60 @@ const filterProductsBySearch = (products: Product[], searchTerm: string): Produc
 
   const searchLower = searchTerm.toLowerCase();
   
+  // Enhanced keyword mapping for fuzzy search
+  const keywordMappings = {
+    'กล้อง': ['canon', 'nikon', 'sony', 'fujifilm', 'olympus', 'panasonic', 'camera'],
+    'camera': ['canon', 'nikon', 'sony', 'fujifilm', 'olympus', 'panasonic', 'กล้อง'],
+    'มือถือ': ['iphone', 'samsung', 'xiaomi', 'oppo', 'vivo', 'realme', 'phone', 'mobile'],
+    'โทรศัพท์': ['iphone', 'samsung', 'xiaomi', 'oppo', 'vivo', 'realme', 'phone', 'mobile'],
+    'คอมพิวเตอร์': ['laptop', 'notebook', 'macbook', 'dell', 'hp', 'asus', 'acer', 'lenovo', 'computer'],
+    'พีซี': ['laptop', 'notebook', 'macbook', 'dell', 'hp', 'asus', 'acer', 'lenovo', 'computer'],
+    'แท็บเล็ต': ['ipad', 'tablet', 'samsung', 'huawei', 'lenovo'],
+    'ไอแพด': ['ipad', 'tablet', 'apple'],
+    'เลนส์': ['lens', 'canon', 'nikon', 'sony', 'sigma', 'tamron'],
+    'ขาตั้ง': ['tripod', 'gimbal', 'stand', 'mount'],
+    'ไฟ': ['light', 'flash', 'led', 'softbox', 'studio'],
+    'เสียง': ['microphone', 'mic', 'audio', 'speaker', 'headphone']
+  };
+  
   return products.filter(product => {
-    // Search in title
-    if (product.title.toLowerCase().includes(searchLower)) {
+    const title = product.title.toLowerCase();
+    const description = product.description?.toLowerCase() || '';
+    const categoryName = product.category?.name?.toLowerCase() || '';
+    const provinceName = product.province?.name_th?.toLowerCase() || '';
+    const specsString = product.specifications ? JSON.stringify(product.specifications).toLowerCase() : '';
+    
+    // Check for direct matches
+    if (title.includes(searchLower) || 
+        description.includes(searchLower) || 
+        categoryName.includes(searchLower) || 
+        provinceName.includes(searchLower) || 
+        specsString.includes(searchLower)) {
       return true;
     }
     
-    // Search in description
-    if (product.description && product.description.toLowerCase().includes(searchTerm)) {
-      return true;
+    // Check for fuzzy keyword matches
+    for (const [keyword, synonyms] of Object.entries(keywordMappings)) {
+      if (searchLower.includes(keyword.toLowerCase())) {
+        // If search contains a keyword, check for any synonyms
+        for (const synonym of synonyms) {
+          if (title.includes(synonym.toLowerCase()) || 
+              description.includes(synonym.toLowerCase()) || 
+              categoryName.includes(synonym.toLowerCase()) || 
+              specsString.includes(synonym.toLowerCase())) {
+            return true;
+          }
+        }
+      }
     }
     
-    // Search in category name
-    if (product.category?.name && product.category.name.toLowerCase().includes(searchLower)) {
-      return true;
-    }
-    
-    // Search in province name
-    if (product.province?.name_th && product.province.name_th.toLowerCase().includes(searchLower)) {
-      return true;
-    }
-    
-    // Search in specifications
-    if (product.specifications) {
-      const specsString = JSON.stringify(product.specifications).toLowerCase();
-      if (specsString.includes(searchLower)) {
+    // Check for partial word matches
+    const searchWords = searchLower.split(' ').filter(word => word.length > 2);
+    for (const word of searchWords) {
+      if (title.includes(word) || 
+          description.includes(word) || 
+          categoryName.includes(word) || 
+          specsString.includes(word)) {
         return true;
       }
     }
@@ -682,6 +711,9 @@ export const MyListingsPage: React.FC = () => {
                             }`}>
                               {product.quantity_available || 0}/{product.quantity || 1}
                             </span>
+                            <span className="text-xs text-gray-500 mt-1">
+                              {t('myListingsPage.labels.singleRentalNote')}
+                            </span>
                           </div>
                         </div>
 
@@ -797,6 +829,22 @@ export const MyListingsPage: React.FC = () => {
                                     {t('myListingsPage.labels.created')}:
                                   </span>
                                   <span>{product.created_at ? new Date(product.created_at).toLocaleDateString() : t('myListingsPage.labels.unknown')}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1 font-medium">
+                                    <FaBox className="h-3 w-3 text-orange-500" />
+                                    {t('myListingsPage.labels.quantity')}:
+                                  </span>
+                                  <span className={`font-medium ${
+                                    (product.quantity_available || 0) > 0 ? 'text-green-600' : 'text-red-600'
+                                  }`}>
+                                    {product.quantity_available || 0}/{product.quantity || 1}
+                                  </span>
+                                </div>
+                                <div className="col-span-full">
+                                  <span className="text-xs text-gray-500">
+                                    {t('myListingsPage.labels.singleRentalNote')}
+                                  </span>
                                 </div>
                               </div>
 

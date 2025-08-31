@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Product Search</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 3px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Product Search</h1>
+    
+    <div class="debug-section">
+        <h3>API Connectivity Test</h3>
+        <button onclick="testAPI()">Test API Connection</button>
+        <div id="api-result" class="result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>Product Search Test</h3>
+        <input type="text" id="search-query" placeholder="Enter search query..." value="กล้อง">
+        <button onclick="testSearch()">Search Products</button>
+        <div id="search-result" class="result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>Intent Analysis Test</h3>
+        <textarea id="message-input" placeholder="Enter message to analyze intent..." rows="3">อยากเช่ากล้องหน่อย</textarea>
+        <button onclick="testIntent()">Analyze Intent</button>
+        <div id="intent-result" class="result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>Available Products</h3>
+        <button onclick="getAllProducts()">Get All Products</button>
+        <div id="products-result" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001/api';
+
+        async function testAPI() {
+            const resultDiv = document.getElementById('api-result');
+            try {
+                const response = await fetch(`${API_BASE_URL}/products?limit=1`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ API Connection Successful<br>
+                        Status: ${response.status}<br>
+                        Sample: ${data.data?.data?.[0]?.title || 'No products found'}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ API Connection Failed<br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testSearch() {
+            const query = document.getElementById('search-query').value;
+            const resultDiv = document.getElementById('search-result');
+            
+            try {
+                const params = new URLSearchParams({ q: query, limit: 5 });
+                const response = await fetch(`${API_BASE_URL}/products?${params}`);
+                const data = await response.json();
+                
+                const products = data.data?.data || [];
+                resultDiv.innerHTML = `
+                    <div class="${products.length > 0 ? 'success' : 'error'}">
+                        🔍 Search Results for "${query}": ${products.length} products<br>
+                        ${products.map(p => `• ${p.title} - ${p.rental_price_per_day}฿/day`).join('<br>')}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Search Failed<br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testIntent() {
+            const message = document.getElementById('message-input').value;
+            const resultDiv = document.getElementById('intent-result');
+            
+            // Simple intent analysis
+            const lowerMessage = message.toLowerCase();
+            const productKeywords = ['กล้อง', 'camera', 'โทรศัพท์', 'phone', 'คอมพิวเตอร์', 'computer', 'เช่า', 'rent'];
+            const hasIntent = productKeywords.some(keyword => lowerMessage.includes(keyword));
+            
+            let query = message.replace(/^(แนะนำ|หา|ค้นหา|อยากได้|ต้องการ|เช่า)/gi, '').trim();
+            if (!query || query.length < 2) query = 'all';
+            
+            resultDiv.innerHTML = `
+                <div class="${hasIntent ? 'success' : 'error'}">
+                    🎯 Intent Analysis<br>
+                    Has Intent: ${hasIntent}<br>
+                    Query: "${query}"<br>
+                    Original: "${message}"
+                </div>
+            `;
+        }
+
+        async function getAllProducts() {
+            const resultDiv = document.getElementById('products-result');
+            try {
+                const response = await fetch(`${API_BASE_URL}/products?limit=20`);
+                const data = await response.json();
+                const products = data.data?.data || [];
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        📦 Available Products: ${products.length} total<br><br>
+                        ${products.slice(0, 10).map(p => `• ${p.title} (${p.category?.name || 'ไม่ระบุ'}) - ${p.rental_price_per_day}฿/day`).join('<br>')}
+                        ${products.length > 10 ? '<br>... and more' : ''}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Failed to get products<br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run API test on page load
+        testAPI();
+    </script>
+</body>
+</html>
