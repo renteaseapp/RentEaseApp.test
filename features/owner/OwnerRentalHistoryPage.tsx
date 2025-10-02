@@ -6,7 +6,7 @@ import { Rental, ApiError, PaginatedResponse, } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
-import { useTranslation } from 'react-i18next';
+
 import { ROUTE_PATHS } from '../../constants';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -31,9 +31,27 @@ import {
   FaChartLine,
 } from 'react-icons/fa';
 
+// ฟังก์ชันสำหรับรับข้อความภาษาไทยตามสถานะ
+const getStatusThaiText = (status: string): string => {
+  switch (status) {
+    case 'completed': return 'เสร็จสมบูรณ์';
+    case 'active': return 'กำลังใช้งาน';
+    case 'pending_owner_approval': return 'รอการอนุมัติจากเจ้าของ';
+    case 'pending_payment': return 'รอกาารชำระเงิน';
+    case 'confirmed': return 'ยืนยันแล้ว';
+    case 'return_pending': return 'รอคืนสินค้า';
+    case 'cancelled_by_renter': return 'ยกเลิกโดยผู้เช่า';
+    case 'cancelled_by_owner': return 'ยกเลิกโดยเจ้าของ';
+    case 'rejected_by_owner': return 'ถูกปฏิเสธโดยเจ้าของ';
+    case 'dispute': return 'ข้อพิพาท';
+    case 'expired': return 'หมดอายุ';
+    case 'late_return': return 'คืนล่าช้า';
+    default: return 'ไม่ระบุสถานะ';
+  }
+};
+
 // Status badge component with enhanced styling
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const { t } = useTranslation();
   
   const getStatusColor = () => {
     switch (status) {
@@ -85,7 +103,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   return (
     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor()}`}>
       {getStatusIcon()}
-      {t(`ownerRentalHistoryPage.status.${status}`)}
+      {getStatusThaiText(status)}
     </span>
   );
 };
@@ -96,7 +114,6 @@ const Pagination: React.FC<{
   totalPages: number;
   onPageChange: (page: number) => void;
 }> = ({ currentPage, totalPages, onPageChange }) => {
-  const { t } = useTranslation();
   const pages = [];
   const maxVisiblePages = 5;
   
@@ -125,7 +142,7 @@ const Pagination: React.FC<{
         className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
       >
         <FaArrowLeft className="h-4 w-4" />
-        {t('ownerRentalHistoryPage.pagination.previous')}
+        {"ก่อนหน้า"}
       </motion.button>
       
       {pages.map(page => (
@@ -151,7 +168,7 @@ const Pagination: React.FC<{
         disabled={currentPage === totalPages}
         className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
       >
-        {t('ownerRentalHistoryPage.pagination.next')}
+        {"ถัดไป"}
         <FaArrowRight className="h-4 w-4" />
       </motion.button>
     </motion.div>
@@ -159,7 +176,7 @@ const Pagination: React.FC<{
 };
 
 export const OwnerRentalHistoryPage: React.FC = () => {
-  const { t } = useTranslation();
+
   const { user } = useAuth();
   const location = useLocation();
   const [rentalsResponse, setRentalsResponse] = useState<PaginatedResponse<Rental> | null>(null);
@@ -201,12 +218,12 @@ export const OwnerRentalHistoryPage: React.FC = () => {
       setRentalsResponse(response);
     } catch (err) {
       const apiError = err as ApiError;
-      setError(apiError.message || t('ownerRentalHistoryPage.error.loadFailed'));
+      setError(apiError.message || "ไม่สามารถโหลดประวัติการเช่าได้");
       console.error('Error fetching rental history:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [user, statusFilter, searchTerm, dateFrom, dateTo, limit, t]);
+  }, [user, statusFilter, searchTerm, dateFrom, dateTo, limit]);
 
   useEffect(() => {
     fetchRentalHistory(currentPage);
@@ -236,21 +253,21 @@ export const OwnerRentalHistoryPage: React.FC = () => {
     if (rentalsResponse.data.some(r => r.rental_status === 'return_pending')) {
       notifications.push({
         type: 'warning',
-        message: t('ownerRentalHistoryPage.notifications.returnPending'),
+        message: "มีรายการรอคืนสินค้า! โปรดตรวจสอบการรับคืน",
         icon: <FaBox className="h-4 w-4" />
       });
     }
     if (rentalsResponse.data.some(r => r.rental_status === 'late_return')) {
       notifications.push({
         type: 'error',
-        message: t('ownerRentalHistoryPage.notifications.lateReturn'),
+        message: "แจ้งเตือน: มีรายการคืนล่าช้า!",
         icon: <FaExclamationTriangle className="h-4 w-4" />
       });
     }
     if (rentalsResponse.data.some(r => r.rental_status === 'pending_owner_approval')) {
       notifications.push({
         type: 'info',
-        message: t('ownerRentalHistoryPage.notifications.pendingApproval'),
+        message: "มีคำขอเช่าใหม่รอการอนุมัติจากคุณ",
         icon: <FaClock className="h-4 w-4" />
       });
     }
@@ -264,7 +281,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
   if (isLoading && !rentalsResponse) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <LoadingSpinner message={t('ownerRentalHistoryPage.loadingHistory')} />
+        <LoadingSpinner message="กำลังโหลดประวัติการเช่า..." />
       </div>
     );
   }
@@ -285,9 +302,9 @@ export const OwnerRentalHistoryPage: React.FC = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
                 <FaHistory className="h-8 w-8 text-white" />
               </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{t('ownerRentalHistoryPage.title')}</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{"ประวัติการเช่าของฉัน"}</h1>
               <p className="text-blue-100 text-lg">
-                {t('ownerRentalHistoryPage.subtitle')}
+                {"จัดการและตรวจสอบรายการเช่าทั้งหมดของคุณในฐานะเจ้าของ"}
               </p>
             </div>
             <motion.div
@@ -297,7 +314,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
               <Link to={ROUTE_PATHS.OWNER_DASHBOARD}>
                 <Button variant="primary" className="bg-white text-black hover:bg-blue-50 hover:text-blue-600 px-8 py-4 rounded-xl font-semibold shadow-lg">
                   <FaArrowLeft className="h-5 w-5 mr-2" />
-                  {t('ownerRentalHistoryPage.backToDashboard')}
+                  {"กลับสู่หน้าแดชบอร์ด"}
                 </Button>
               </Link>
             </motion.div>
@@ -351,7 +368,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
               </div>
                 <input
                   type="text"
-                placeholder={t('ownerRentalHistoryPage.filters.searchPlaceholder')}
+                placeholder={"ค้นหาด้วยชื่อสินค้า, รหัสเช่า หรือชื่อผู้เช่า..."}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 className="block w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg"
@@ -367,13 +384,13 @@ export const OwnerRentalHistoryPage: React.FC = () => {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
               >
                 <FaFilter className="h-4 w-4" />
-                {t('ownerRentalHistoryPage.filters.advancedFilters')}
+                {"ตัวกรองขั้นสูง"}
                 <FaArrowRight className={`h-4 w-4 transition-transform duration-200 ${showFilters ? 'rotate-90' : ''}`} />
               </motion.button>
 
               {/* View Mode Toggle */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700 font-medium">{t('ownerRentalHistoryPage.viewMode')}:</span>
+                <span className="text-sm text-gray-700 font-medium">{"โหมดการแสดงผล"}:</span>
                 <div className="flex border border-gray-300 rounded-lg overflow-hidden">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -408,33 +425,33 @@ export const OwnerRentalHistoryPage: React.FC = () => {
               {/* Status Filter */}
               <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {t('ownerRentalHistoryPage.filters.status')}
+                  {"สถานะ"}
                 </label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                       className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
-                  <option value="">{t('ownerRentalHistoryPage.filters.allStatus')}</option>
-                  <option value="pending_owner_approval">{t('ownerRentalHistoryPage.status.pending_owner_approval')}</option>
-                  <option value="pending_payment">{t('ownerRentalHistoryPage.status.pending_payment')}</option>
-                  <option value="confirmed">{t('ownerRentalHistoryPage.status.confirmed')}</option>
-                  <option value="active">{t('ownerRentalHistoryPage.status.active')}</option>
-                  <option value="return_pending">{t('ownerRentalHistoryPage.status.return_pending')}</option>
-                  <option value="completed">{t('ownerRentalHistoryPage.status.completed')}</option>
-                  <option value="cancelled_by_renter">{t('ownerRentalHistoryPage.status.cancelled_by_renter')}</option>
-                  <option value="cancelled_by_owner">{t('ownerRentalHistoryPage.status.cancelled_by_owner')}</option>
-                  <option value="rejected_by_owner">{t('ownerRentalHistoryPage.status.rejected_by_owner')}</option>
-                  <option value="dispute">{t('ownerRentalHistoryPage.status.dispute')}</option>
-                  <option value="expired">{t('ownerRentalHistoryPage.status.expired')}</option>
-                  <option value="late_return">{t('ownerRentalHistoryPage.status.late_return')}</option>
+                  <option value="">{"สถานะทั้งหมด"}</option>
+                  <option value="pending_owner_approval">{"รอการอนุมัติจากเจ้าของ"}</option>
+                  <option value="pending_payment">{"รอกาารชำระเงิน"}</option>
+                  <option value="confirmed">{"ยืนยันแล้ว"}</option>
+                  <option value="active">{"กำลังใช้งาน"}</option>
+                  <option value="return_pending">{"รอคืนสินค้า"}</option>
+                  <option value="completed">{"เสร็จสมบูรณ์"}</option>
+                  <option value="cancelled_by_renter">{"ยกเลิกโดยผู้เช่า"}</option>
+                  <option value="cancelled_by_owner">{"ยกเลิกโดยเจ้าของ"}</option>
+                  <option value="rejected_by_owner">{"ถูกปฏิเสธโดยเจ้าของ"}</option>
+                  <option value="dispute">{"ข้อพิพาท"}</option>
+                  <option value="expired">{"หมดอายุ"}</option>
+                  <option value="late_return">{"คืนล่าช้า"}</option>
                 </select>
               </div>
 
               {/* Date From */}
               <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {t('ownerRentalHistoryPage.filters.fromDate')}
+                  {"จากวันที่"}
                 </label>
                 <input
                   type="date"
@@ -447,7 +464,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
               {/* Date To */}
               <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {t('ownerRentalHistoryPage.filters.toDate')}
+                  {"ถึงวันที่"}
                 </label>
                 <input
                   type="date"
@@ -475,13 +492,11 @@ export const OwnerRentalHistoryPage: React.FC = () => {
                     className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
                   >
                     <FaTimes className="h-4 w-4" />
-                {t('ownerRentalHistoryPage.filters.clearFilters')}
+                {"ล้างตัวกรอง"}
                   </motion.button>
                   
                   <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                    {t('ownerRentalHistoryPage.activeFilters', { 
-                      count: [searchTerm, statusFilter, dateFrom, dateTo].filter(Boolean).length 
-                    })}
+                    {`ตัวกรองที่ใช้งานอยู่: ${[searchTerm, statusFilter, dateFrom, dateTo].filter(Boolean).length} รายการ`}
                   </span>
             </div>
                 
@@ -492,7 +507,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
                   className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
                 >
                   <FaSearch className="h-4 w-4" />
-                  {t('ownerRentalHistoryPage.filters.applyFilters')}
+                  {"ใช้ตัวกรอง"}
                 </motion.button>
               </motion.div>
             )}
@@ -509,15 +524,11 @@ export const OwnerRentalHistoryPage: React.FC = () => {
           >
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">
-          {t('ownerRentalHistoryPage.results.showing', {
-            from: rentalsResponse.meta.from,
-            to: rentalsResponse.meta.to,
-            total: rentalsResponse.meta.total
-          })}
-        </div>
+                {`กำลังแสดงผลลัพธ์ ${rentalsResponse.meta.from} - ${rentalsResponse.meta.to} จากทั้งหมด ${rentalsResponse.meta.total} รายการ`}
+          </div>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <FaChartLine className="h-4 w-4" />
-                <span>{t('ownerRentalHistoryPage.results.totalRentals', { count: rentalsResponse.meta.total })}</span>
+                <span>{`การเช่าทั้งหมด: ${rentalsResponse.meta.total} รายการ`}</span>
               </div>
             </div>
           </motion.div>
@@ -564,7 +575,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
                       {/* Card Content */}
                       <div className="p-6">
                         <h3 className="text-lg font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                          {rental.product?.title || 'N/A'}
+                          {rental.product?.title || "ไม่ระบุ"}
                         </h3>
                         
                         {/* Quick Info */}
@@ -572,34 +583,36 @@ export const OwnerRentalHistoryPage: React.FC = () => {
                           <div className="flex items-center justify-between">
                             <span className="flex items-center gap-1">
                               <FaIdCard className="h-3 w-3 text-blue-500" />
-                              {t('ownerRentalHistoryPage.rentalCard.rentalId')}:
+                              {"รหัสการเช่า"}:
                             </span>
                             <span className="font-bold text-blue-600">{rental.rental_uid?.substring(0, 8) || rental.id.toString().substring(0, 8)}</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="flex items-center gap-1">
                               <FaUser className="h-3 w-3 text-green-500" />
-                              {t('ownerRentalHistoryPage.rentalCard.renter')}:
+                              {"ผู้เช่า"}:
                             </span>
                             <span className="truncate">
-                              {rental.renter?.first_name || 'N/A'} {rental.renter?.last_name || ''}
+                              {rental.renter?.first_name || "ไม่ระบุ"} {rental.renter?.last_name || ''}
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="flex items-center gap-1">
                               <FaCalendarAlt className="h-3 w-3 text-purple-500" />
-                              {t('ownerRentalHistoryPage.rentalCard.dates')}:
+                              {"วันที่เช่า"}:
                             </span>
                             <span className="text-xs">
-                              {new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}
+                              {new Date(rental.start_date).toLocaleDateString('th-TH')} - {new Date(rental.end_date).toLocaleDateString('th-TH')}
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="flex items-center gap-1">
                               <FaMoneyBillWave className="h-3 w-3 text-green-500" />
-                              {t('ownerRentalHistoryPage.rentalCard.totalAmount')}:
+                              {"ยอดรวม"}:
                             </span>
-                            <span className="font-bold text-green-600">฿{rental.total_amount_due?.toLocaleString() || '0'}</span>
+                            <span className="font-bold text-green-600">
+                              {`฿${rental.total_amount_due?.toLocaleString() || '0'}`}
+                            </span>
                           </div>
                         </div>
 
@@ -612,7 +625,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
                               className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center justify-center gap-2"
                             >
                               <FaEye className="h-4 w-4" />
-                              {t('ownerRentalHistoryPage.actions.viewDetails')}
+                              {"ดูรายละเอียด"}
                             </motion.button>
                           </Link>
                         </div>
@@ -658,7 +671,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
                           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between h-full">
                             <div className="flex-grow">
                               <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-blue-600 transition-colors">
-                                {rental.product?.title || 'N/A'}
+                                {rental.product?.title || "ไม่ระบุ"}
                               </h3>
 
                               {/* Product Info Grid */}
@@ -666,37 +679,43 @@ export const OwnerRentalHistoryPage: React.FC = () => {
                                 <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-1 font-medium">
                                     <FaIdCard className="h-3 w-3 text-blue-500" />
-                                    {t('ownerRentalHistoryPage.rentalCard.rentalId')}:
+                                    {"รหัสการเช่า"}:
                                   </span>
                                   <span className="font-bold text-blue-600">{rental.rental_uid?.substring(0, 8) || rental.id.toString().substring(0, 8)}</span>
                         </div>
                                 <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-1 font-medium">
                                     <FaUser className="h-3 w-3 text-green-500" />
-                                    {t('ownerRentalHistoryPage.rentalCard.renter')}:
+                                    {"ผู้เช่า"}:
                                   </span>
-                                  <span>{rental.renter?.first_name || 'N/A'} {rental.renter?.last_name || ''}</span>
+                                  <span>{rental.renter?.first_name || "ไม่ระบุ"} {rental.renter?.last_name || ''}</span>
                         </div>
                                 <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-1 font-medium">
                                     <FaCalendarAlt className="h-3 w-3 text-purple-500" />
-                                    {t('ownerRentalHistoryPage.rentalCard.dates')}:
+                                    {"วันที่เช่า"}:
                                   </span>
-                                  <span>{new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}</span>
+                                  <span>{new Date(rental.start_date).toLocaleDateString('th-TH')} - {new Date(rental.end_date).toLocaleDateString('th-TH')}</span>
                         </div>
                                 <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-1 font-medium">
                                     <FaMoneyBillWave className="h-3 w-3 text-green-500" />
-                                    {t('ownerRentalHistoryPage.rentalCard.totalAmount')}:
+                                    {"ยอดรวม"}:
                                   </span>
-                                  <span className="font-bold text-green-600">฿{rental.total_amount_due?.toLocaleString() || '0'}</span>
-                      </div>
+                                  <span className="font-bold text-green-600">
+                                    {`฿${rental.total_amount_due?.toLocaleString() || '0'}`}
+                                  </span>
+                                </div>
                                 <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-1 font-medium">
                                     <FaClock className="h-3 w-3 text-gray-500" />
-                                    {t('ownerRentalHistoryPage.rentalCard.bookedOn')}:
+                                    {"จองเมื่อ"}:
                                   </span>
-                                  <span>{new Date(rental.created_at).toLocaleDateString()}</span>
+                                  <span>
+                                    {rental.created_at && rental.created_at !== null 
+                                      ? new Date(rental.created_at).toLocaleDateString('th-TH') 
+                                      : "ไม่ระบุ"}
+                                  </span>
                       </div>
                     </div>
                             </div>
@@ -710,7 +729,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
                                   className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center justify-center gap-2"
                                 >
                                   <FaEye className="h-4 w-4" />
-                                  {t('ownerRentalHistoryPage.actions.viewDetails')}
+                                  {"ดูรายละเอียด"}
                                 </motion.button>
                       </Link>
                     </div>
@@ -736,10 +755,10 @@ export const OwnerRentalHistoryPage: React.FC = () => {
                 <FaHistory className="h-12 w-12 text-blue-500" />
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-3">
-              {t('ownerRentalHistoryPage.results.noResults')}
+              {"ไม่พบประวัติการเช่า"}
               </h3>
               <p className="text-gray-500 leading-relaxed mb-6">
-              {t('ownerRentalHistoryPage.results.noResultsDescription')}
+              {"เราไม่พบรายการเช่าที่ตรงกับเกณฑ์การค้นหาและตัวกรองของคุณ โปรดลองปรับตัวกรอง"}
               </p>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -747,7 +766,7 @@ export const OwnerRentalHistoryPage: React.FC = () => {
                 onClick={clearFilters}
                 className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
               >
-                {t('ownerRentalHistoryPage.results.clearFiltersAndTryAgain')}
+                {"ล้างตัวกรองและลองอีกครั้ง"}
               </motion.button>
             </div>
           </motion.div>

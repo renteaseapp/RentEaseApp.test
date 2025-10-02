@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTE_PATHS } from '../constants';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { useTranslation } from 'react-i18next';
+
 import { UserIdVerificationStatus } from '../types';
 
 interface ProtectedRouteProps {
@@ -12,11 +12,10 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = () => {
   const { user, isAdmin, isLoading } = useAuth();
-  const { t } = useTranslation();
   const location = useLocation();
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen"><LoadingSpinner message={t('protectedRoute.authenticating')} /></div>;
+    return <div className="flex justify-center items-center h-screen"><LoadingSpinner message="กำลังตรวจสอบสิทธิ์การเข้าถึง" /></div>;
   }
 
   if (!user) {
@@ -49,7 +48,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = () => {
 
 export const RenterRoute: React.FC<ProtectedRouteProps> = () => {
   const { user, isOwner, isAdmin, isLoading } = useAuth();
-  const { t } = useTranslation();
 
   // Add debugging logs
   console.log('🔍 RenterRoute Debug:', { 
@@ -61,7 +59,7 @@ export const RenterRoute: React.FC<ProtectedRouteProps> = () => {
   });
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen"><LoadingSpinner message={t('protectedRoute.authenticating')} /></div>;
+    return <div className="flex justify-center items-center h-screen"><LoadingSpinner message="กำลังตรวจสอบสิทธิ์การเข้าถึง" /></div>;
   }
 
   if (!user) {

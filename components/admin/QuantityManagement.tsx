@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 import { FaSync, FaBox, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
 import { Button } from '../ui/Button';
 import { quantityService, QuantitySyncResult } from '../../services/quantityService';
@@ -12,7 +12,6 @@ interface QuantityManagementProps {
 export const QuantityManagement: React.FC<QuantityManagementProps> = ({
   className = ''
 }) => {
-  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [syncResult, setSyncResult] = useState<QuantitySyncResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -27,12 +26,12 @@ export const QuantityManagement: React.FC<QuantityManagementProps> = ({
       setSyncResult(result);
       
       if (result.synced_products > 0) {
-        toast.success(t('admin.quantitySync.syncSuccess', { count: result.synced_products }));
+        toast.success(`ซิงค์สินค้า ${result.synced_products} รายการสำเร็จ`);
       } else {
-        toast.info(t('admin.quantitySync.noChanges'));
+        toast.info('ไม่มีการเปลี่ยนแปลง');
       }
     } catch (err) {
-      const errorMessage = t('admin.quantitySync.syncError');
+      const errorMessage = 'เกิดข้อผิดพลาดในการซิงค์สินค้า';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -43,10 +42,10 @@ export const QuantityManagement: React.FC<QuantityManagementProps> = ({
   const handleSyncSingleProduct = async (productId: number) => {
     try {
       const result = await quantityService.syncSingleProductQuantity(productId);
-      toast.success(t('admin.quantitySync.singleSyncSuccess', { productId }));
+      toast.success(`ซิงค์สินค้า ID: ${productId} สำเร็จ`);
       return result;
     } catch (err) {
-      toast.error(t('admin.quantitySync.singleSyncError', { productId }));
+      toast.error(`เกิดข้อผิดพลาดในการซิงค์สินค้า ID: ${productId}`);
       throw err;
     }
   };
@@ -59,10 +58,10 @@ export const QuantityManagement: React.FC<QuantityManagementProps> = ({
         </div>
         <div>
           <h2 className="text-xl font-bold text-gray-800">
-            {t('admin.quantitySync.title')}
+            ซิงค์จำนวนสินค้า
           </h2>
           <p className="text-sm text-gray-600">
-            {t('admin.quantitySync.description')}
+            อัปเดตจำนวนสินค้าตามการเช่าที่ยังไม่สิ้นสุด
           </p>
         </div>
       </div>
@@ -78,7 +77,7 @@ export const QuantityManagement: React.FC<QuantityManagementProps> = ({
           className="w-full sm:w-auto"
         >
           <FaSync className={`w-5 h-5 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-          {t('admin.quantitySync.syncAllButton')}
+          ซิงค์สินค้าทั้งหมด
         </Button>
       </div>
 
@@ -88,7 +87,7 @@ export const QuantityManagement: React.FC<QuantityManagementProps> = ({
           <div className="flex items-center gap-2">
             <FaExclamationTriangle className="w-5 h-5 text-red-600" />
             <span className="text-red-800 font-medium">
-              {t('admin.quantitySync.errorTitle')}
+              ข้อผิดพลาด
             </span>
           </div>
           <p className="text-red-700 mt-1">{error}</p>
@@ -101,7 +100,7 @@ export const QuantityManagement: React.FC<QuantityManagementProps> = ({
           <div className="flex items-center gap-2 mb-3">
             <FaCheckCircle className="w-5 h-5 text-green-600" />
             <span className="font-medium text-gray-800">
-              {t('admin.quantitySync.resultsTitle')}
+              ผลการซิงค์
             </span>
           </div>
           
@@ -111,7 +110,7 @@ export const QuantityManagement: React.FC<QuantityManagementProps> = ({
                 {syncResult.synced_products}
               </div>
               <div className="text-sm text-gray-600">
-                {t('admin.quantitySync.syncedProducts')}
+                สินค้าที่ซิงค์
               </div>
             </div>
           </div>
@@ -120,7 +119,7 @@ export const QuantityManagement: React.FC<QuantityManagementProps> = ({
           {syncResult.details && syncResult.details.length > 0 && (
             <div>
               <h4 className="font-medium text-gray-800 mb-2">
-                {t('admin.quantitySync.changesDetails')}
+                รายละเอียดการเปลี่ยนแปลง
               </h4>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {syncResult.details.map((detail, index) => (
@@ -129,13 +128,10 @@ export const QuantityManagement: React.FC<QuantityManagementProps> = ({
                       {detail.title} (ID: {detail.product_id})
                     </div>
                     <div className="text-gray-600">
-                      {t('admin.quantitySync.quantityChange', {
-                        old: detail.old_quantity_available,
-                        new: detail.new_quantity_available
-                      })}
+                      จำนวนสินค้าเปลี่ยนจาก {detail.old_quantity_available} เป็น {detail.new_quantity_available}
                     </div>
                     <div className="text-gray-500 text-xs">
-                      {t('admin.quantitySync.activeRentals', { count: detail.active_rentals })}
+                      การเช่าที่ยังไม่สิ้นสุด: {detail.active_rentals} รายการ
                     </div>
                   </div>
                 ))}
@@ -148,12 +144,12 @@ export const QuantityManagement: React.FC<QuantityManagementProps> = ({
       {/* Instructions */}
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <h4 className="font-medium text-blue-800 mb-2">
-          {t('admin.quantitySync.instructionsTitle')}
+          คำแนะนำ
         </h4>
         <ul className="text-sm text-blue-700 space-y-1">
-          <li>• {t('admin.quantitySync.instruction1')}</li>
-          <li>• {t('admin.quantitySync.instruction2')}</li>
-          <li>• {t('admin.quantitySync.instruction3')}</li>
+          <li>• คลิก "ซิงค์สินค้าทั้งหมด" เพื่ออัปเดตจำนวนสินค้าทั้งหมด</li>
+          <li>• ระบบจะอัปเดตจำนวนสินค้าตามการเช่าที่ยังไม่สิ้นสุด</li>
+          <li>• ตรวจสอบผลการซิงค์ในส่วนผลลัพธ์ด้านล่าง</li>
         </ul>
       </div>
     </div>

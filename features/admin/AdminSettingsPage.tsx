@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+
 import { motion } from 'framer-motion';
 import { 
   FaCog, 
@@ -50,7 +50,6 @@ const SettingCard: React.FC<{
   onCancel: (key: string) => void;
   onValueChange: (key: string, value: string) => void;
 }> = ({ setting, onEdit, onSave, onCancel, onValueChange }) => {
-  const { t } = useTranslation('adminSettingsPage');
   
   const getIcon = (key: string) => {
     if (key.includes('fee') || key.includes('commission')) return <FaDollarSign className="h-5 w-5 text-green-500" />;
@@ -69,8 +68,8 @@ const SettingCard: React.FC<{
             onChange={(e) => onValueChange(setting.setting_key, e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="true">True</option>
-            <option value="false">False</option>
+            <option value="true">จริง</option>
+            <option value="false">เท็จ</option>
           </select>
         );
       case 'integer':
@@ -128,13 +127,13 @@ const SettingCard: React.FC<{
               {setting.is_encrypted && (
                 <div className="flex items-center gap-1 text-xs text-red-600">
                   <FaShieldAlt className="h-3 w-3" />
-                  <span>{t('encrypted')}</span>
+                  <span>เข้ารหัส</span>
                 </div>
               )}
               {setting.is_publicly_readable && (
                 <div className="flex items-center gap-1 text-xs text-green-600">
                   <FaEye className="h-3 w-3" />
-                  <span>{t('public')}</span>
+                  <span>สาธารณะ</span>
                 </div>
               )}
             </div>
@@ -145,7 +144,7 @@ const SettingCard: React.FC<{
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('value')}
+                    ค่า
                   </label>
                   {renderInput()}
                   {setting.error && (
@@ -159,7 +158,7 @@ const SettingCard: React.FC<{
                     disabled={setting.newValue === setting.originalValue}
                   >
                     <FaCheck className="h-4 w-4" />
-                    {t('save')}
+                    บันทึก
                   </Button>
                   <Button
                     onClick={() => onCancel(setting.setting_key)}
@@ -167,7 +166,7 @@ const SettingCard: React.FC<{
                     className="flex items-center gap-2"
                   >
                     <FaTimes className="h-4 w-4" />
-                    {t('cancel')}
+                    ยกเลิก
                   </Button>
                 </div>
               </>
@@ -175,7 +174,7 @@ const SettingCard: React.FC<{
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('currentValue')}
+                    ค่าปัจจุบัน
                   </label>
                   <div className="p-3 bg-gray-50 rounded-lg border">
                     <span className="text-gray-800 font-mono">
@@ -185,7 +184,7 @@ const SettingCard: React.FC<{
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-gray-500">
-                    {t('lastUpdated')}: {new Date(setting.updated_at).toLocaleString()}
+                    อัปเดตล่าสุด: {new Date(setting.updated_at).toLocaleString()}
                   </div>
                   <Button
                     onClick={() => onEdit(setting.setting_key)}
@@ -193,7 +192,7 @@ const SettingCard: React.FC<{
                     className="flex items-center gap-2"
                   >
                     <FaEdit className="h-4 w-4" />
-                    {t('edit')}
+                    แก้ไข
                   </Button>
                 </div>
               </>
@@ -204,7 +203,7 @@ const SettingCard: React.FC<{
             <div className="mt-3 p-2 bg-blue-50 rounded-lg">
               <div className="flex items-center gap-2 text-sm text-blue-700">
                 <FaInfoCircle className="h-4 w-4" />
-                <span>{t('validationRules')}: {setting.validation_rules}</span>
+                <span>กฎการตรวจสอบ: {setting.validation_rules}</span>
               </div>
             </div>
           )}
@@ -215,7 +214,6 @@ const SettingCard: React.FC<{
 };
 
 export const AdminSettingsPage: React.FC = () => {
-  const { t } = useTranslation('adminSettingsPage');
   const [settings, setSettings] = useState<EditableSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -237,7 +235,7 @@ export const AdminSettingsPage: React.FC = () => {
       }));
       setSettings(editableSettings);
     } catch (err: any) {
-      setError(err.message || t('errorLoadingSettings'));
+      setError(err.message || 'ไม่สามารถโหลดการตั้งค่าได้');
     } finally {
       setLoading(false);
     }
@@ -282,18 +280,18 @@ export const AdminSettingsPage: React.FC = () => {
         const min = parseFloat(rule.split(':')[1]);
         const value = parseFloat(setting.newValue);
         if (isNaN(value) || value < min) {
-          return t('validationMin', { min });
+          return `ค่าต้องไม่น้อยกว่า ${min}`;
         }
       }
       if (rule.startsWith('max:')) {
         const max = parseFloat(rule.split(':')[1]);
         const value = parseFloat(setting.newValue);
         if (isNaN(value) || value > max) {
-          return t('validationMax', { max });
+          return `ค่าต้องไม่มากกว่า ${max}`;
         }
       }
       if (rule === 'required' && !setting.newValue.trim()) {
-        return t('validationRequired');
+        return 'ต้องระบุค่า';
       }
     }
     
@@ -338,7 +336,7 @@ export const AdminSettingsPage: React.FC = () => {
     } catch (err: any) {
       setSettings(prev => prev.map(s => 
         s.setting_key === key 
-          ? { ...s, error: err.message || t('errorSaving') }
+          ? { ...s, error: err.message || 'ไม่สามารถบันทึกได้' }
           : s
       ));
     } finally {
@@ -365,7 +363,7 @@ export const AdminSettingsPage: React.FC = () => {
             className="text-center"
           >
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 text-lg">{t('loadingSettings')}</p>
+            <p className="text-gray-600 text-lg">กำลังโหลดการตั้งค่า...</p>
           </motion.div>
         </div>
       </AdminLayout>
@@ -384,7 +382,7 @@ export const AdminSettingsPage: React.FC = () => {
             <FaTimes className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <p className="text-red-600 text-lg">{error}</p>
             <Button onClick={loadSettings} className="mt-4">
-              {t('retry')}
+              ลองอีกครั้ง
             </Button>
           </motion.div>
         </div>
@@ -406,10 +404,10 @@ export const AdminSettingsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                  {t('title')}
+                  การตั้งค่าระบบ
                 </h1>
                 <p className="text-gray-600">
-                  {t('subtitle')}
+                  จัดการการตั้งค่าระบบของแพลตฟอร์ม
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -419,14 +417,14 @@ export const AdminSettingsPage: React.FC = () => {
                   className="flex items-center gap-2"
                 >
                   <FaUndo className="h-4 w-4" />
-                  {t('resetAll')}
+                  รีเซ็ตทั้งหมด
                 </Button>
                 <Button
                   onClick={loadSettings}
                   className="flex items-center gap-2"
                 >
                   <FaSave className="h-4 w-4" />
-                  {t('refresh')}
+                  รีเฟรช
                 </Button>
               </div>
             </div>
@@ -453,7 +451,7 @@ export const AdminSettingsPage: React.FC = () => {
               className="text-center py-12"
             >
               <FaCog className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg">{t('noSettings')}</p>
+              <p className="text-gray-600 text-lg">ไม่พบการตั้งค่า</p>
             </motion.div>
           )}
         </div>

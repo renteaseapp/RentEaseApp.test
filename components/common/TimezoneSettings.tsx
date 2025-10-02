@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+
 import { FaGlobe, FaClock, FaSave, FaUndo } from 'react-icons/fa';
 import { 
   getTimezoneConfig, 
@@ -18,7 +18,7 @@ export const TimezoneSettings: React.FC<TimezoneSettingsProps> = ({
   onClose, 
   showAsModal = false 
 }) => {
-  const { t, i18n } = useTranslation();
+
   const [selectedTimezone, setSelectedTimezone] = useState('');
   const [selectedLocale, setSelectedLocale] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -47,18 +47,13 @@ export const TimezoneSettings: React.FC<TimezoneSettingsProps> = ({
       };
 
       setTimezoneConfig(newConfig);
-      
-      // Update i18n locale if it changed
-      if (i18n.language !== selectedLocale) {
-        await i18n.changeLanguage(selectedLocale);
-      }
 
       // Reinitialize timezone
       initializeTimezone();
 
       setMessage({
         type: 'success',
-        text: t('timezoneSettings.savedSuccessfully', 'Timezone settings saved successfully!')
+        text: 'บันทึกการตั้งค่าเขตเวลาเรียบร้อยแล้ว!'
       });
 
       // Auto-hide success message after 3 seconds
@@ -70,7 +65,7 @@ export const TimezoneSettings: React.FC<TimezoneSettingsProps> = ({
     } catch (error) {
       setMessage({
         type: 'error',
-        text: t('timezoneSettings.saveError', 'Failed to save timezone settings')
+        text: 'ไม่สามารถบันทึกการตั้งค่าเขตเวลาได้'
       });
     } finally {
       setIsLoading(false);
@@ -86,7 +81,7 @@ export const TimezoneSettings: React.FC<TimezoneSettingsProps> = ({
     
     setMessage({
       type: 'success',
-      text: t('timezoneSettings.resetToDefault', 'Reset to detected settings')
+      text: 'รีเซ็ตเป็นการตั้งค่าที่ตรวจพบ'
     });
   };
 
@@ -101,10 +96,10 @@ export const TimezoneSettings: React.FC<TimezoneSettingsProps> = ({
         <FaGlobe className="h-6 w-6 text-blue-600" />
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            {t('timezoneSettings.title', 'Timezone Settings')}
+            ตั้งค่าเขตเวลา
           </h3>
           <p className="text-sm text-gray-600">
-            {t('timezoneSettings.description', 'Configure your local timezone and language preferences')}
+            ตั้งค่าเขตเวลาและภาษาของคุณ
           </p>
         </div>
       </div>
@@ -113,7 +108,7 @@ export const TimezoneSettings: React.FC<TimezoneSettingsProps> = ({
       <div className="space-y-3">
         <label className="block text-sm font-medium text-gray-700">
           <FaClock className="inline h-4 w-4 mr-2 text-gray-500" />
-          {t('timezoneSettings.timezoneLabel', 'Timezone')}
+          เขตเวลา
         </label>
         <select
           value={selectedTimezone}
@@ -127,14 +122,14 @@ export const TimezoneSettings: React.FC<TimezoneSettingsProps> = ({
           ))}
         </select>
         <p className="text-xs text-gray-500">
-          {t('timezoneSettings.timezoneHelp', 'This affects how dates and times are displayed throughout the application')}
+          สิ่งนี้จะส่งผลต่อการแสดงวันที่และเวลาทั่วทั้งแอปพลิเคชัน
         </p>
       </div>
 
       {/* Language Selection */}
       <div className="space-y-3">
         <label className="block text-sm font-medium text-gray-700">
-          {t('timezoneSettings.languageLabel', 'Language')}
+          ภาษา
         </label>
         <select
           value={selectedLocale}
@@ -148,14 +143,14 @@ export const TimezoneSettings: React.FC<TimezoneSettingsProps> = ({
           ))}
         </select>
         <p className="text-xs text-gray-500">
-          {t('timezoneSettings.languageHelp', 'This affects the language of date formats and relative time displays')}
+          สิ่งนี้จะส่งผลต่อภาษาของรูปแบบวันที่และการแสดงเวลาสัมพัทธ์
         </p>
       </div>
 
       {/* Current Time Display */}
       <div className="p-4 bg-gray-50 rounded-lg">
         <h4 className="text-sm font-medium text-gray-700 mb-2">
-          {t('timezoneSettings.currentTime', 'Current Time')}
+          เวลาปัจจุบัน
         </h4>
         <p className="text-lg font-mono text-gray-900">
           {new Date().toLocaleString(selectedLocale || 'en', {
@@ -191,8 +186,8 @@ export const TimezoneSettings: React.FC<TimezoneSettingsProps> = ({
         >
           <FaSave className="h-4 w-4" />
           {isLoading 
-            ? t('timezoneSettings.saving', 'Saving...') 
-            : t('timezoneSettings.save', 'Save Settings')
+            ? 'กำลังบันทึก...' 
+            : 'บันทึกการตั้งค่า'
           }
         </button>
         
@@ -208,7 +203,7 @@ export const TimezoneSettings: React.FC<TimezoneSettingsProps> = ({
             onClick={handleCancel}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
           >
-            {t('timezoneSettings.cancel', 'Cancel')}
+            ยกเลิก
           </button>
         )}
       </div>

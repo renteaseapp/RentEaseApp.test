@@ -7,7 +7,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
-import { useTranslation } from 'react-i18next';
+
 import { THAI_BANKS, ROUTE_PATHS } from '../../constants';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,7 +30,7 @@ import {
 type NewPayoutMethodData = Omit<PayoutMethod, 'id' | 'owner_id' | 'created_at' | 'updated_at'>;
 
 export const PayoutInfoPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+
   const { user } = useAuth();
   const { showSuccess, showError } = useAlert();
   const [payoutMethods, setPayoutMethods] = useState<PayoutMethod[]>([]);
@@ -58,8 +58,8 @@ export const PayoutInfoPage: React.FC = () => {
           setPayoutMethods(methods);
       } catch (err) {
           const apiError = err as ApiError;
-          setError(apiError.message || t('payoutInfoPage.error.loadFailed'));
-          showError(apiError.message || t('payoutInfoPage.error.loadFailed'));
+          setError(apiError.message || 'ไม่สามารถโหลดวิธีการรับเงินได้');
+          showError(apiError.message || 'ไม่สามารถโหลดวิธีการรับเงินได้');
       } finally {
           setIsLoading(false);
       }
@@ -96,11 +96,11 @@ export const PayoutInfoPage: React.FC = () => {
               bank_name: '', 
               is_primary: false
           }); // Reset form
-          showSuccess(t('payoutInfoPage.success.added'));
+          showSuccess('เพิ่มวิธีการรับเงินสำเร็จ!');
       } catch (err) {
           const apiError = err as ApiError;
-          setError(apiError.message || t('payoutInfoPage.error.addFailed'));
-          showError(apiError.message || t('payoutInfoPage.error.addFailed'));
+          setError(apiError.message || 'ไม่สามารถเพิ่มวิธีการรับเงินได้');
+          showError(apiError.message || 'ไม่สามารถเพิ่มวิธีการรับเงินได้');
       } finally {
           setIsAdding(false);
       }
@@ -110,7 +110,7 @@ export const PayoutInfoPage: React.FC = () => {
       if (!user?.id) return;
       
       const confirmed = window.confirm(
-          t('payoutInfoPage.deleteConfirmation', { name: methodName })
+          `คุณแน่ใจหรือไม่ว่าต้องการลบวิธีการรับเงินสำหรับ ${methodName}? การกระทำนี้ไม่สามารถย้อนกลับได้`
       );
       
       if (!confirmed) return;
@@ -119,10 +119,10 @@ export const PayoutInfoPage: React.FC = () => {
           setIsDeleting(methodId);
           await deletePayoutMethod(methodId);
           await fetchPayoutMethods(); // Refresh list
-          showSuccess(t('payoutInfoPage.success.deleted'));
+          showSuccess('ลบวิธีการรับเงินสำเร็จ!');
       } catch (err) {
           const apiError = err as ApiError;
-          showError(apiError.message || t('payoutInfoPage.error.deleteFailed'));
+          showError(apiError.message || 'ไม่สามารถลบวิธีการรับเงินได้');
       } finally {
           setIsDeleting(null);
       }
@@ -135,10 +135,10 @@ export const PayoutInfoPage: React.FC = () => {
           setIsSettingPrimary(methodId);
           await setPayoutMethodAsPrimary(methodId);
           await fetchPayoutMethods(); // Refresh list
-          showSuccess(t('payoutInfoPage.success.setPrimary'));
+          showSuccess('ตั้งวิธีการรับเงินเป็นหลักสำเร็จ!');
       } catch (err) {
           const apiError = err as ApiError;
-          showError(apiError.message || t('payoutInfoPage.error.setPrimaryFailed'));
+          showError(apiError.message || 'ไม่สามารถตั้งวิธีการรับเงินเป็นหลักได้');
       } finally {
           setIsSettingPrimary(null);
       }
@@ -147,9 +147,9 @@ export const PayoutInfoPage: React.FC = () => {
   const getMethodTypeDisplay = (methodType: string) => {
       switch (methodType) {
           case 'bank_account':
-              return t('payoutInfoPage.methodTypes.bankAccount');
+              return 'บัญชีธนาคาร';
           case 'promptpay':
-              return t('payoutInfoPage.methodTypes.promptpay');
+              return 'PromptPay';
           default:
               return methodType.replace('_', ' ').toUpperCase();
       }
@@ -160,7 +160,7 @@ export const PayoutInfoPage: React.FC = () => {
       
       const bank = THAI_BANKS.find(b => b.code === bankName || b.name === bankName || b.nameEn === bankName);
       if (bank) {
-          return i18n.language === 'th' ? bank.name : bank.nameEn;
+          return bank.name;
       }
       return bankName;
   };
@@ -179,7 +179,7 @@ export const PayoutInfoPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <LoadingSpinner message={t('payoutInfoPage.loading')} />
+        <LoadingSpinner message="กำลังโหลดข้อมูลการรับเงิน..." />
       </div>
     );
   }
@@ -199,9 +199,9 @@ export const PayoutInfoPage: React.FC = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
                 <FaWallet className="h-8 w-8 text-white" />
               </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{t('payoutInfoPage.title')}</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">วิธีการรับเงิน</h1>
               <p className="text-blue-100 text-lg">
-                {t('payoutInfoPage.subtitle')}
+                จัดการวิธีการรับเงินจากการเช่าสินค้า
               </p>
             </div>
             <motion.div
@@ -211,7 +211,7 @@ export const PayoutInfoPage: React.FC = () => {
               <Link to={ROUTE_PATHS.OWNER_DASHBOARD}>
                 <Button variant="primary" className="bg-white text-black hover:bg-blue-50 hover:text-blue-600 px-8 py-4 rounded-xl font-semibold shadow-lg">
                   <FaArrowLeft className="h-5 w-5 mr-2" />
-                  {t('payoutInfoPage.actions.backToDashboard')}
+                  กลับไปที่แดชบอร์ด
                 </Button>
               </Link>
             </motion.div>
@@ -251,12 +251,12 @@ export const PayoutInfoPage: React.FC = () => {
             {showForm ? (
               <>
                 <FaTimes className="h-5 w-5" />
-                {t('payoutInfoPage.actions.cancelAdd')}
+                ยกเลิก
               </>
             ) : (
               <>
                 <FaPlus className="h-5 w-5" />
-                {t('payoutInfoPage.actions.addNew')}
+                เพิ่มใหม่
               </>
             )}
           </motion.button>
@@ -278,7 +278,7 @@ export const PayoutInfoPage: React.FC = () => {
                     <div className="p-3 bg-blue-100 rounded-xl">
                       <FaPlus className="h-6 w-6 text-blue-600" />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-800">{t('payoutInfoPage.addNewMethod')}</h2>
+                    <h2 className="text-2xl font-bold text-gray-800">เพิ่มวิธีการรับเงินใหม่</h2>
                   </div>
                   
                   <form onSubmit={handleAddMethod} className="space-y-6">
@@ -286,7 +286,7 @@ export const PayoutInfoPage: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700">
-                          {t('payoutInfoPage.form.methodType')}
+                          ประเภทวิธีการ
                         </label>
                         <div className="grid grid-cols-2 gap-3">
                           <motion.button
@@ -302,7 +302,7 @@ export const PayoutInfoPage: React.FC = () => {
                           >
                             <div className="flex items-center gap-3">
                               <FaUniversity className="h-5 w-5" />
-                              <span className="font-medium">{t('payoutInfoPage.methodTypes.bankAccount')}</span>
+                              <span className="font-medium">บัญชีธนาคาร</span>
                             </div>
                           </motion.button>
                           
@@ -319,7 +319,7 @@ export const PayoutInfoPage: React.FC = () => {
                           >
                             <div className="flex items-center gap-3">
                               <FaQrcode className="h-5 w-5" />
-                              <span className="font-medium">{t('payoutInfoPage.methodTypes.promptpay')}</span>
+                              <span className="font-medium">PromptPay</span>
                             </div>
                           </motion.button>
                         </div>
@@ -331,7 +331,7 @@ export const PayoutInfoPage: React.FC = () => {
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700">
                           <FaUser className="inline-block h-4 w-4 mr-2 text-blue-500" />
-                          {t('payoutInfoPage.form.accountName')}
+                          ชื่อเจ้าของบัญชี
                         </label>
                         <input
                           type="text"
@@ -340,14 +340,14 @@ export const PayoutInfoPage: React.FC = () => {
                           onChange={handleInputChange}
                           required
                           className="w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder={t('payoutInfoPage.form.accountNamePlaceholder')}
+                          placeholder="กรอกชื่อเจ้าของบัญชี"
                         />
                       </div>
                       
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700">
                           <FaIdCard className="inline-block h-4 w-4 mr-2 text-blue-500" />
-                          {t('payoutInfoPage.form.accountNumber')}
+                          เลขที่บัญชี
                         </label>
                         <input
                           type="text"
@@ -356,7 +356,7 @@ export const PayoutInfoPage: React.FC = () => {
                           onChange={handleInputChange}
                           required
                           className="w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder={t('payoutInfoPage.form.accountNumberPlaceholder')}
+                          placeholder="กรอกเลขที่บัญชี"
                         />
                       </div>
                     </div>
@@ -366,7 +366,7 @@ export const PayoutInfoPage: React.FC = () => {
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700">
                           <FaBuilding className="inline-block h-4 w-4 mr-2 text-blue-500" />
-                          {t('payoutInfoPage.form.bankName')}
+                          ชื่อธนาคาร
                         </label>
                         <select
                           name="bank_name"
@@ -375,10 +375,10 @@ export const PayoutInfoPage: React.FC = () => {
                           required
                           className="w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         >
-                          <option value="">{t('payoutInfoPage.form.selectBank')}</option>
+                          <option value="">เลือกธนาคาร</option>
                           {THAI_BANKS.map(bank => (
                             <option key={bank.code} value={bank.code}>
-                              {i18n.language === 'th' ? bank.name : bank.nameEn}
+                              {bank.name}
                             </option>
                           ))}
                         </select>
@@ -397,7 +397,7 @@ export const PayoutInfoPage: React.FC = () => {
                       />
                       <label htmlFor="is_primary" className="flex items-center gap-2 text-sm font-medium text-blue-800">
                         <FaStar className="h-4 w-4" />
-                        {t('payoutInfoPage.form.setAsPrimary')}
+                        ตั้งเป็นวิธีการหลัก
                       </label>
                     </div>
 
@@ -412,12 +412,12 @@ export const PayoutInfoPage: React.FC = () => {
                       {isAdding ? (
                         <>
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                          {t('payoutInfoPage.actions.adding')}
+                          กำลังเพิ่ม...
                         </>
                       ) : (
                         <>
                           <FaPlus className="h-5 w-5" />
-                          {t('payoutInfoPage.actions.addMethod')}
+                          เพิ่มวิธีการ
                         </>
                       )}
                     </motion.button>
@@ -438,7 +438,7 @@ export const PayoutInfoPage: React.FC = () => {
             <div className="p-3 bg-green-100 rounded-xl">
               <FaShieldAlt className="h-6 w-6 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">{t('payoutInfoPage.yourMethods')}</h2>
+            <h2 className="text-2xl font-bold text-gray-800">วิธีการรับเงินของคุณ</h2>
           </div>
 
           {payoutMethods.length > 0 ? (
@@ -474,7 +474,7 @@ export const PayoutInfoPage: React.FC = () => {
                                   {method.is_primary && (
                                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
                                       <FaStar className="h-3 w-3" />
-                                      {t('payoutInfoPage.primary')}
+                                      หลัก
                                     </span>
                                   )}
                                 </h3>
@@ -512,7 +512,7 @@ export const PayoutInfoPage: React.FC = () => {
                                 ) : (
                                   <FaStar className="h-4 w-4" />
                                 )}
-                                {t('payoutInfoPage.actions.setPrimary')}
+                                ตั้งเป็นหลัก
                               </motion.button>
                             )}
                             <motion.button
@@ -527,7 +527,7 @@ export const PayoutInfoPage: React.FC = () => {
                               ) : (
                                 <FaTrash className="h-4 w-4" />
                               )}
-                              {t('payoutInfoPage.actions.delete')}
+                              ลบ
                             </motion.button>
                           </div>
                         </div>
@@ -549,10 +549,10 @@ export const PayoutInfoPage: React.FC = () => {
                   <FaWallet className="h-12 w-12 text-blue-500" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                  {t('payoutInfoPage.noMethods.title')}
+                  ไม่มีวิธีการรับเงิน
                 </h3>
                 <p className="text-gray-500 leading-relaxed mb-8">
-                  {t('payoutInfoPage.noMethods.description')}
+                  คุณยังไม่ได้เพิ่มวิธีการรับเงินใดๆ เพิ่มวิธีการรับเงินแรกของคุณเพื่อรับเงินจากการเช่า
                 </p>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -561,7 +561,7 @@ export const PayoutInfoPage: React.FC = () => {
                   className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center gap-3 mx-auto"
                 >
                   <FaPlus className="h-5 w-5" />
-                  {t('payoutInfoPage.actions.addNew')}
+                  เพิ่มใหม่
                 </motion.button>
               </div>
             </motion.div>

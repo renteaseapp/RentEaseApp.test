@@ -1,7 +1,7 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+
 import { FaBox, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
-import { getQuantityStatusColor, getQuantityStatusText } from '../../utils/quantityHelpers';
+import { getQuantityStatusColor } from '../../utils/quantityHelpers';
 
 interface QuantityIndicatorProps {
   quantityAvailable: number;
@@ -20,7 +20,6 @@ export const QuantityIndicator: React.FC<QuantityIndicatorProps> = ({
   showTotal = false,
   className = ''
 }) => {
-  const { t } = useTranslation();
 
   const sizeClasses = {
     sm: 'text-xs px-2 py-1',
@@ -48,9 +47,15 @@ export const QuantityIndicator: React.FC<QuantityIndicatorProps> = ({
 
   const getText = () => {
     if (showTotal && totalQuantity !== undefined) {
-      return `${quantityAvailable}/${totalQuantity} ${t('common.available')}`;
+      return `${quantityAvailable}/${totalQuantity} ชิ้น`;
     } else {
-      return getQuantityStatusText(quantityAvailable, t);
+      if (quantityAvailable === 0) {
+        return 'สินค้าหมด';
+      } else if (quantityAvailable <= 2) {
+        return `สินค้าใกล้หมด (${quantityAvailable} ชิ้น)`;
+      } else {
+        return `มีสินค้า (${quantityAvailable} ชิ้น)`;
+      }
     }
   };
 

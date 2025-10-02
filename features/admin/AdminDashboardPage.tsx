@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
-import { useTranslation } from 'react-i18next';
+
 import dayjs from 'dayjs';
 import { getPlatformStats, getProductsReport, getRentalsReport, getIncomeReport, getComplaintsReport } from '../../services/adminReportsService';
 import { AdminLayout } from '../../components/admin/AdminLayout';
@@ -22,12 +22,14 @@ import {
   FaRocket,
   FaChartLine,
   FaHistory,
+  FaFileContract,
 } from 'react-icons/fa';
 
 const featureIcons: Record<string, React.ReactNode> = {
   'User Management': <FaUsers className="h-7 w-7 text-blue-500" />,
   'Product Management': <FaBox className="h-7 w-7 text-green-500" />,
   'Category Management': <FaTags className="h-7 w-7 text-yellow-500" />,
+  'Rental Management': <FaFileContract className="h-7 w-7 text-teal-500" />,
   'Complaints System': <FaExclamationTriangle className="h-7 w-7 text-red-500" />,
   'System Settings': <FaCog className="h-7 w-7 text-gray-500" />,
   'Reports & Analytics': <FaChartBar className="h-7 w-7 text-indigo-500" />,
@@ -35,7 +37,30 @@ const featureIcons: Record<string, React.ReactNode> = {
 };
 
 const AdminFeatureCard = ({ title, linkTo }: { title: string; description: string; linkTo: string; }) => {
-  const { t } = useTranslation('adminDashboardPage');
+  // Map titles to Thai text
+  const titleMap: Record<string, string> = {
+    'User Management': 'การจัดการผู้ใช้',
+    'Product Management': 'การจัดการสินค้า',
+    'Category Management': 'การจัดการหมวดหมู่',
+    'Rental Management': 'การจัดการการเช่า',
+    'Complaints System': 'ระบบเรื่องร้องเรียน',
+    'System Settings': 'การตั้งค่าระบบ',
+    'Reports & Analytics': 'รายงานและสถิติ',
+    'Admin Logs': 'ประวัติการกระทำของผู้ดูแล'
+  };
+
+  // Map descriptions to Thai text
+  const descriptionMap: Record<string, string> = {
+    'User Management': 'จัดการบัญชีผู้ใช้ สิทธิ์การเข้าถึง และโปรไฟล์ของผู้ใช้',
+    'Product Management': 'ดูแลรายการสินค้า หมวดหมู่ และการอนุมัติสินค้า',
+    'Category Management': 'จัดระเบียบและจัดการหมวดหมู่สินค้า',
+    'Rental Management': 'จัดการและติดตามสถานะการเช่าทั้งหมด',
+    'Complaints System': 'จัดการและติดตามเรื่องร้องเรียนจากผู้ใช้',
+    'System Settings': 'กำหนดค่าการตั้งค่าแพลตฟอร์มและค่ากำหนด',
+    'Reports & Analytics': 'ดูรายงานและข้อมูลสถิติโดยละเอียด',
+    'Admin Logs': 'ดูประวัติการกระทำของผู้ดูแลระบบและการตรวจสอบ'
+  };
+
   return (
     <Link to={linkTo} className="block group">
       <motion.div
@@ -49,14 +74,14 @@ const AdminFeatureCard = ({ title, linkTo }: { title: string; description: strin
                 {featureIcons[title]}
               </div>
               <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-700 transition-colors">
-                {t(`features.${title}.title`)}
+                {titleMap[title] || title}
               </h3>
             </div>
             <p className="text-sm text-gray-600 leading-relaxed">
-              {t(`features.${title}.description`)}
+              {descriptionMap[title]}
             </p>
             <div className="mt-4 flex items-center text-blue-600 group-hover:text-blue-700 transition-colors">
-              <span className="text-sm font-medium">{t('accessFeature')}</span>
+              <span className="text-sm font-medium">เข้าถึงคุณลักษณะ</span>
               <FaArrowUp className="ml-2 h-3 w-3 transform rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
             </div>
           </CardContent>
@@ -156,7 +181,6 @@ const StatCard = ({ title, value, icon, color, trend }: {
 );
 
 export const AdminDashboardPage: React.FC = () => {
-  const { t } = useTranslation('adminDashboardPage');
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [stats, setStats] = React.useState<any>({});
@@ -181,9 +205,9 @@ export const AdminDashboardPage: React.FC = () => {
         setIncome(incomeRes || {});
         setComplaints(complaintsRes || {});
       })
-      .catch((err: any) => setError(err.message || t('loadingOverview')))
+      .catch((err: any) => setError(err.message || 'กำลังโหลดข้อมูลภาพรวม'))
       .finally(() => setLoading(false));
-  }, [t]);
+  }, []);
 
   // Rentals Over Time chart data
   const rentalsByMonth = rentals.rentals_by_month || {};
@@ -201,7 +225,7 @@ export const AdminDashboardPage: React.FC = () => {
             className="text-center"
           >
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 text-lg">{t('loadingOverview')}</p>
+            <p className="text-gray-600 text-lg">กำลังโหลดข้อมูลภาพรวม</p>
           </motion.div>
         </div>
       </AdminLayout>
@@ -237,10 +261,10 @@ export const AdminDashboardPage: React.FC = () => {
             className="mb-12 text-center"
           >
             <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-              {t('title')}
+              แดชบอร์ดผู้ดูแลระบบ
             </h1>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              {t('subtitle')}
+              จัดการและติดตามกิจกรรมของแพลตฟอร์มได้ทั้งหมดในที่เดียว
             </p>
           </motion.div>
 
@@ -258,44 +282,44 @@ export const AdminDashboardPage: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800">
-                    {t('overviewTitle')}
+                    ภาพรวมแพลตฟอร์ม
                   </h2>
-                  <p className="text-gray-600">{t('overviewSubtitle')}</p>
+                  <p className="text-gray-600">สถิติและข้อมูลสำคัญของแพลตฟอร์ม</p>
                 </div>
               </div>
 
               {/* Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                 <StatCard
-                  title={t('totalUsers')}
+                  title="ผู้ใช้ทั้งหมด"
                   value={stats.users ?? '-'}
                   icon={<FaUsers className="h-6 w-6 text-white" />}
                   color="bg-gradient-to-br from-blue-500 to-blue-600"
                   trend={{ value: 12, isPositive: true }}
                 />
                 <StatCard
-                  title={t('totalProducts')}
+                  title="สินค้าทั้งหมด"
                   value={products.total_products ?? '-'}
                   icon={<FaBox className="h-6 w-6 text-white" />}
                   color="bg-gradient-to-br from-green-500 to-green-600"
                   trend={{ value: 8, isPositive: true }}
                 />
                 <StatCard
-                  title={t('totalRentals')}
+                  title="การเช่าทั้งหมด"
                   value={stats.rentals ?? '-'}
                   icon={<FaCalendarAlt className="h-6 w-6 text-white" />}
                   color="bg-gradient-to-br from-purple-500 to-purple-600"
                   trend={{ value: 15, isPositive: true }}
                 />
                 <StatCard
-                  title={t('totalIncome')}
+                  title="รายได้รวม"
                   value={income.income !== undefined ? `฿${income.income.toLocaleString()}` : '-'}
                   icon={<FaDollarSign className="h-6 w-6 text-white" />}
                   color="bg-gradient-to-br from-emerald-500 to-emerald-600"
                   trend={{ value: 23, isPositive: true }}
                 />
                 <StatCard
-                  title={t('complaints')}
+                  title="เรื่องร้องเรียน"
                   value={complaints.complaints ?? '-'}
                   icon={<FaExclamationTriangle className="h-6 w-6 text-white" />}
                   color="bg-gradient-to-br from-red-500 to-red-600"
@@ -307,7 +331,7 @@ export const AdminDashboardPage: React.FC = () => {
               <div className="mb-4">
                 <div className="flex items-center gap-3 mb-4">
                   <FaChartLine className="h-5 w-5 text-blue-500" />
-                  <h3 className="text-lg font-semibold text-gray-800">{t('rentalsOverTime')}</h3>
+                  <h3 className="text-lg font-semibold text-gray-800">การเช่าตามช่วงเวลา</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <OverviewBarChart data={rentalCounts} labels={rentalLabels} />
@@ -329,9 +353,9 @@ export const AdminDashboardPage: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800">
-                    {t('adminFeatures')}
+                    คุณลักษณะผู้ดูแลระบบ
                   </h2>
-                  <p className="text-gray-600">{t('adminFeaturesSubtitle')}</p>
+                  <p className="text-gray-600">เข้าถึงเครื่องมือและฟังก์ชันการจัดการระบบ</p>
                 </div>
               </div>
 
@@ -350,6 +374,11 @@ export const AdminDashboardPage: React.FC = () => {
                   title="Category Management"
                   description="Organize and manage product categories"
                   linkTo={ROUTE_PATHS.ADMIN_MANAGE_CATEGORIES}
+                />
+                <AdminFeatureCard
+                  title="Rental Management"
+                  description="Manage and track all rental statuses"
+                  linkTo={ROUTE_PATHS.ADMIN_MANAGE_RENTALS}
                 />
 
                 <AdminFeatureCard
@@ -380,7 +409,7 @@ export const AdminDashboardPage: React.FC = () => {
           >
             <div className="flex items-center gap-3 mb-6">
               <FaRocket className="h-6 w-6" />
-              <h2 className="text-2xl font-bold">{t('quickActions')}</h2>
+              <h2 className="text-2xl font-bold">การดำเนินการด่วน</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Link
@@ -388,7 +417,7 @@ export const AdminDashboardPage: React.FC = () => {
                 className="flex items-center gap-3 p-4 bg-white/20 rounded-xl hover:bg-white/30 transition-all duration-300"
               >
                 <FaUsers className="h-5 w-5" />
-                <span className="font-medium">{t('viewUsers')}</span>
+                <span className="font-medium">ดูผู้ใช้</span>
               </Link>
 
               <Link
@@ -396,7 +425,7 @@ export const AdminDashboardPage: React.FC = () => {
                 className="flex items-center gap-3 p-4 bg-white/20 rounded-xl hover:bg-white/30 transition-all duration-300"
               >
                 <FaChartBar className="h-5 w-5" />
-                <span className="font-medium">{t('viewReports')}</span>
+                <span className="font-medium">ดูรายงาน</span>
               </Link>
 
               <Link

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import { FaMapMarkerAlt, FaSearch, FaTimes } from 'react-icons/fa';
-import { useTranslation } from 'react-i18next';
+
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -97,7 +97,6 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
   readOnly = false,
   zoom = 13
 }) => {
-  const { t } = useTranslation();
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(() => {
     if (latitude && longitude) {
       return { lat: latitude, lng: longitude };
@@ -140,15 +139,15 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
         onLocationSelect(location);
         setMapKey(prev => prev + 1); // Force map re-render to center on new location
       } else {
-        alert(t('googleMaps.searchNotFound', 'ไม่พบตำแหน่งที่ค้นหา'));
+        alert('ไม่พบตำแหน่งที่ค้นหา');
       }
     } catch (error) {
       console.error('Geocoding error:', error);
-      alert(t('googleMaps.searchError', 'เกิดข้อผิดพลาดในการค้นหา'));
+      alert('เกิดข้อผิดพลาดในการค้นหา');
     } finally {
       setIsLoading(false);
     }
-  }, [searchValue, onLocationSelect, t]);
+  }, [searchValue, onLocationSelect]);
 
   const getCurrentLocation = useCallback(() => {
     if (navigator.geolocation) {
@@ -193,13 +192,13 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
         },
         (error) => {
           setIsLoading(false);
-          alert(t('googleMaps.locationError', 'ไม่สามารถเข้าถึงตำแหน่งปัจจุบันได้'));
+          alert('ไม่สามารถเข้าถึงตำแหน่งปัจจุบันได้');
         }
       );
     } else {
-      alert(t('googleMaps.geolocationNotSupported', 'เบราว์เซอร์ไม่รองรับการหาตำแหน่ง'));
+      alert('เบราว์เซอร์ไม่รองรับการหาตำแหน่ง');
     }
-  }, [onLocationSelect, t]);
+  }, [onLocationSelect]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -226,7 +225,7 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder={placeholder || t('googleMaps.searchPlaceholder', 'ค้นหาตำแหน่ง...')}
+                placeholder={placeholder || 'ค้นหาตำแหน่ง...'}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               {searchValue && (
@@ -244,7 +243,7 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <FaSearch className="h-4 w-4" />
-              {t('googleMaps.search', 'ค้นหา')}
+              ค้นหา
             </button>
           </div>
           
@@ -256,7 +255,7 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
                 className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
               >
                 <FaMapMarkerAlt className="h-3 w-3" />
-                {t('googleMaps.currentLocation', 'ตำแหน่งปัจจุบัน')}
+                ตำแหน่งปัจจุบัน
               </button>
             )}
             
@@ -266,7 +265,7 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
                 className="px-3 py-1 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 flex items-center gap-1"
               >
                 <FaTimes className="h-3 w-3" />
-                {t('googleMaps.clear', 'ล้าง')}
+                ล้าง
               </button>
             )}
           </div>
@@ -280,13 +279,13 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
             <FaMapMarkerAlt className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-medium text-blue-800">
-                {t('googleMaps.selectedLocation', 'ตำแหน่งที่เลือก')}:
+                ตำแหน่งที่เลือก:
               </p>
               <p className="text-sm text-blue-700">
                 {selectedLocation.formattedAddress || selectedLocation.address}
               </p>
               <p className="text-xs text-blue-600">
-                {t('googleMaps.coordinates', 'พิกัด')}: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                พิกัด: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
               </p>
             </div>
           </div>
@@ -298,13 +297,13 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
         <div className="mb-4 flex items-center justify-center p-2">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
           <span className="ml-2 text-sm text-gray-600">
-            {t('googleMaps.loading', 'กำลังโหลด...')}
+            กำลังโหลด...
           </span>
         </div>
       )}
 
       {/* Map */}
-      <div className="border border-gray-300 rounded-lg overflow-hidden" style={{ height, width }}>
+      <div className="border border-gray-300 rounded-lg relative z-0" style={{ height, width }}>
         <MapContainer
           key={mapKey}
           center={[mapCenter.lat, mapCenter.lng]}
@@ -332,7 +331,7 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
               <Popup>
                 <div className="p-2 max-w-xs">
                   <h3 className="font-medium text-gray-800 mb-1">
-                    {t('googleMaps.selectedLocation', 'ตำแหน่งที่เลือก')}
+                    ตำแหน่งที่เลือก
                   </h3>
                   <p className="text-sm text-gray-600 mb-2">
                     {selectedLocation.formattedAddress || selectedLocation.address}
@@ -349,7 +348,7 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
 
       {/* Instructions */}
       <div className="mt-2 text-xs text-gray-500">
-        {t('googleMaps.instruction', 'คลิกบนแผนที่เพื่อเลือกตำแหน่ง หรือใช้ช่องค้นหาด้านบน')}
+        คลิกบนแผนที่เพื่อเลือกตำแหน่ง หรือใช้ช่องค้นหาด้านบน
       </div>
     </div>
   );

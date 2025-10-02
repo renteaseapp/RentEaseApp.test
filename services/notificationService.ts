@@ -1,6 +1,6 @@
 import { AppNotification, ApiError } from '../types';
 
-const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:3001/api';
+import { API_BASE_URL } from '../constants';
 
 export const getNotifications = async (params: { page?: number, limit?: number } = {}): Promise<AppNotification[]> => {
   const token = localStorage.getItem('authToken');
@@ -28,4 +28,4 @@ export const markNotificationsRead = async (notification_ids: number[]): Promise
   if (!res.ok) throw new Error('Failed to mark notifications as read');
   const result = await res.json();
   return result.data;
-}; 
+};

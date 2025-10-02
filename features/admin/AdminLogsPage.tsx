@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+
 import { FaEye, FaFilter, FaDownload, FaCalendarAlt, FaUser, FaCog, FaHistory, FaSearch, FaTimes } from 'react-icons/fa';
 import { getAdminLogs, AdminLog, AdminLogsQuery } from '../../services/adminLogService';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -9,7 +9,6 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '../../components/ui/Card';
 
 const AdminLogsPage: React.FC = () => {
-  const { t } = useTranslation('adminLogsPage');
   const [logs, setLogs] = useState<AdminLog[]>([]);
   const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -21,26 +20,26 @@ const AdminLogsPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const actionTypeOptions = [
-    { value: 'USER_UPDATE', label: t('actionTypes.USER_UPDATE') },
-    { value: 'USER_BAN', label: t('actionTypes.USER_BAN') },
-    { value: 'USER_UNBAN', label: t('actionTypes.USER_UNBAN') },
-    { value: 'USER_DELETE', label: t('actionTypes.USER_DELETE') },
-    { value: 'USER_VERIFICATION_UPDATE', label: t('actionTypes.USER_VERIFICATION_UPDATE') },
-    { value: 'PRODUCT_APPROVE', label: t('actionTypes.PRODUCT_APPROVE') },
-    { value: 'CATEGORY_CREATE', label: t('actionTypes.CATEGORY_CREATE') },
-    { value: 'CATEGORY_UPDATE', label: t('actionTypes.CATEGORY_UPDATE') },
-    { value: 'CATEGORY_DELETE', label: t('actionTypes.CATEGORY_DELETE') },
-    { value: 'SETTING_UPDATE', label: t('actionTypes.SETTING_UPDATE') },
-    { value: 'COMPLAINT_REPLY', label: t('actionTypes.COMPLAINT_REPLY') }
+    { value: 'USER_UPDATE', label: 'อัปเดตผู้ใช้' },
+    { value: 'USER_BAN', label: 'แบนผู้ใช้' },
+    { value: 'USER_UNBAN', label: 'ปลดแบนผู้ใช้' },
+    { value: 'USER_DELETE', label: 'ลบผู้ใช้' },
+    { value: 'USER_VERIFICATION_UPDATE', label: 'อัปเดตการยืนยันผู้ใช้' },
+    { value: 'PRODUCT_APPROVE', label: 'อนุมัติสินค้า' },
+    { value: 'CATEGORY_CREATE', label: 'สร้างหมวดหมู่' },
+    { value: 'CATEGORY_UPDATE', label: 'อัปเดตหมวดหมู่' },
+    { value: 'CATEGORY_DELETE', label: 'ลบหมวดหมู่' },
+    { value: 'SETTING_UPDATE', label: 'อัปเดตการตั้งค่า' },
+    { value: 'COMPLAINT_REPLY', label: 'ตอบกลับเรื่องร้องเรียน' }
   ];
 
   const entityTypeOptions = [
-    { value: 'User', label: t('entityTypes.User') },
-    { value: 'Product', label: t('entityTypes.Product') },
-    { value: 'Category', label: t('entityTypes.Category') },
-    { value: 'Setting', label: t('entityTypes.Setting') },
-    { value: 'Complaint', label: t('entityTypes.Complaint') },
-    { value: 'System', label: t('entityTypes.System') }
+    { value: 'User', label: 'ผู้ใช้' },
+    { value: 'Product', label: 'สินค้า' },
+    { value: 'Category', label: 'หมวดหมู่' },
+    { value: 'Setting', label: 'การตั้งค่า' },
+    { value: 'Complaint', label: 'เรื่องร้องเรียน' },
+    { value: 'System', label: 'ระบบ' }
   ];
 
   const fetchLogs = async () => {
@@ -51,7 +50,7 @@ const AdminLogsPage: React.FC = () => {
       setLogs(response.data);
       setMeta(response.meta);
     } catch (err: any) {
-      setError(err.message || t('error.loadFailed'));
+      setError(err.message || 'ไม่สามารถโหลดข้อมูลได้');
     } finally {
       setLoading(false);
     }
@@ -120,7 +119,7 @@ const AdminLogsPage: React.FC = () => {
             className="text-center"
           >
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 text-lg">{t('table.loading')}</p>
+            <p className="text-gray-600 text-lg">กำลังโหลด...</p>
           </motion.div>
         </div>
       </AdminLayout>
@@ -139,10 +138,10 @@ const AdminLogsPage: React.FC = () => {
             className="mb-12 text-center"
           >
             <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-              {t('title')}
+              ประวัติการกระทำของผู้ดูแลระบบ
             </h1>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              {t('subtitle')}
+              ติดตามกิจกรรมและการกระทำของผู้ดูแลระบบในแพลตฟอร์ม
             </p>
           </motion.div>
 
@@ -161,7 +160,7 @@ const AdminLogsPage: React.FC = () => {
                       <FaFilter className="w-5 h-5 text-white" />
                     </div>
                     <h2 className="text-xl font-bold text-gray-800">
-                      {t('filters.title')}
+                      ตัวกรอง
                     </h2>
                   </div>
                   <button
@@ -169,7 +168,7 @@ const AdminLogsPage: React.FC = () => {
                     className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300"
                   >
                     {showFilters ? <FaTimes className="w-4 h-4" /> : <FaSearch className="w-4 h-4" />}
-                    {showFilters ? t('filters.hideFilters') : t('filters.showFilters')}
+                    {showFilters ? 'ซ่อนตัวกรอง' : 'แสดงตัวกรอง'}
                   </button>
                 </div>
 
@@ -185,14 +184,14 @@ const AdminLogsPage: React.FC = () => {
                       {/* Action Type Filter */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          {t('filters.actionType')}
+                          ประเภทการกระทำ
                         </label>
                         <select
                           value={filters.action_type || ''}
                           onChange={(e) => handleFilterChange('action_type', e.target.value || undefined)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                         >
-                          <option value="">{t('filters.all')}</option>
+                          <option value="">ทั้งหมด</option>
                           {actionTypeOptions.map(option => (
                             <option key={option.value} value={option.value}>
                               {option.label}
@@ -204,14 +203,14 @@ const AdminLogsPage: React.FC = () => {
                       {/* Entity Type Filter */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          {t('filters.entityType')}
+                          ประเภทเอนทิตี
                         </label>
                         <select
                           value={filters.target_entity_type || ''}
                           onChange={(e) => handleFilterChange('target_entity_type', e.target.value || undefined)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                         >
-                          <option value="">{t('filters.all')}</option>
+                          <option value="">ทั้งหมด</option>
                           {entityTypeOptions.map(option => (
                             <option key={option.value} value={option.value}>
                               {option.label}
@@ -223,7 +222,7 @@ const AdminLogsPage: React.FC = () => {
                       {/* Date Range */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          {t('filters.startDate')}
+                          วันที่เริ่มต้น
                         </label>
                         <input
                           type="date"
@@ -235,7 +234,7 @@ const AdminLogsPage: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          {t('filters.endDate')}
+                          วันที่สิ้นสุด
                         </label>
                         <input
                           type="date"
@@ -251,7 +250,7 @@ const AdminLogsPage: React.FC = () => {
                         onClick={clearFilters}
                         className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
                       >
-                        {t('filters.clearFilters')}
+                        ล้างตัวกรอง
                       </button>
                     </div>
                   </motion.div>
@@ -284,22 +283,22 @@ const AdminLogsPage: React.FC = () => {
                     <thead className="bg-gradient-to-r from-blue-500 to-purple-500">
                       <tr>
                         <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
-                          {t('table.time')}
+                          เวลา
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
-                          {t('table.admin')}
+                          ผู้ดูแลระบบ
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
-                          {t('table.action')}
+                          การกระทำ
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
-                          {t('table.entity')}
+                          เอนทิตี
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
-                          {t('table.details')}
+                          รายละเอียด
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
-                          {t('table.ipAddress')}
+                          ที่อยู่ IP
                         </th>
                       </tr>
                     </thead>
@@ -353,7 +352,7 @@ const AdminLogsPage: React.FC = () => {
                                 <details className="cursor-pointer">
                                   <summary className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors duration-200">
                                     <FaEye className="w-4 h-4" />
-                                    {t('table.viewDetails')}
+                                    ดูรายละเอียด
                                   </summary>
                                   <div className="mt-2 p-3 bg-gray-50 rounded-lg">
                                     <pre className="text-xs text-gray-700 whitespace-pre-wrap">
@@ -362,13 +361,13 @@ const AdminLogsPage: React.FC = () => {
                                   </div>
                                 </details>
                               ) : (
-                                <span className="text-gray-400">{t('table.noDetails')}</span>
+                                <span className="text-gray-400">ไม่มีรายละเอียด</span>
                               )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {log.ip_address ? (
                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                  log.ip_address.includes('localhost') || log.ip_address === '::1' || log.ip_address === '127.0.0.1'
+                                  log.ip_address.includes('https://renteaseapi2.onrender.com') || log.ip_address === '::1' || log.ip_address === '127.0.0.1'
                                     ? 'bg-yellow-100 text-yellow-800'
                                     : 'bg-green-100 text-green-800'
                                 }`}>
@@ -385,7 +384,7 @@ const AdminLogsPage: React.FC = () => {
                           <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                             <div className="flex flex-col items-center gap-2">
                               <FaHistory className="w-12 h-12 text-gray-300" />
-                              <p className="text-lg">{loading ? t('table.loading') : t('table.noData')}</p>
+                              <p className="text-lg">{loading ? 'กำลังโหลด...' : 'ไม่พบข้อมูล'}</p>
                             </div>
                           </td>
                         </tr>
@@ -404,22 +403,22 @@ const AdminLogsPage: React.FC = () => {
                           disabled={meta.current_page <= 1}
                           className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                         >
-                          {t('pagination.previous')}
+                          ก่อนหน้า
                         </button>
                         <button
                           onClick={() => handlePageChange(meta.current_page + 1)}
                           disabled={meta.current_page >= meta.last_page}
                           className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                         >
-                          {t('pagination.next')}
+                          ถัดไป
                         </button>
                       </div>
                       <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                         <div>
                           <p className="text-sm text-gray-700">
-                            {t('pagination.showing')} <span className="font-medium">{meta.from}</span> {t('pagination.to')}{' '}
-                            <span className="font-medium">{meta.to}</span> {t('pagination.from')}{' '}
-                            <span className="font-medium">{meta.total}</span> {t('pagination.items')}
+                            แสดง <span className="font-medium">{meta.from}</span> ถึง{' '}
+                            <span className="font-medium">{meta.to}</span> จาก{' '}
+                            <span className="font-medium">{meta.total}</span> รายการ
                           </p>
                         </div>
                         <div>
@@ -429,7 +428,7 @@ const AdminLogsPage: React.FC = () => {
                               disabled={meta.current_page <= 1}
                               className="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                             >
-                              {t('pagination.previous')}
+                              ก่อนหน้า
                             </button>
                             {Array.from({ length: Math.min(5, meta.last_page) }, (_, i) => {
                               const page = i + 1;
@@ -452,7 +451,7 @@ const AdminLogsPage: React.FC = () => {
                               disabled={meta.current_page >= meta.last_page}
                               className="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                             >
-                              {t('pagination.next')}
+                              ถัดไป
                             </button>
                           </nav>
                         </div>

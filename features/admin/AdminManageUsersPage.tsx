@@ -5,13 +5,13 @@ import {
   adminBanUser,
   adminUnbanUser
 } from '../../services/adminService';
-import { User, ApiError, PaginatedResponse, } from '../../types';
+import { User, ApiError, PaginatedResponse, UserIdVerificationStatus } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
-import { useTranslation } from 'react-i18next';
+
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -30,8 +30,7 @@ import {
 } from 'react-icons/fa';
 
 export const AdminManageUsersPage: React.FC = () => {
-  const { t } = useTranslation('adminManageUsersPage');
-  const tRoot = useTranslation().t;
+
   const [usersResponse, setUsersResponse] = useState<PaginatedResponse<User> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +44,7 @@ export const AdminManageUsersPage: React.FC = () => {
     setIsLoading(true);
     adminGetUsers({ page: pageNum, limit: 20 })
       .then(setUsersResponse)
-      .catch((err: any) => setError((err as ApiError).message || t('error.loadFailed')))
+      .catch((err: any) => setError((err as ApiError).message || 'โหลดผู้ใช้ล้มเหลว'))
       .finally(() => setIsLoading(false));
   };
 
@@ -60,7 +59,7 @@ export const AdminManageUsersPage: React.FC = () => {
       await adminBanUser(user.id);
       fetchUsers(page);
     } catch (err) {
-      setError(t('error.banFailed'));
+      setError('แบนผู้ใช้ล้มเหลว');
     }
   };
 
@@ -70,7 +69,7 @@ export const AdminManageUsersPage: React.FC = () => {
       await adminUnbanUser(user.id);
       fetchUsers(page);
     } catch (err) {
-      setError(t('error.unbanFailed'));
+      setError('ปลดแบนผู้ใช้ล้มเหลว');
     }
   };
 
@@ -93,6 +92,30 @@ export const AdminManageUsersPage: React.FC = () => {
   // Helper function to check if user is verified (handles both 'approved' and 'verified' status values)
   const isUserVerified = (user: User) => {
     return user.id_verification_status === 'approved' || String(user.id_verification_status) === 'verified';
+  };
+
+  // Helper function to get Thai verification status text
+  const getUserVerificationStatusText = (user: User) => {
+    if (!user.id_verification_status) {
+      return 'ยังไม่ได้ส่งเอกสาร';
+    }
+    
+    // Convert to string for comparison since the backend might send string values
+    const status = String(user.id_verification_status);
+    
+    if (status === UserIdVerificationStatus.APPROVED || status === 'approved') {
+      return 'ยืนยันแล้ว';
+    } else if (status === 'verified') { // Handle legacy string value
+      return 'ยืนยันแล้ว';
+    } else if (status === UserIdVerificationStatus.REJECTED || status === 'rejected') {
+      return 'ถูกปฏิเสธ';
+    } else if (status === UserIdVerificationStatus.PENDING || status === 'pending') {
+      return 'รอการตรวจสอบ';
+    } else if (status === UserIdVerificationStatus.NOT_SUBMITTED || status === 'not_submitted') {
+      return 'ยังไม่ได้ส่งเอกสาร';
+    } else {
+      return 'ยังไม่ได้ส่งเอกสาร';
+    }
   };
 
   // Apply status filter
@@ -125,7 +148,7 @@ export const AdminManageUsersPage: React.FC = () => {
     return (
       <AdminLayout>
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-          <LoadingSpinner message={t('loadingUsers')} />
+          <LoadingSpinner message="กำลังโหลดผู้ใช้..." />
         </div>
       </AdminLayout>
     );
@@ -159,10 +182,10 @@ export const AdminManageUsersPage: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-                    {t('title')}
+                    จัดการผู้ใช้
                   </h1>
                   <p className="text-gray-600 mt-1">
-                    {t('manageUsersDescription') || 'Manage user accounts and permissions'}
+                    จัดการบัญชีผู้ใช้และการอนุญาต
                   </p>
                 </div>
               </div>
@@ -180,7 +203,7 @@ export const AdminManageUsersPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-100 text-sm font-medium">{t('stats.totalUsers') || 'Total Users'}</p>
+                    <p className="text-blue-100 text-sm font-medium">ผู้ใช้ทั้งหมด</p>
                     <p className="text-3xl font-bold">{stats.total}</p>
                   </div>
                   <FaUsers className="h-8 w-8 text-blue-200" />
@@ -192,7 +215,7 @@ export const AdminManageUsersPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100 text-sm font-medium">{t('stats.activeUsers') || 'Active Users'}</p>
+                    <p className="text-green-100 text-sm font-medium">ผู้ใช้ที่ใช้งานอยู่</p>
                     <p className="text-3xl font-bold">{stats.active}</p>
                   </div>
                   <FaUserCheck className="h-8 w-8 text-green-200" />
@@ -204,7 +227,7 @@ export const AdminManageUsersPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-red-100 text-sm font-medium">{t('stats.inactiveUsers') || 'Inactive Users'}</p>
+                    <p className="text-red-100 text-sm font-medium">ผู้ใช้ที่ไม่ใช้งาน</p>
                     <p className="text-3xl font-bold">{stats.inactive}</p>
                   </div>
                   <FaUserTimes className="h-8 w-8 text-red-200" />
@@ -216,7 +239,7 @@ export const AdminManageUsersPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-100 text-sm font-medium">{t('stats.verifiedUsers') || 'Verified Users'}</p>
+                    <p className="text-purple-100 text-sm font-medium">ผู้ใช้ที่ยืนยันแล้ว</p>
                     <p className="text-3xl font-bold">{stats.verified}</p>
                   </div>
                   <FaIdCard className="h-8 w-8 text-purple-200" />
@@ -240,7 +263,7 @@ export const AdminManageUsersPage: React.FC = () => {
           <input
             type="text"
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder={t('searchPlaceholder')}
+                    placeholder="ค้นหาด้วยชื่อหรืออีเมล..."
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') setSearch(searchInput); }}
@@ -251,11 +274,11 @@ export const AdminManageUsersPage: React.FC = () => {
               {/* Filter Buttons */}
               <div className="flex flex-wrap gap-2">
                 {[
-                  { key: 'all', label: t('filters.allUsers') || 'All Users', icon: <FaUsers className="h-4 w-4" /> },
-                  { key: 'active', label: t('filters.active') || 'Active', icon: <FaUserCheck className="h-4 w-4" /> },
-                  { key: 'inactive', label: t('filters.inactive') || 'Inactive', icon: <FaUserTimes className="h-4 w-4" /> },
-                  { key: 'verified', label: t('filters.verified') || 'Verified', icon: <FaIdCard className="h-4 w-4" /> },
-                  { key: 'unverified', label: t('filters.unverified') || 'Unverified', icon: <FaIdCard className="h-4 w-4" /> }
+                  { key: 'all', label: 'ผู้ใช้ทั้งหมด', icon: <FaUsers className="h-4 w-4" /> },
+                  { key: 'active', label: 'ใช้งานอยู่', icon: <FaUserCheck className="h-4 w-4" /> },
+                  { key: 'inactive', label: 'ไม่ใช้งาน', icon: <FaUserTimes className="h-4 w-4" /> },
+                  { key: 'verified', label: 'ยืนยันแล้ว', icon: <FaIdCard className="h-4 w-4" /> },
+                  { key: 'unverified', label: 'ยังไม่ยืนยัน', icon: <FaIdCard className="h-4 w-4" /> }
                 ].map(filter => (
                   <button
                     key={filter.key}
@@ -280,7 +303,7 @@ export const AdminManageUsersPage: React.FC = () => {
                   className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
                 >
                   <FaSearch className="h-4 w-4 mr-2" />
-                  {t('actions.search')}
+                  ค้นหา
                 </Button>
                 {(search || selectedFilter !== 'all') && (
                   <Button 
@@ -292,7 +315,7 @@ export const AdminManageUsersPage: React.FC = () => {
                     variant="outline"
                   >
                     <FaTimes className="h-4 w-4 mr-2" />
-                    {t('actions.clear')}
+                    ล้าง
                   </Button>
                 )}
         </div>
@@ -311,19 +334,19 @@ export const AdminManageUsersPage: React.FC = () => {
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.name')}
+                      ชื่อ
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.emailUsername')}
+                      อีเมล / ชื่อผู้ใช้
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.status')}
+                      สถานะ
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.idVerified')}
+                      ยืนยันตัวตน
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.actions')}
+                      การกระทำ
                     </th>
             </tr>
           </thead>
@@ -374,12 +397,12 @@ export const AdminManageUsersPage: React.FC = () => {
                               {user.is_active ? (
                                 <>
                                   <FaUserCheck className="h-3 w-3 mr-1" />
-                                  {t('status.active')}
+                                  ใช้งานอยู่
                                 </>
                               ) : (
                                 <>
                                   <FaUserTimes className="h-3 w-3 mr-1" />
-                                  {t('status.inactive')}
+                                  ไม่ใช้งาน
                                 </>
                               )}
                     </span>
@@ -388,10 +411,7 @@ export const AdminManageUsersPage: React.FC = () => {
                             <div className="flex items-center">
                               <FaIdCard className="h-4 w-4 text-gray-400 mr-2" />
                               <span className="text-sm text-gray-700">
-                                {user.id_verification_status ? 
-                                  tRoot(`idVerification.${user.id_verification_status}`) : 
-                                  tRoot('idVerification.notSubmitted')
-                                }
+                                {getUserVerificationStatusText(user)}
                               </span>
                             </div>
                   </td>
@@ -422,7 +442,7 @@ export const AdminManageUsersPage: React.FC = () => {
                                         onClick={() => setActionRow(null)}
                                       >
                                         <FaEye className="h-4 w-4 mr-2" />
-                                        {t('actions.viewEdit')}
+                                        ดู/แก้ไข
                                       </Link>
                                       
                             {user.is_active ? (
@@ -431,7 +451,7 @@ export const AdminManageUsersPage: React.FC = () => {
                                           className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                                         >
                                           <FaBan className="h-4 w-4 mr-2" />
-                                          {t('actions.ban')}
+                                          แบน
                                         </button>
                                       ) : (
                                         <button 
@@ -439,7 +459,7 @@ export const AdminManageUsersPage: React.FC = () => {
                                           className="flex items-center w-full px-4 py-2 text-sm text-green-600 hover:bg-green-50 transition-colors"
                                         >
                                           <FaCheck className="h-4 w-4 mr-2" />
-                                          {t('actions.unban')}
+                                          ปลดแบน
                                         </button>
                                       )}
                                       
@@ -461,8 +481,8 @@ export const AdminManageUsersPage: React.FC = () => {
                         <td colSpan={5} className="text-center text-gray-400 py-12">
                           <div className="flex flex-col items-center">
                             <FaUsers className="h-12 w-12 text-gray-300 mb-4" />
-                            <p className="text-lg font-medium">{t('noUsersFound')}</p>
-                            <p className="text-sm text-gray-500">No users match your current filters</p>
+                            <p className="text-lg font-medium">ไม่พบผู้ใช้</p>
+                            <p className="text-sm text-gray-500">ไม่มีผู้ใช้ที่ตรงกับตัวกรองของคุณ</p>
                           </div>
                 </td>
                       </motion.tr>
@@ -487,10 +507,10 @@ export const AdminManageUsersPage: React.FC = () => {
                 onClick={() => setPage(page - 1)}
                 className="flex items-center gap-2"
               >
-                ← {t('pagination.prev')}
+                ← ก่อนหน้า
               </Button>
               <span className="text-gray-700 font-medium">
-                {t('pagination.page')} {page}
+                หน้า {page}
                 {usersResponse?.meta?.last_page ? ` / ${usersResponse.meta.last_page}` : ''}
               </span>
               <Button 
@@ -499,7 +519,7 @@ export const AdminManageUsersPage: React.FC = () => {
                 onClick={() => setPage(page + 1)}
                 className="flex items-center gap-2"
               >
-                {t('pagination.next')} →
+                ถัดไป →
               </Button>
             </motion.div>
           )}

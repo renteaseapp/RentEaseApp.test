@@ -9,7 +9,7 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { ApiError } from '../../types';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { useTranslation } from 'react-i18next';
+
 import { motion } from 'framer-motion';
 import { GoogleLoginButton } from '../../components/common/GoogleLoginButton';
 import googleAuthService from '../../services/googleAuthService';
@@ -28,7 +28,6 @@ const LockClosedIcon = () => <FaLock className="h-5 w-5 text-gray-400" />;
 const MailIcon = () => <FaEnvelope className="h-5 w-5 text-gray-400" />;
 
 export const LoginPage: React.FC = () => {
-  const { t } = useTranslation();
   const [credentials, setCredentials] = useState<LoginCredentials>({ email_or_username: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -58,12 +57,7 @@ export const LoginPage: React.FC = () => {
       navigate(ROUTE_PATHS.HOME);
     } catch (err) {
       const apiError = err as ApiError;
-      const errorMessageKey = `apiErrors.${apiError.message}`;
-      if (t(errorMessageKey) !== errorMessageKey) {
-        setError(t(errorMessageKey));
-      } else {
-        setError(apiError.message || t('loginPage.loginFailedError'));
-      }
+      setError(apiError.message || 'เข้าสู่ระบบล้มเหลว');
     } finally {
       setIsLoading(false);
     }
@@ -99,12 +93,7 @@ export const LoginPage: React.FC = () => {
     } catch (err) {
       console.error('❌ Google login error:', err);
       const apiError = err as ApiError;
-      const errorMessageKey = `apiErrors.${apiError.message}`;
-      if (t(errorMessageKey) !== errorMessageKey) {
-        setError(t(errorMessageKey));
-      } else {
-        setError(apiError.message || t('loginPage.googleLoginFailedError'));
-      }
+      setError(apiError.message || 'เข้าสู่ระบบด้วย Google ล้มเหลว');
     } finally {
       setIsGoogleLoading(false);
     }
@@ -112,13 +101,13 @@ export const LoginPage: React.FC = () => {
 
   const handleGoogleError = (error: any) => {
     console.error('Google login error:', error);
-    setError(t('loginPage.googleLoginFailedError'));
+    setError('เข้าสู่ระบบด้วย Google ล้มเหลว');
   };
 
   const features = [
-    { icon: <FaShieldAlt className="h-6 w-6 text-green-500" />, text: t('loginPage.features.secure') },
-    { icon: <FaRocket className="h-6 w-6 text-blue-500" />, text: t('loginPage.features.fast') },
-    { icon: <FaCheckCircle className="h-6 w-6 text-purple-500" />, text: t('loginPage.features.reliable') },
+    { icon: <FaShieldAlt className="h-6 w-6 text-green-500" />, text: 'ปลอดภัย' },
+    { icon: <FaRocket className="h-6 w-6 text-blue-500" />, text: 'รวดเร็ว' },
+    { icon: <FaCheckCircle className="h-6 w-6 text-purple-500" />, text: 'เชื่อถือได้' },
   ];
 
   return (
@@ -144,7 +133,7 @@ export const LoginPage: React.FC = () => {
                   RentEase
                 </h1>
                 <p className="text-xl text-gray-600 max-w-md mx-auto lg:mx-0">
-                  {t('loginPage.welcomeMessage')}
+                  แพลตฟอร์มเช่าสินค้าที่สะดวกและปลอดภัย
                 </p>
               </motion.div>
 
@@ -155,7 +144,7 @@ export const LoginPage: React.FC = () => {
                 className="space-y-6"
               >
                 <h3 className="text-2xl font-semibold text-gray-800 mb-6">
-                  {t('loginPage.whyChooseUs')}
+                  เหตุใดต้องเลือก RentEase?
                 </h3>
                 {features.map((feature, index) => (
                   <motion.div
@@ -179,8 +168,8 @@ export const LoginPage: React.FC = () => {
                 transition={{ duration: 0.6, delay: 0.8 }}
                 className="mt-12 p-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl text-white"
               >
-                <h4 className="text-lg font-semibold mb-2">{t('loginPage.joinCommunity')}</h4>
-                <p className="text-blue-100">{t('loginPage.communityDescription')}</p>
+                <h4 className="text-lg font-semibold mb-2">เข้าร่วมชุมชนของเรา</h4>
+                <p className="text-blue-100">เชื่อมต่อกับผู้เช่าและเจ้าของสินค้าทั่วประเทศ</p>
               </motion.div>
             </div>
           </motion.div>
@@ -200,10 +189,10 @@ export const LoginPage: React.FC = () => {
                 className="text-center mb-8"
               >
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  {t('loginPage.title')}
+                  เข้าสู่ระบบ
                 </h2>
                 <p className="text-gray-600">
-                  {t('loginPage.subtitle')}
+                  เข้าสู่ระบบบัญชีของคุณเพื่อดำเนินการต่อ
                 </p>
               </motion.div>
 
@@ -221,7 +210,7 @@ export const LoginPage: React.FC = () => {
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ duration: 0.3 }}
                         >
-                          <ErrorMessage message={error} onDismiss={() => setError(null)} title={t('general.error')} />
+                          <ErrorMessage message={error} onDismiss={() => setError(null)} title="ข้อผิดพลาด" />
                         </motion.div>
                       )}
 
@@ -231,7 +220,7 @@ export const LoginPage: React.FC = () => {
                         transition={{ duration: 0.5, delay: 0.6 }}
                       >
                         <InputField
-                          label={t('loginPage.emailOrUsernameLabel')}
+                          label="อีเมลหรือชื่อผู้ใช้"
                           id="email_or_username"
                           name="email_or_username"
                           type="text"
@@ -239,7 +228,7 @@ export const LoginPage: React.FC = () => {
                           required
                           value={credentials.email_or_username}
                           onChange={handleChange}
-                          placeholder={t('loginPage.emailOrUsernamePlaceholder')}
+                          placeholder="ป้อนอีเมลหรือชื่อผู้ใช้ของคุณ"
                           icon={<MailIcon />}
                           className="bg-white/50 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                         />
@@ -252,7 +241,7 @@ export const LoginPage: React.FC = () => {
                       >
                         <div className="relative">
                           <InputField
-                            label={t('loginPage.passwordLabel')}
+                            label="รหัสผ่าน"
                             id="password"
                             name="password"
                             type={showPassword ? 'text' : 'password'}
@@ -260,7 +249,7 @@ export const LoginPage: React.FC = () => {
                             required
                             value={credentials.password}
                             onChange={handleChange}
-                            placeholder={t('loginPage.passwordPlaceholder')}
+                            placeholder="ป้อนรหัสผ่านของคุณ"
                             icon={<LockClosedIcon />}
                             className="bg-white/50 border-gray-200 focus:border-blue-500 focus:ring-blue-500 pr-12"
                           />
@@ -290,14 +279,14 @@ export const LoginPage: React.FC = () => {
                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors"
                           />
                           <label htmlFor="remember-me" className="ml-2 block text-gray-700 font-medium">
-                            {t('loginPage.rememberMe')}
+                            จดจำฉัน
                           </label>
                         </div>
                         <Link
                           to={ROUTE_PATHS.FORGOT_PASSWORD}
                           className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
                         >
-                          {t('loginPage.forgotPassword')}
+                          ลืมรหัสผ่าน?
                         </Link>
                       </motion.div>
 
@@ -315,7 +304,7 @@ export const LoginPage: React.FC = () => {
                           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg"
                         >
                           {!isLoading && <FaArrowRight className="mr-2 h-4 w-4" />}
-                          {t('loginPage.signInButton')}
+                          เข้าสู่ระบบ
                         </Button>
                       </motion.div>
 
@@ -330,7 +319,7 @@ export const LoginPage: React.FC = () => {
                           <div className="w-full border-t border-gray-300" />
                         </div>
                         <div className="relative flex justify-center text-sm">
-                          <span className="px-2 bg-white text-gray-500">{t('loginPage.orContinueWith')}</span>
+                          <span className="px-2 bg-white text-gray-500">หรือดำเนินการต่อด้วย</span>
                         </div>
                       </motion.div>
 
@@ -358,12 +347,12 @@ export const LoginPage: React.FC = () => {
                       className="mt-8 pt-6 border-t border-gray-200"
                     >
                       <p className="text-center text-sm text-gray-600">
-                        {t('loginPage.notMember')}{' '}
+                        ยังไม่เป็นสมาชิก?{' '}
                         <Link
                           to={ROUTE_PATHS.REGISTER}
                           className="font-semibold text-blue-600 hover:text-blue-500 transition-colors"
                         >
-                          {t('loginPage.createAccountLink')}
+                          สร้างบัญชีใหม่
                         </Link>
                       </p>
                     </motion.div>

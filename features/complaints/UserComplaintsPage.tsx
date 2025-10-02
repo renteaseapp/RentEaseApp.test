@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { API_BASE_URL } from '../../constants';
-import { useTranslation } from 'react-i18next';
+
 import { getMyRentals } from '../../services/rentalService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -28,13 +28,12 @@ import {
 
 // Complaint types could be fetched from API or defined here
 const COMPLAINT_TYPES = [
-  { value: 'user_behavior', label: 'complaints.type.user_behavior', icon: <FaUser className="h-4 w-4" /> },
-  { value: 'wrong_item', label: 'complaints.type.wrong_item', icon: <FaBox className="h-4 w-4" /> },
-  { value: 'ระเบิด', label: 'complaints.type.explosive', icon: <FaExclamationTriangle className="h-4 w-4" /> },
+  { value: 'user_behavior', label: 'พฤติกรรมผู้ใช้', icon: <FaUser className="h-4 w-4" /> },
+  { value: 'wrong_item', label: 'สินค้าผิด', icon: <FaBox className="h-4 w-4" /> },
+  { value: 'ระเบิด', label: 'ระเบิด', icon: <FaExclamationTriangle className="h-4 w-4" /> },
 ];
 
 function UserComplaintsPage() {
-  const { t } = useTranslation();
   const { token } = useAuth();
   const [complaints, setComplaints] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,7 +49,6 @@ function UserComplaintsPage() {
     subject_user_id: '',
     attachments: [] as File[],
   });
-  const [] = useState({ message: '', attachments: [] as File[] });
   const [submitting, setSubmitting] = useState(false);
   const [rentalOptions, setRentalOptions] = useState<any[]>([]);
 
@@ -67,10 +65,10 @@ function UserComplaintsPage() {
         setLoading(false);
       })
       .catch(() => {
-        setError(t('complaints.error.loadList'));
+        setError('ไม่สามารถโหลดรายการเรื่องร้องเรียนได้');
         setLoading(false);
       });
-  }, [token, t]);
+   }, [token]);
 
   // Fetch rental options when form is opened
   useEffect(() => {
@@ -93,7 +91,7 @@ function UserComplaintsPage() {
         setLoading(false);
       })
       .catch(() => {
-        setError(t('complaints.error.loadDetail'));
+        setError('ไม่สามารถโหลดรายละเอียดเรื่องร้องเรียนได้');
         setLoading(false);
       });
   };
@@ -155,7 +153,7 @@ function UserComplaintsPage() {
       const data = await res.json();
       setComplaints((prev) => [data.data.data, ...prev]);
     } catch (err: any) {
-      setError(err.message || t('complaints.error.create'));
+      setError(err.message || 'ไม่สามารถสร้างเรื่องร้องเรียนได้');
     } finally {
       setSubmitting(false);
     }
@@ -193,6 +191,34 @@ function UserComplaintsPage() {
     }
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'submitted':
+        return 'ส่งแล้ว';
+      case 'under_review':
+        return 'อยู่ระหว่างตรวจสอบ';
+      case 'resolved':
+        return 'แก้ไขแล้ว';
+      case 'closed_no_action':
+        return 'ปิดโดยไม่ดำเนินการ';
+      default:
+        return status;
+    }
+  };
+
+  const getComplaintTypeText = (type: string) => {
+    switch (type) {
+      case 'user_behavior':
+        return 'พฤติกรรมผู้ใช้';
+      case 'wrong_item':
+        return 'สินค้าผิด';
+      case 'ระเบิด':
+        return 'ระเบิด';
+      default:
+        return type;
+    }
+  };
+
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
 
@@ -210,10 +236,10 @@ function UserComplaintsPage() {
             <FaShieldAlt className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
-            {t('complaints.title')}
+            เรื่องร้องเรียนของฉัน
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Report issues and get support for your rental experiences
+            รายงานปัญหาและรับการสนับสนุนสำหรับประสบการณ์การเช่าของคุณ
           </p>
         </motion.div>
 
@@ -233,12 +259,12 @@ function UserComplaintsPage() {
             {showNewForm ? (
               <>
                 <FaTimes className="h-5 w-5" />
-                {t('complaints.cancel')}
+                ยกเลิก
               </>
             ) : (
               <>
                 <FaPlus className="h-5 w-5" />
-                {t('complaints.newComplaint')}
+                สร้างเรื่องร้องเรียนใหม่
                 <FaArrowRight className="h-4 w-4" />
               </>
             )}
@@ -259,14 +285,14 @@ function UserComplaintsPage() {
                 <div className="p-2 bg-red-100 rounded-lg">
                   <FaExclamationTriangle className="h-6 w-6 text-red-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800">{t('complaints.submitNewTitle')}</h2>
+                <h2 className="text-2xl font-bold text-gray-800">ส่งเรื่องร้องเรียนใหม่</h2>
               </div>
               
               <form onSubmit={handleNewComplaintSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('complaints.form.title')}
+                      หัวข้อ
                     </label>
                     <input
                       type="text"
@@ -279,7 +305,7 @@ function UserComplaintsPage() {
                   
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('complaints.form.type')}
+                      ประเภท
                     </label>
                     <select
                       className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
@@ -287,10 +313,10 @@ function UserComplaintsPage() {
                       onChange={e => setNewComplaint({ ...newComplaint, complaint_type: e.target.value })}
                       required
                     >
-                      <option value="">{t('complaints.form.typeSelect')}</option>
+                      <option value="">เลือกประเภท</option>
                       {COMPLAINT_TYPES.map(type => (
                         <option key={type.value} value={type.value}>
-                          {t(type.label)}
+                          {type.label}
                         </option>
                       ))}
                     </select>
@@ -299,7 +325,7 @@ function UserComplaintsPage() {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    {t('complaints.form.details')}
+                    รายละเอียด
                     <span className="text-red-500 ml-1">*</span>
                     <span className="text-xs text-gray-500 ml-2">(อย่างน้อย 20 ตัวอักษร)</span>
                   </label>
@@ -332,7 +358,7 @@ function UserComplaintsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('complaints.form.rental')}
+                      การเช่า
                     </label>
                     <select
                       className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
@@ -348,10 +374,10 @@ function UserComplaintsPage() {
                         }));
                       }}
                     >
-                      <option value="">{t('complaints.form.noSelect')}</option>
+                      <option value="">ไม่เลือก</option>
                       {rentalOptions.map(r => (
                         <option key={r.id} value={r.id}>
-                          {r.id} - {r.product?.title || t('complaints.none')}
+                          {r.id} - {r.product?.title || 'ไม่มี'}
                         </option>
                       ))}
                     </select>
@@ -359,7 +385,7 @@ function UserComplaintsPage() {
                   
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('complaints.form.product')}
+                      สินค้า
                       <span className="text-xs text-gray-500 ml-2">(ตัวเลขบวกเท่านั้น)</span>
                     </label>
                     <input
@@ -383,7 +409,7 @@ function UserComplaintsPage() {
                   
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('complaints.form.user')}
+                      ผู้ใช้
                       <span className="text-xs text-gray-500 ml-2">(ตัวเลขบวกเท่านั้น)</span>
                     </label>
                     <input
@@ -408,7 +434,7 @@ function UserComplaintsPage() {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    {t('complaints.form.attachments')}
+                    ไฟล์แนบ
                   </label>
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-red-400 transition-colors">
                     <input
@@ -420,8 +446,8 @@ function UserComplaintsPage() {
                     />
                     <label htmlFor="file-upload" className="cursor-pointer">
                       <FaPaperclip className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-600">Click to upload files or drag and drop</p>
-                      <p className="text-sm text-gray-400 mt-1">Support for images, PDFs, and documents</p>
+                      <p className="text-gray-600">คลิกเพื่ออัปโหลดไฟล์หรือลากและวาง</p>
+                      <p className="text-sm text-gray-400 mt-1">รองรับรูปภาพ PDF และเอกสาร</p>
                     </label>
                   </div>
                   {newComplaint.attachments.length > 0 && (
@@ -442,12 +468,12 @@ function UserComplaintsPage() {
                     {submitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        {t('complaints.submitting')}
+                        กำลังส่ง...
                       </>
                     ) : (
                       <>
                         <FaExclamationTriangle className="h-4 w-4" />
-                        {t('complaints.submitComplaint')}
+                        ส่งเรื่องร้องเรียน
                       </>
                     )}
                   </motion.button>
@@ -474,10 +500,10 @@ function UserComplaintsPage() {
                   <FaCheckCircle className="h-12 w-12 text-green-500" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                  {t('complaints.noComplaints')}
+                  ไม่มีเรื่องร้องเรียน
                 </h3>
                 <p className="text-gray-500 leading-relaxed">
-                  Great! You have no complaints to report. Keep enjoying your rental experience.
+                  ยอดเยี่ยม! คุณไม่มีเรื่องร้องเรียนที่จะรายงาน ยังคงเพลิดเพลินกับประสบการณ์การเช่าของคุณต่อไป
                 </p>
               </div>
             </motion.div>
@@ -509,7 +535,7 @@ function UserComplaintsPage() {
                       <div className="flex items-center gap-2">
                         <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(complaint.status)}`}>
                           {getStatusIcon(complaint.status)}
-                          {t(`complaints.status.${complaint.status}`)}
+                          {getStatusText(complaint.status)}
                         </span>
                       </div>
                       <span className="text-xs text-gray-500 font-mono">#{complaint.complaint_uid}</span>
@@ -529,7 +555,7 @@ function UserComplaintsPage() {
                     <div className="flex flex-wrap gap-2 mb-4">
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-xs font-medium">
                         <FaTag className="h-3 w-3" />
-                        {t(`complaints.type.${complaint.complaint_type}`)}
+                        {getComplaintTypeText(complaint.complaint_type)}
                       </span>
                       {complaint.related_rental_id && (
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 text-purple-700 border border-purple-100 text-xs font-medium">
@@ -547,7 +573,7 @@ function UserComplaintsPage() {
                       </div>
                       <div className="flex items-center gap-1 text-red-500">
                         <FaEye className="h-3 w-3" />
-                        View Details
+                        ดูรายละเอียด
                       </div>
                     </div>
                   </motion.div>
@@ -582,8 +608,8 @@ function UserComplaintsPage() {
                         <FaExclamationTriangle className="h-6 w-6 text-red-600" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-800">{t('complaints.detailTitle')}</h3>
-                        <p className="text-sm text-gray-500">Complaint #{selectedComplaint.complaint_uid}</p>
+                        <h3 className="text-2xl font-bold text-gray-800">รายละเอียดเรื่องร้องเรียน</h3>
+                        <p className="text-sm text-gray-500">เรื่องร้องเรียน #{selectedComplaint.complaint_uid}</p>
                       </div>
                     </div>
                     <motion.button
@@ -603,7 +629,7 @@ function UserComplaintsPage() {
                   <div className="flex items-center gap-4">
                     <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(selectedComplaint.status)}`}>
                       {getStatusIcon(selectedComplaint.status)}
-                      {t(`complaints.status.${selectedComplaint.status}`)}
+                      {getStatusText(selectedComplaint.status)}
                     </span>
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <FaCalendarAlt className="h-4 w-4" />
@@ -614,20 +640,20 @@ function UserComplaintsPage() {
                   {/* Complaint Details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h4 className="font-semibold text-gray-800 mb-2">{t('complaints.form.title')}</h4>
+                      <h4 className="font-semibold text-gray-800 mb-2">หัวข้อ</h4>
                       <p className="text-gray-600">{selectedComplaint.title}</p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-800 mb-2">{t('complaints.form.type')}</h4>
+                      <h4 className="font-semibold text-gray-800 mb-2">ประเภท</h4>
                       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-sm">
                         <FaTag className="h-3 w-3" />
-                        {t(`complaints.type.${selectedComplaint.complaint_type}`)}
+                        {getComplaintTypeText(selectedComplaint.complaint_type)}
                       </span>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-2">{t('complaints.form.details')}</h4>
+                    <h4 className="font-semibold text-gray-800 mb-2">รายละเอียด</h4>
                     <p className="text-gray-600 leading-relaxed">{selectedComplaint.details}</p>
                   </div>
 
@@ -636,21 +662,21 @@ function UserComplaintsPage() {
                     <div className="bg-gray-50 rounded-xl p-4">
                       <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
                         <FaBox className="h-4 w-4" />
-                        {t('complaints.form.rental')}
+                        การเช่า
                       </h4>
                       <p className="text-gray-600">{selectedComplaint.related_rental_id || 'N/A'}</p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
                       <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
                         <FaTag className="h-4 w-4" />
-                        {t('complaints.form.product')}
+                        สินค้า
                       </h4>
                       <p className="text-gray-600">{selectedComplaint.related_product_id || 'N/A'}</p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
                       <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
                         <FaUser className="h-4 w-4" />
-                        {t('complaints.form.user')}
+                        ผู้ใช้
                       </h4>
                       <p className="text-gray-600">{selectedComplaint.subject_user_id || 'N/A'}</p>
                     </div>
@@ -659,7 +685,7 @@ function UserComplaintsPage() {
                   {/* Admin Notes */}
                   {selectedComplaint.admin_notes && (
                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                      <h4 className="font-semibold text-blue-800 mb-2">{t('complaints.adminNotes')}</h4>
+                      <h4 className="font-semibold text-blue-800 mb-2">หมายเหตุจากผู้ดูแลระบบ</h4>
                       <p className="text-blue-700">{selectedComplaint.admin_notes}</p>
                     </div>
                   )}
@@ -667,7 +693,7 @@ function UserComplaintsPage() {
                   {/* Resolution Notes */}
                   {selectedComplaint.resolution_notes && (
                     <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                      <h4 className="font-semibold text-green-800 mb-2">{t('complaints.resolutionNotes')}</h4>
+                      <h4 className="font-semibold text-green-800 mb-2">หมายเหตุการแก้ไข</h4>
                       <p className="text-green-700">{selectedComplaint.resolution_notes}</p>
                     </div>
                   )}
@@ -677,7 +703,7 @@ function UserComplaintsPage() {
                     <div>
                       <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <FaPaperclip className="h-4 w-4" />
-                        {t('complaints.form.attachments')}
+                        ไฟล์แนบ
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {selectedComplaint.complaint_attachments.map((attachment: any) => (
@@ -692,9 +718,9 @@ function UserComplaintsPage() {
                             <FaFileAlt className="h-5 w-5 text-gray-500" />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-700 truncate">
-                                {attachment.description || 'Attachment'}
+                                {attachment.description || 'ไฟล์แนบ'}
                               </p>
-                              <p className="text-xs text-gray-500">Click to download</p>
+                              <p className="text-xs text-gray-500">คลิกเพื่อดาวน์โหลด</p>
                             </div>
                             <FaDownload className="h-4 w-4 text-gray-400" />
                           </motion.a>

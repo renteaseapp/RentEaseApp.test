@@ -38,13 +38,13 @@ export const getQuantityStatusColor = (quantityAvailable: number): string => {
 /**
  * ได้รับข้อความสถานะ quantity
  */
-export const getQuantityStatusText = (quantityAvailable: number, t: (key: string, options?: any) => string): string => {
+export const getQuantityStatusText = (quantityAvailable: number): string => {
   if (quantityAvailable === 0) {
-    return t('common.outOfStock');
+    return 'สินค้าหมด';
   } else if (quantityAvailable <= 2) {
-    return t('common.lowStock', { count: quantityAvailable });
+    return `สินค้าใกล้หมด (${quantityAvailable} ชิ้น)`;
   } else {
-    return t('common.inStock', { count: quantityAvailable });
+    return `มีสินค้า (${quantityAvailable} ชิ้น)`;
   }
 };
 
@@ -73,14 +73,14 @@ export const getAvailabilityStatusColor = (status: ProductAvailabilityStatus | s
 /**
  * ได้รับข้อความสถานะ availability
  */
-export const getAvailabilityStatusText = (status: ProductAvailabilityStatus | string, t: (key: string) => string): string => {
+export const getAvailabilityStatusText = (status: ProductAvailabilityStatus | string): string => {
   const statusMap: Record<string, string> = {
-    [ProductAvailabilityStatus.AVAILABLE]: t('productStatus.available'),
-    [ProductAvailabilityStatus.RENTED_OUT]: t('productStatus.rented_out'),
-    [ProductAvailabilityStatus.UNAVAILABLE]: t('productStatus.unavailable'),
-    [ProductAvailabilityStatus.PENDING_APPROVAL]: t('productStatus.pending_approval'),
-    [ProductAvailabilityStatus.DRAFT]: t('productStatus.draft'),
-    'rejected': t('productStatus.rejected') // Handle rejected as string since it's from admin_approval_status
+    [ProductAvailabilityStatus.AVAILABLE]: 'พร้อมให้เช่า',
+    [ProductAvailabilityStatus.RENTED_OUT]: 'ถูกเช่าหมดแล้ว',
+    [ProductAvailabilityStatus.UNAVAILABLE]: 'ไม่พร้อมให้เช่า',
+    [ProductAvailabilityStatus.PENDING_APPROVAL]: 'รอการอนุมัติ',
+    [ProductAvailabilityStatus.DRAFT]: 'ร่าง',
+    'rejected': 'ถูกปฏิเสธ' // Handle rejected as string since it's from admin_approval_status
   };
   
   return statusMap[status] || status.replace('_', ' ').toUpperCase();
@@ -105,11 +105,11 @@ export const getAdminApprovalStatusColor = (status: ProductAdminApprovalStatus |
 /**
  * ได้รับข้อความสถานะ admin approval
  */
-export const getAdminApprovalStatusText = (status: ProductAdminApprovalStatus | string, t: (key: string) => string): string => {
+export const getAdminApprovalStatusText = (status: ProductAdminApprovalStatus | string): string => {
   const statusMap: Record<string, string> = {
-    [ProductAdminApprovalStatus.APPROVED]: t('adminStatus.approved'),
-    [ProductAdminApprovalStatus.PENDING]: t('adminStatus.pending'),
-    [ProductAdminApprovalStatus.REJECTED]: t('adminStatus.rejected')
+    [ProductAdminApprovalStatus.APPROVED]: 'อนุมัติแล้ว',
+    [ProductAdminApprovalStatus.PENDING]: 'รอการตรวจสอบ',
+    [ProductAdminApprovalStatus.REJECTED]: 'ถูกปฏิเสธ'
   };
   
   return statusMap[status] || status.replace('_', ' ').toUpperCase();
@@ -149,16 +149,16 @@ export const formatQuantityDisplay = (quantityAvailable: number, totalQuantity?:
 export const canRentProduct = (product: Product): { canRent: boolean; reason?: string } => {
   if (!isProductAvailable(product)) {
     if (product.availability_status !== ProductAvailabilityStatus.AVAILABLE) {
-      return { canRent: false, reason: `Product status is ${product.availability_status}` };
+      return { canRent: false, reason: `สถานะสินค้าคือ ${product.availability_status}` };
     }
     if ((product.quantity_available || 0) === 0) {
-      return { canRent: false, reason: 'Product is out of stock' };
+      return { canRent: false, reason: 'สินค้าหมด' };
     }
     if (product.admin_approval_status !== 'approved') {
-      return { canRent: false, reason: 'Product is not approved by admin' };
+      return { canRent: false, reason: 'สินค้ายังไม่ได้รับการอนุมัติจากผู้ดูแล' };
     }
     if (product.deleted_at) {
-      return { canRent: false, reason: 'Product is deleted' };
+      return { canRent: false, reason: 'สินค้าถูกลบแล้ว' };
     }
   }
   
@@ -168,19 +168,19 @@ export const canRentProduct = (product: Product): { canRent: boolean; reason?: s
 /**
  * สร้าง tooltip text สำหรับสถานะสินค้า
  */
-export const getProductStatusTooltip = (product: Product, t: (key: string, options?: any) => string): string => {
+export const getProductStatusTooltip = (product: Product): string => {
   const parts: string[] = [];
   
-  parts.push(`${t('common.status')}: ${getAvailabilityStatusText(product.availability_status || '', t)}`);
-  parts.push(`${t('common.quantity')}: ${formatQuantityDisplay(product.quantity_available || 0, product.quantity)}`);
+  parts.push(`สถานะ: ${getAvailabilityStatusText(product.availability_status || '')}`);
+  parts.push(`จำนวน: ${formatQuantityDisplay(product.quantity_available || 0, product.quantity)}`);
   
   if (product.admin_approval_status) {
-    parts.push(`${t('common.adminApproval')}: ${product.admin_approval_status}`);
+    parts.push(`การอนุมัติของผู้ดูแล: ${product.admin_approval_status}`);
   }
   
   const { canRent, reason } = canRentProduct(product);
   if (!canRent && reason) {
-    parts.push(`${t('common.note')}: ${reason}`);
+    parts.push(`หมายเหตุ: ${reason}`);
   }
   
   return parts.join('\n');

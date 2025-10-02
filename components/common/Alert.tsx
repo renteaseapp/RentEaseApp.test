@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 export type AlertType = 'success' | 'error' | 'warning' | 'info';
 
@@ -51,7 +51,6 @@ export const Alert: React.FC<AlertProps> = ({
   showIcon = true,
   className = ''
 }) => {
-  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -78,10 +77,10 @@ export const Alert: React.FC<AlertProps> = ({
 
   const styles = alertStyles[type];
   const defaultTitles = {
-    success: t('alerts.successTitle'),
-    error: t('alerts.errorTitle'),
-    warning: t('alerts.warningTitle'),
-    info: t('alerts.infoTitle')
+    success: 'สำเร็จ',
+    error: 'ข้อผิดพลาด',
+    warning: 'คำเตือน',
+    info: 'ข้อมูล'
   };
   const displayTitle = title || defaultTitles[type];
 
@@ -128,10 +127,10 @@ export const Alert: React.FC<AlertProps> = ({
                 p-1.5 inline-flex h-8 w-8 items-center justify-center
                 transition-colors duration-200
               `}
-              aria-label={t('alerts.dismiss')}
+              aria-label="ปิด"
               type="button"
             >
-              <span className="sr-only">{t('alerts.dismiss')}</span>
+              <span className="sr-only">ปิด</span>
               <svg
                 className="w-4 h-4"
                 fill="currentColor"

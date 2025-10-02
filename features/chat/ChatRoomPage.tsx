@@ -90,7 +90,7 @@ export const ChatRoomPage: React.FC = () => {
         }
         await markMessagesAsRead(conversationId);
       } catch (err) {
-        setError((err as ApiError).message || "Failed to load messages.");
+        setError((err as ApiError).message || "ไม่สามารถโหลดข้อความได้");
       } finally {
         setIsLoading(false);
         setLoadingMore(false);
@@ -151,7 +151,7 @@ export const ChatRoomPage: React.FC = () => {
       setNewMessageContent('');
       await markMessagesAsRead(conversationId);
     } catch (err) {
-      setError((err as ApiError).message || "Failed to send message.");
+      setError((err as ApiError).message || "ไม่สามารถส่งข้อความได้");
     } finally {
       setIsSending(false);
     }
@@ -197,7 +197,7 @@ export const ChatRoomPage: React.FC = () => {
       formData.append('file', file);
       if (messageContent) formData.append('message_content', messageContent);
       const token = localStorage.getItem('authToken');
-      const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:3001/api';
+      const API_BASE_URL = process.env.VITE_API_URL || 'https://renteaseapi2.onrender.com/api';
       const res = await fetch(
         `${API_BASE_URL}/chat/conversations/${conversationId}/messages/upload`,
         {
@@ -216,7 +216,7 @@ export const ChatRoomPage: React.FC = () => {
       // เพิ่ม message ที่ได้เข้า state (หรือรอ socket ก็ได้)
       setMessages(prev => [...prev, data.data]);
     } catch (err) {
-      setError(`Failed to upload file: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setError(`ไม่สามารถอัปโหลดไฟล์ได้: ${err instanceof Error ? err.message : 'ข้อผิดพลาดที่ไม่รู้จัก'}`);
     } finally {
       setFileUploading(false);
     }
@@ -240,7 +240,7 @@ export const ChatRoomPage: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showEmojiPicker]);
 
-  if (isLoading) return <LoadingSpinner message="Loading chat..." />;
+  if (isLoading) return <LoadingSpinner message="กำลังโหลดแชท..." />;
   if (error) return <ErrorMessage message={error} />;
 
   return (
@@ -275,7 +275,7 @@ export const ChatRoomPage: React.FC = () => {
               <h2 className="font-bold text-sm sm:text-base text-gray-800">{conversationInfo?.other_user?.first_name || 'User'}</h2>
               <div className="flex items-center gap-1.5">
                 <FaCircle className="w-1.5 h-1.5 text-green-500" />
-                <span className="text-xs text-gray-500">Online</span>
+                <span className="text-xs text-gray-500">ออนไลน์</span>
               </div>
             </div>
           </div>
@@ -309,7 +309,7 @@ export const ChatRoomPage: React.FC = () => {
                     fetchMessages({ before_message_id: messages[0]?.id });
                   }}
                 >
-                  {loadingMore ? 'Loading...' : 'Load previous messages'}
+                  {loadingMore ? 'กำลังโหลด...' : 'โหลดข้อความก่อนหน้า'}
                 </motion.button>
               </motion.div>
             )}
@@ -374,7 +374,7 @@ export const ChatRoomPage: React.FC = () => {
                             >
                               <FaPaperclip className="text-gray-500" />
                               <span className="text-sm font-medium text-gray-700">
-                                {msg.attachment_metadata?.originalname || 'Download file'}
+                                {msg.attachment_metadata?.originalname || 'ดาวน์โหลดไฟล์'}
                               </span>
                               <FaDownload className="text-gray-400 ml-auto" />
                             </motion.div>
@@ -468,7 +468,7 @@ export const ChatRoomPage: React.FC = () => {
                 type="text"
                 value={newMessageContent}
                 onChange={e => setNewMessageContent(e.target.value)}
-                placeholder="Type a message..."
+                placeholder="พิมพ์ข้อความ..."
                 className="w-full rounded-full border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 text-sm sm:text-base"
                 autoComplete="off"
                 onKeyDown={e => {
@@ -553,7 +553,7 @@ export const ChatRoomPage: React.FC = () => {
               ) : (
                 <div className="flex flex-col items-center p-8">
                   <FaPaperclip className="text-6xl text-gray-400 mb-4" />
-                  <span className="mb-4 font-semibold text-lg text-gray-800">{previewName || 'File preview'}</span>
+                  <span className="mb-4 font-semibold text-lg text-gray-800">{previewName || 'แสดงตัวอย่างไฟล์'}</span>
                   <motion.a
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -563,7 +563,7 @@ export const ChatRoomPage: React.FC = () => {
                     className="inline-flex items-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-xl hover:bg-blue-600 transition-colors shadow-lg"
                   >
                     <FaDownload />
-                    Download / Open
+                    ดาวน์โหลด / เปิด
                   </motion.a>
                 </div>
               )}

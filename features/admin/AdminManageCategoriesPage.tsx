@@ -1,4 +1,4 @@
-import React, { useEffect, useState, FormEvent } from 'react';
+import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import { adminGetCategories, adminCreateCategory, adminUpdateCategory, adminDeleteCategory } from '../../services/adminService';
 import { Category, ApiError } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -6,7 +6,6 @@ import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
 import { InputField } from '../../components/ui/InputField';
 import { Card, CardContent } from '../../components/ui/Card';
-import { useTranslation } from 'react-i18next';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -25,7 +24,6 @@ import {
 } from 'react-icons/fa';
 
 export const AdminManageCategoriesPage: React.FC = () => {
-  const { t } = useTranslation('adminManageCategoriesPage');
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,7 +40,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
     setIsLoading(true);
     adminGetCategories()
       .then(res => setCategories(res.data))
-      .catch((err: any) => setError((err as ApiError).message || t('error.loadFailed')))
+      .catch((err: any) => setError((err as ApiError).message || "ไม่สามารถโหลดหมวดหมู่ได้"))
       .finally(() => setIsLoading(false));
   };
 
@@ -71,7 +69,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
       setEditCategory(null);
       setFormState({ name: '', slug: '', is_active: true });
     } catch (err) {
-      setError(t('error.saveFailed'));
+      setError("บันทึกหมวดหมู่ไม่สำเร็จ");
     } finally {
       setIsSubmitting(false);
     }
@@ -84,14 +82,14 @@ export const AdminManageCategoriesPage: React.FC = () => {
   };
 
   const handleDelete = async (category: Category) => {
-    if (!window.confirm(t('confirmDelete'))) return;
+    if (!window.confirm("คุณต้องการลบหมวดหมู่: " + category.name + " ใช่หรือไม่?")) return;
     setIsSubmitting(true);
     setError(null);
     try {
       await adminDeleteCategory(category.id);
       fetchCategories();
     } catch (err) {
-      setError(t('error.deleteFailed'));
+      setError("ลบหมวดหมู่ไม่สำเร็จ");
     } finally {
       setIsSubmitting(false);
     }
@@ -131,7 +129,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
     return (
       <AdminLayout>
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-          <LoadingSpinner message={t('loadingCategories')} />
+          <LoadingSpinner message={"กำลังโหลดหมวดหมู่..."} />
         </div>
       </AdminLayout>
     );
@@ -165,10 +163,10 @@ export const AdminManageCategoriesPage: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-                    {t('title')}
+                    {"จัดการหมวดหมู่สินค้า"}
                   </h1>
                   <p className="text-gray-600 mt-1">
-                    {t('manageCategoriesDescription')}
+                    {"สร้าง แก้ไข หรือลบหมวดหมู่สำหรับสินค้าทั้งหมด"}
                   </p>
                 </div>
               </div>
@@ -183,7 +181,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
                   className="bg-gradient-to-r from-orange-500 to-yellow-600 hover:from-orange-600 hover:to-yellow-700"
                 >
                   <FaPlus className="h-4 w-4 mr-2" />
-                  {showForm ? t('actions.cancel') : t('actions.addNew')}
+                  {showForm ? "ยกเลิก" : "เพิ่มหมวดหมู่ใหม่"}
                 </Button>
               </div>
             </div>
@@ -200,7 +198,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-100 text-sm font-medium">{t('stats.totalCategories')}</p>
+                    <p className="text-blue-100 text-sm font-medium">{"หมวดหมู่ทั้งหมด"}</p>
                     <p className="text-3xl font-bold">{stats.total}</p>
                   </div>
                   <FaTags className="h-8 w-8 text-blue-200" />
@@ -212,7 +210,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100 text-sm font-medium">{t('stats.activeCategories')}</p>
+                    <p className="text-green-100 text-sm font-medium">{"หมวดหมู่ที่ใช้งาน"}</p>
                     <p className="text-3xl font-bold">{stats.active}</p>
                   </div>
                   <FaCheck className="h-8 w-8 text-green-200" />
@@ -224,7 +222,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-red-100 text-sm font-medium">{t('stats.inactiveCategories')}</p>
+                    <p className="text-red-100 text-sm font-medium">{"หมวดหมู่ที่ถูกซ่อน"}</p>
                     <p className="text-3xl font-bold">{stats.inactive}</p>
                   </div>
                   <FaEyeSlash className="h-8 w-8 text-red-200" />
@@ -248,7 +246,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
                   <input
                     type="text"
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                    placeholder={t('searchPlaceholder')}
+                    placeholder={"ค้นหาด้วยชื่อหรือ Slug..."}
                     value={searchInput}
                     onChange={e => setSearchInput(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') setSearch(searchInput); }}
@@ -259,9 +257,9 @@ export const AdminManageCategoriesPage: React.FC = () => {
               {/* Filter Buttons */}
               <div className="flex flex-wrap gap-2">
                 {[
-                  { key: 'all', label: t('filters.allCategories'), icon: <FaTags className="h-4 w-4" /> },
-                  { key: 'active', label: t('filters.active'), icon: <FaCheck className="h-4 w-4" /> },
-                  { key: 'inactive', label: t('filters.inactive'), icon: <FaEyeSlash className="h-4 w-4" /> }
+                  { key: 'all', label: "ทั้งหมด", icon: <FaTags className="h-4 w-4" /> },
+                  { key: 'active', label: "ใช้งาน", icon: <FaCheck className="h-4 w-4" /> },
+                  { key: 'inactive', label: "ถูกซ่อน", icon: <FaEyeSlash className="h-4 w-4" /> }
                 ].map(filter => (
                   <button
                     key={filter.key}
@@ -286,7 +284,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
                   className="bg-gradient-to-r from-orange-500 to-yellow-600 hover:from-orange-600 hover:to-yellow-700"
                 >
                   <FaSearch className="h-4 w-4 mr-2" />
-                  {t('actions.search')}
+                  {"ค้นหา"}
                 </Button>
                 {(search || selectedFilter !== 'all') && (
                   <Button 
@@ -298,7 +296,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
                     variant="outline"
                   >
                     <FaTimes className="h-4 w-4 mr-2" />
-                    {t('actions.clear')}
+                    {"ล้าง"}
                   </Button>
                 )}
               </div>
@@ -326,21 +324,21 @@ export const AdminManageCategoriesPage: React.FC = () => {
                         )}
                       </div>
                       <h2 className="text-xl font-bold text-gray-800">
-                        {editCategory ? t('form.editTitle') : t('form.addTitle')}
+                        {editCategory ? "แก้ไขหมวดหมู่" : "เพิ่มหมวดหมู่ใหม่"}
                       </h2>
                     </div>
                     
                     <form onSubmit={handleCreateOrUpdateCategory} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <InputField 
-                          label={t('form.name')} 
+                          label={"ชื่อหมวดหมู่"} 
                           name="name" 
                           value={formState.name || ''} 
                           onChange={handleInputChange} 
                           required 
                         />
                         <InputField 
-                          label={t('form.slug')} 
+                          label={"Slug (URL Friendly Name)"} 
                           name="slug" 
                           value={formState.slug || ''} 
                           onChange={handleInputChange} 
@@ -349,7 +347,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
                       </div>
                       
                       <InputField 
-                        label={t('form.description')} 
+                        label={"คำอธิบาย"} 
                         name="description" 
                         value={formState.description || ''} 
                         onChange={handleInputChange} 
@@ -357,13 +355,13 @@ export const AdminManageCategoriesPage: React.FC = () => {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <InputField 
-                          label={t('form.iconUrl')} 
+                          label={"Icon URL"} 
                           name="icon_url" 
                           value={formState.icon_url || ''} 
                           onChange={handleInputChange} 
                         />
                         <InputField 
-                          label={t('form.imageUrl')} 
+                          label={"Image URL"} 
                           name="image_url" 
                           value={formState.image_url || ''} 
                           onChange={handleInputChange} 
@@ -372,7 +370,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <InputField 
-                          label={t('form.sortOrder')} 
+                          label={"ลำดับการจัดเรียง"} 
                           name="sort_order" 
                           type="number" 
                           value={formState.sort_order || 0} 
@@ -388,7 +386,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
                             className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                           />
                           <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
-                            {t('form.active')}
+                            {"เปิดใช้งาน"}
                           </label>
                         </div>
                       </div>
@@ -399,7 +397,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
                           isLoading={isSubmitting}
                           className="bg-gradient-to-r from-orange-500 to-yellow-600 hover:from-orange-600 hover:to-yellow-700"
                         >
-                          {editCategory ? t('actions.update') : t('actions.create')}
+                          {editCategory ? "บันทึกการแก้ไข" : "สร้างหมวดหมู่"}
                         </Button>
                         <Button 
                           type="button" 
@@ -410,7 +408,7 @@ export const AdminManageCategoriesPage: React.FC = () => {
                             setFormState({ name: '', slug: '', is_active: true });
                           }}
                         >
-                          {t('actions.cancel')}
+                          {"ยกเลิก"}
                         </Button>
                       </div>
                     </form>
@@ -432,19 +430,19 @@ export const AdminManageCategoriesPage: React.FC = () => {
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.id')}
+                      {"ID"}
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.name')}
+                      {"ชื่อ"}
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.slug')}
+                      {"Slug"}
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.status')}
+                      {"สถานะ"}
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.actions')}
+                      {"ดำเนินการ"}
                     </th>
                   </tr>
                 </thead>
@@ -498,12 +496,12 @@ export const AdminManageCategoriesPage: React.FC = () => {
                               {category.is_active ? (
                                 <>
                                   <FaCheck className="h-3 w-3 mr-1" />
-                                  {t('status.active')}
+                                  {"ใช้งาน"}
                                 </>
                               ) : (
                                 <>
                                   <FaEyeSlash className="h-3 w-3 mr-1" />
-                                  {t('status.inactive')}
+                                  {"ถูกซ่อน"}
                                 </>
                               )}
                             </span>
@@ -534,14 +532,14 @@ export const AdminManageCategoriesPage: React.FC = () => {
                                         className="flex items-center w-full px-4 py-2 text-sm text-blue-700 hover:bg-blue-50 transition-colors"
                                       >
                                         <FaEdit className="h-4 w-4 mr-2" />
-                                        {t('actions.edit')}
+                                        {"แก้ไข"}
                                       </button>
                                       <button 
                                         onClick={() => { handleDelete(category); setActionRow(null); }} 
                                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                                       >
                                         <FaTrash className="h-4 w-4 mr-2" />
-                                        {t('actions.delete')}
+                                        {"ลบ"}
                                       </button>
                                     </div>
                                   </motion.div>
@@ -560,8 +558,8 @@ export const AdminManageCategoriesPage: React.FC = () => {
                         <td colSpan={5} className="text-center text-gray-400 py-12">
                           <div className="flex flex-col items-center">
                             <FaTags className="h-12 w-12 text-gray-300 mb-4" />
-                            <p className="text-lg font-medium">{t('noCategoriesFound')}</p>
-                            <p className="text-sm text-gray-500">{t('noCategoriesMatch')}</p>
+                            <p className="text-lg font-medium">{"ไม่พบหมวดหมู่"}</p>
+                            <p className="text-sm text-gray-500">{"ไม่พบหมวดหมู่ที่ตรงกับเกณฑ์การค้นหา/ตัวกรอง"}</p>
                           </div>
                         </td>
                       </motion.tr>

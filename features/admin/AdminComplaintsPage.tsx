@@ -3,7 +3,7 @@ import { adminGetComplaints, adminGetComplaintById, adminReplyComplaint } from '
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
-import { useTranslation } from 'react-i18next';
+
 import { Card, CardContent } from '../../components/ui/Card';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -35,7 +35,6 @@ const STATUS_OPTIONS = [
 ];
 
 function AdminComplaintsPage() {
-  const { t } = useTranslation('adminComplaintsPage');
   const [complaints, setComplaints] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,10 +65,10 @@ function AdminComplaintsPage() {
         setLoading(false);
       })
       .catch(() => {
-        setError(t('error.loadList'));
+        setError('ไม่สามารถโหลดรายการร้องเรียนได้');
         setLoading(false);
       });
-  }, [page, limit, t]);
+  }, [page, limit]);
 
   // Fetch complaint details
   const handleSelectComplaint = (id: number) => {
@@ -86,7 +85,7 @@ function AdminComplaintsPage() {
         setLoading(false);
       })
       .catch(() => {
-        setError(t('error.loadDetail'));
+        setError('ไม่สามารถโหลดรายละเอียดการร้องเรียนได้');
         setLoading(false);
       });
   };
@@ -103,7 +102,7 @@ function AdminComplaintsPage() {
       // Update list
       setComplaints((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
     } catch (err) {
-      setReplyError(t('error.reply'));
+      setReplyError('ไม่สามารถตอบกลับการร้องเรียนได้');
     } finally {
       setReplyLoading(false);
     }
@@ -183,11 +182,52 @@ function AdminComplaintsPage() {
     }
   };
 
+  // Add these helper functions for static Thai text
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'submitted':
+        return 'ส่งเรื่องแล้ว';
+      case 'under_review':
+        return 'อยู่ระหว่างตรวจสอบ';
+      case 'awaiting_user_response':
+        return 'รอการตอบกลับจากผู้ใช้';
+      case 'investigating':
+        return 'อยู่ระหว่างสอบสวน';
+      case 'resolved':
+        return 'แก้ไขแล้ว';
+      case 'closed_no_action':
+        return 'ปิดแล้ว (ไม่มีการดำเนินการ)';
+      case 'closed_escalated_to_claim':
+        return 'ปิดแล้ว (ยื่นเรื่องไปที่ประกัน)';
+      default:
+        return status;
+    }
+  };
+
+  const getComplaintTypeText = (type: string) => {
+    switch (type) {
+      case 'product_quality':
+        return 'คุณภาพสินค้า';
+      case 'delivery_issue':
+        return 'ปัญหาการจัดส่ง';
+      case 'service_complaint':
+        return 'ร้องเรียนบริการ';
+      case 'damage_loss':
+        return 'สินค้าเสียหาย/สูญหาย';
+      case 'billing_issue':
+        return 'ปัญหาการเรียกเก็บเงิน';
+      case 'other':
+        return 'อื่นๆ';
+      default:
+        return type;
+    }
+  };
+
   if (loading && !complaints.length) {
     return (
       <AdminLayout>
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-          <LoadingSpinner message={t('loading')} />
+          <LoadingSpinner message="กำลังโหลด..." />
         </div>
       </AdminLayout>
     );
@@ -221,14 +261,14 @@ function AdminComplaintsPage() {
                 </div>
                 <div>
                   <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-                    {t('title')}
-        </h1>
+                    การจัดการร้องเรียน
+                  </h1>
                   <p className="text-gray-600 mt-1">
-                    {t('manageAndResolve')}
+                    จัดการและแก้ไขปัญหาร้องเรียน
                   </p>
                 </div>
               </div>
-        {totalPages > 1 && (
+              {totalPages > 1 && (
                 <div className="flex gap-2 items-center">
                   <Button 
                     onClick={() => setPage((p) => Math.max(1, p - 1))} 
@@ -236,7 +276,7 @@ function AdminComplaintsPage() {
                     variant="outline" 
                     size="sm"
                   >
-                    ← {t('prev')}
+                    ← ก่อนหน้า
                   </Button>
                   <span className="text-gray-700 font-medium px-4 py-2 bg-white rounded-lg shadow-sm">
                     {page} / {totalPages}
@@ -247,11 +287,11 @@ function AdminComplaintsPage() {
                     variant="outline" 
                     size="sm"
                   >
-                    {t('next')} →
+                    ถัดไป →
                   </Button>
-          </div>
-        )}
-      </div>
+                </div>
+              )}
+            </div>
           </motion.div>
 
           {/* Stats Cards */}
@@ -265,7 +305,7 @@ function AdminComplaintsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-100 text-sm font-medium">{t('total')}</p>
+                    <p className="text-blue-100 text-sm font-medium">ทั้งหมด</p>
                     <p className="text-3xl font-bold">{stats.total}</p>
                   </div>
                   <FaExclamationTriangle className="h-8 w-8 text-blue-200" />
@@ -277,7 +317,7 @@ function AdminComplaintsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-yellow-100 text-sm font-medium">{t('submittedCount')}</p>
+                    <p className="text-yellow-100 text-sm font-medium">ส่งเรื่องแล้ว</p>
                     <p className="text-3xl font-bold">{stats.submitted}</p>
                   </div>
                   <FaClock className="h-8 w-8 text-yellow-200" />
@@ -289,7 +329,7 @@ function AdminComplaintsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-100 text-sm font-medium">{t('underReviewCount')}</p>
+                    <p className="text-blue-100 text-sm font-medium">อยู่ระหว่างตรวจสอบ</p>
                     <p className="text-3xl font-bold">{stats.underReview}</p>
                   </div>
                   <FaEye className="h-8 w-8 text-blue-200" />
@@ -301,7 +341,7 @@ function AdminComplaintsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100 text-sm font-medium">{t('resolvedCount')}</p>
+                    <p className="text-green-100 text-sm font-medium">แก้ไขแล้ว</p>
                     <p className="text-3xl font-bold">{stats.resolved}</p>
                   </div>
                   <FaCheck className="h-8 w-8 text-green-200" />
@@ -313,7 +353,7 @@ function AdminComplaintsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-100 text-sm font-medium">{t('closedCount')}</p>
+                    <p className="text-gray-100 text-sm font-medium">ปิดแล้ว</p>
                     <p className="text-3xl font-bold">{stats.closed}</p>
                   </div>
                   <FaBan className="h-8 w-8 text-gray-200" />
@@ -337,7 +377,7 @@ function AdminComplaintsPage() {
                   <input
                     type="text"
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
-                    placeholder={t('searchPlaceholder')}
+                    placeholder="ค้นหาร้องเรียน..."
                     value={searchInput}
                     onChange={e => setSearchInput(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') setSearch(searchInput); }}
@@ -348,11 +388,11 @@ function AdminComplaintsPage() {
               {/* Filter Buttons */}
               <div className="flex flex-wrap gap-2">
                 {[
-                  { key: 'all', label: t('allComplaints'), icon: <FaExclamationTriangle className="h-4 w-4" /> },
-                  { key: 'submitted', label: t('submitted'), icon: <FaClock className="h-4 w-4" /> },
-                  { key: 'under_review', label: t('underReview'), icon: <FaEye className="h-4 w-4" /> },
-                  { key: 'resolved', label: t('resolved'), icon: <FaCheck className="h-4 w-4" /> },
-                  { key: 'closed', label: t('closed'), icon: <FaBan className="h-4 w-4" /> }
+                  { key: 'all', label: 'ร้องเรียนทั้งหมด', icon: <FaExclamationTriangle className="h-4 w-4" /> },
+                  { key: 'submitted', label: 'ส่งเรื่องแล้ว', icon: <FaClock className="h-4 w-4" /> },
+                  { key: 'under_review', label: 'อยู่ระหว่างตรวจสอบ', icon: <FaEye className="h-4 w-4" /> },
+                  { key: 'resolved', label: 'แก้ไขแล้ว', icon: <FaCheck className="h-4 w-4" /> },
+                  { key: 'closed', label: 'ปิดแล้ว', icon: <FaBan className="h-4 w-4" /> }
                 ].map(filter => (
                   <button
                     key={filter.key}
@@ -377,7 +417,7 @@ function AdminComplaintsPage() {
                   className="bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700"
                 >
                   <FaSearch className="h-4 w-4 mr-2" />
-                  {t('searchButton')}
+                  ค้นหา
                 </Button>
                 {(search || selectedFilter !== 'all') && (
                   <Button 
@@ -389,7 +429,7 @@ function AdminComplaintsPage() {
                     variant="outline"
                   >
                     <FaTimes className="h-4 w-4 mr-2" />
-                    {t('clearButton')}
+                    ล้าง
                   </Button>
                 )}
               </div>
@@ -412,8 +452,8 @@ function AdminComplaintsPage() {
                 >
                   <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
                     <FaExclamationTriangle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-lg font-medium">{t('noComplaints')}</p>
-                    <p className="text-sm text-gray-500 mt-2">{t('noComplaintsMatch')}</p>
+                    <p className="text-lg font-medium">ไม่พบร้องเรียน</p>
+                    <p className="text-sm text-gray-500 mt-2">ไม่พบร้องเรียนที่ตรงกับเงื่อนไขการค้นหา</p>
                   </div>
                 </motion.div>
               )}
@@ -439,7 +479,7 @@ function AdminComplaintsPage() {
                         <div className="flex items-center gap-2">
                           <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(complaint.status)}`}>
                             {getStatusIcon(complaint.status)}
-                            {t(`status.${complaint.status}`)}
+                            {getStatusText(complaint.status)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -459,18 +499,18 @@ function AdminComplaintsPage() {
                       <div className="flex flex-wrap gap-2 text-xs">
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 font-medium">
                           <FaFileAlt className="h-3 w-3" />
-                          {t(`type.${complaint.complaint_type}`)}
+                          {getComplaintTypeText(complaint.complaint_type)}
                         </span>
                         {complaint.related_rental_id && (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100 font-medium">
                             <FaBox className="h-3 w-3" />
-                            {t('rental')}: {complaint.related_rental_id}
+                            การเช่า: {complaint.related_rental_id}
                           </span>
                         )}
                         {complaint.related_product_id && (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-medium">
                             <FaBox className="h-3 w-3" />
-                            {t('product')}: {complaint.related_product_id}
+                            สินค้า: {complaint.related_product_id}
                           </span>
                         )}
                       </div>
@@ -483,9 +523,9 @@ function AdminComplaintsPage() {
                             {complaint.subject_user_id}
                           </div>
                         </div>
-              </div>
-            </CardContent>
-          </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -515,7 +555,7 @@ function AdminComplaintsPage() {
                             <FaExclamationTriangle className="h-6 w-6 text-white" />
                           </div>
                           <h3 className="text-2xl font-bold text-gray-800">
-                            {t('detailTitle')}
+                            รายละเอียดการร้องเรียน
                 </h3>
                         </div>
                         <Button
@@ -533,7 +573,7 @@ function AdminComplaintsPage() {
                           <div className="flex flex-wrap gap-2 items-center">
                             <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(selectedComplaint.status)}`}>
                               {getStatusIcon(selectedComplaint.status)}
-                              {t(`status.${selectedComplaint.status}`)}
+                              {getStatusText(selectedComplaint.status)}
                             </span>
                             <span className="text-sm text-gray-500">
                               {new Date(selectedComplaint.created_at).toLocaleString()}
@@ -542,17 +582,17 @@ function AdminComplaintsPage() {
                           
                           <div className="space-y-3">
                             <div>
-                              <label className="text-sm font-semibold text-gray-700">{t('title')}</label>
+                              <label className="text-sm font-semibold text-gray-700">หัวข้อ</label>
                               <p className="text-gray-900 mt-1">{selectedComplaint.title}</p>
                             </div>
                             
                             <div>
-                              <label className="text-sm font-semibold text-gray-700">{t('type')}</label>
-                              <p className="text-gray-900 mt-1">{t(`type.${selectedComplaint.complaint_type}`)}</p>
+                              <label className="text-sm font-semibold text-gray-700">ประเภท</label>
+                              <p className="text-gray-900 mt-1">{getComplaintTypeText(selectedComplaint.complaint_type)}</p>
                             </div>
                             
                             <div>
-                              <label className="text-sm font-semibold text-gray-700">{t('details')}</label>
+                              <label className="text-sm font-semibold text-gray-700">รายละเอียด</label>
                               <p className="text-gray-900 mt-1 whitespace-pre-wrap">{selectedComplaint.details}</p>
                             </div>
                           </div>
@@ -561,25 +601,25 @@ function AdminComplaintsPage() {
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <label className="text-sm font-semibold text-gray-700">{t('rental')}</label>
+                              <label className="text-sm font-semibold text-gray-700">การเช่า</label>
                               <p className="text-gray-900 mt-1">{selectedComplaint.related_rental_id || '-'}</p>
                             </div>
                             <div>
-                              <label className="text-sm font-semibold text-gray-700">{t('product')}</label>
+                              <label className="text-sm font-semibold text-gray-700">สินค้า</label>
                               <p className="text-gray-900 mt-1">{selectedComplaint.related_product_id || '-'}</p>
                             </div>
                             <div>
-                              <label className="text-sm font-semibold text-gray-700">{t('user')}</label>
+                              <label className="text-sm font-semibold text-gray-700">ผู้ใช้</label>
                               <p className="text-gray-900 mt-1">{selectedComplaint.subject_user_id || '-'}</p>
                             </div>
                             <div>
-                              <label className="text-sm font-semibold text-gray-700">{t('priority')}</label>
+                              <label className="text-sm font-semibold text-gray-700">ความสำคัญ</label>
                               <p className="text-gray-900 mt-1">{selectedComplaint.priority || '-'}</p>
                     </div>
                   </div>
                           
                           <div>
-                            <label className="text-sm font-semibold text-gray-700">{t('attachments')}</label>
+                            <label className="text-sm font-semibold text-gray-700">ไฟล์แนบ</label>
                             {selectedComplaint.complaint_attachments && selectedComplaint.complaint_attachments.length > 0 ? (
                               <div className="mt-2 space-y-2">
                         {selectedComplaint.complaint_attachments.map((a: any) => (
@@ -595,7 +635,7 @@ function AdminComplaintsPage() {
                                 ))}
                               </div>
                             ) : (
-                              <p className="text-gray-500 mt-1">{t('none')}</p>
+                              <p className="text-gray-500 mt-1">ไม่มีไฟล์แนบ</p>
                             )}
                     </div>
                   </div>
@@ -605,13 +645,13 @@ function AdminComplaintsPage() {
                       <form onSubmit={handleReplySubmit} className="space-y-6 border-t pt-6">
                         <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                           <FaPaperPlane className="h-5 w-5 text-red-500" />
-                          {t('updateComplaint')}
+                          อัปเดตการร้องเรียน
                         </h4>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                              {t('statusLabel')}
+                              สถานะ
                             </label>
                       <select
                               className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
@@ -619,37 +659,37 @@ function AdminComplaintsPage() {
                         onChange={e => setReplyForm(f => ({ ...f, status: e.target.value }))}
                         required
                       >
-                              <option value="">{t('statusSelect')}</option>
+                              <option value="">เลือกสถานะ</option>
                         {STATUS_OPTIONS.map(opt => (
-                                <option key={opt} value={opt}>{t(`status.${opt}`)}</option>
+                                <option key={opt} value={opt}>{getStatusText(opt)}</option>
                         ))}
                       </select>
                     </div>
                           
                     <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                              {t('adminNotes')}
+                              หมายเหตุของผู้ดูแล
                             </label>
                       <textarea
                               className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
                         value={replyForm.admin_notes}
                         onChange={e => setReplyForm(f => ({ ...f, admin_notes: e.target.value }))}
                         rows={3}
-                              placeholder={t('addAdminNotes')}
+                              placeholder="เพิ่มหมายเหตุของผู้ดูแล"
                       />
                     </div>
                   </div>
                         
                   <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            {t('resolutionNotes')}
+                            หมายเหตุการแก้ไข
                           </label>
                     <textarea
                             className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
                       value={replyForm.resolution_notes}
                       onChange={e => setReplyForm(f => ({ ...f, resolution_notes: e.target.value }))}
                       rows={3}
-                            placeholder={t('addResolutionNotes')}
+                            placeholder="เพิ่มหมายเหตุการแก้ไข"
                     />
                   </div>
                         
@@ -663,14 +703,14 @@ function AdminComplaintsPage() {
                             className="bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700"
                           >
                             <FaPaperPlane className="h-4 w-4 mr-2" />
-                            {replyLoading ? t('saving') : t('save')}
+                            {replyLoading ? 'กำลังบันทึก' : 'บันทึก'}
                           </Button>
                           <Button 
                             type="button" 
                             variant="outline"
                             onClick={() => setSelectedComplaint(null)}
                           >
-                            {t('close')}
+                            ปิด
                           </Button>
                   </div>
                 </form>

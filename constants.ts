@@ -63,7 +63,7 @@ export const ROUTE_PATHS = {
   PRIVACY_POLICY: '/privacy',
 } as const;
 
-export const API_BASE_URL = 'http://localhost:3001/api'; // Updated to use the actual API server
+export const API_BASE_URL = (import.meta as any).env.VITE_API_URL; // ใช้ environment variable เท่านั้น
 export const MOCK_USER_ID = 1; // For services that need a logged-in user context
 export const MOCK_ADMIN_USER_ID = 99; // For admin actions in mocks
 

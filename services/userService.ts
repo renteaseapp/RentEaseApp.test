@@ -1,7 +1,9 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { User, UserProfileData, ApiError, UserIdVerificationStatus, UserIdVerificationData as UserIdVerificationDataType, IdVerificationSubmissionPayload as IdVerificationSubmissionPayloadType,UserAddress, ApiResponse } from '../types';
 
-const API_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from '../constants';
+
+const API_URL = API_BASE_URL;
 
 // Create axios instance with base URL
 const api = axios.create({
@@ -16,6 +18,23 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Add response interceptor to handle 403 errors for suspended accounts
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      // For suspended accounts, we don't want to logout the user
+      // Instead, we let the SuspendedUserPopup component handle it
+      if (error.response.data?.message === "Account is deactivated") {
+        // We still want to reject the promise so the calling function knows about the error
+        // But we don't want to trigger a logout
+        return Promise.reject(error);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Exporting the type aliases
 export type UserIdVerificationData = UserIdVerificationDataType;

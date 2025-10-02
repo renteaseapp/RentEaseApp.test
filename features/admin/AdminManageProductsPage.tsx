@@ -7,7 +7,7 @@ import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
-import { useTranslation } from 'react-i18next';
+
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -26,7 +26,6 @@ import {
 } from 'react-icons/fa';
 
 export const AdminManageProductsPage: React.FC = () => {
-  const { t } = useTranslation('adminManageProductsPage');
   const [productsResponse, setProductsResponse] = useState<PaginatedResponse<Product> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +39,7 @@ export const AdminManageProductsPage: React.FC = () => {
     setIsLoading(true);
     adminGetProducts({ page: pageNum, limit: 20 })
       .then(setProductsResponse)
-      .catch(err => setError((err as ApiError).message || t('error.loadFailed')))
+      .catch(err => setError((err as ApiError).message || 'โหลดสินค้าล้มเหลว'))
       .finally(() => setIsLoading(false));
   };
 
@@ -57,7 +56,7 @@ export const AdminManageProductsPage: React.FC = () => {
       });
       fetchProducts(page);
     } catch (err) {
-      setError(t('error.updateApprovalFailed'));
+      setError('อัปเดตสถานะการอนุมัติล้มเหลว');
     }
   };
 
@@ -90,7 +89,7 @@ export const AdminManageProductsPage: React.FC = () => {
     return (
       <AdminLayout>
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-          <LoadingSpinner message={t('loadingProducts')} />
+          <LoadingSpinner message="กำลังโหลดสินค้า..." />
         </div>
       </AdminLayout>
     );
@@ -124,10 +123,10 @@ export const AdminManageProductsPage: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-                    {t('title')}
+                    จัดการสินค้า
                   </h1>
                   <p className="text-gray-600 mt-1">
-                    {t('manageProductsDescription') || 'Manage product listings and approvals'}
+                    จัดการรายการสินค้าและการอนุมัติ
                   </p>
                 </div>
               </div>
@@ -145,7 +144,7 @@ export const AdminManageProductsPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-100 text-sm font-medium">{t('stats.totalProducts') || 'Total Products'}</p>
+                    <p className="text-blue-100 text-sm font-medium">สินค้าทั้งหมด</p>
                     <p className="text-3xl font-bold">{stats.total}</p>
                   </div>
                   <FaBox className="h-8 w-8 text-blue-200" />
@@ -157,7 +156,7 @@ export const AdminManageProductsPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-yellow-100 text-sm font-medium">{t('stats.pendingReview') || 'Pending Review'}</p>
+                    <p className="text-yellow-100 text-sm font-medium">รอการตรวจสอบ</p>
                     <p className="text-3xl font-bold">{stats.pending}</p>
                   </div>
                   <FaClock className="h-8 w-8 text-yellow-200" />
@@ -169,7 +168,7 @@ export const AdminManageProductsPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100 text-sm font-medium">{t('stats.approved') || 'Approved'}</p>
+                    <p className="text-green-100 text-sm font-medium">อนุมัติแล้ว</p>
                     <p className="text-3xl font-bold">{stats.approved}</p>
                   </div>
                   <FaCheckCircle className="h-8 w-8 text-green-200" />
@@ -181,7 +180,7 @@ export const AdminManageProductsPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-red-100 text-sm font-medium">{t('stats.rejected') || 'Rejected'}</p>
+                    <p className="text-red-100 text-sm font-medium">ถูกปฏิเสธ</p>
                     <p className="text-3xl font-bold">{stats.rejected}</p>
                   </div>
                   <FaExclamationTriangle className="h-8 w-8 text-red-200" />
@@ -205,7 +204,7 @@ export const AdminManageProductsPage: React.FC = () => {
           <input
             type="text"
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-            placeholder={t('searchPlaceholder')}
+            placeholder="ค้นหาด้วยชื่อสินค้าหรือ ID เจ้าของ..."
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') setSearch(searchInput); }}
@@ -216,10 +215,10 @@ export const AdminManageProductsPage: React.FC = () => {
               {/* Filter Buttons */}
               <div className="flex flex-wrap gap-2">
                 {[
-                  { key: 'all', label: t('filters.allProducts') || 'All Products', icon: <FaBox className="h-4 w-4" /> },
-                  { key: 'pending', label: t('filters.pending') || 'Pending', icon: <FaClock className="h-4 w-4" /> },
-                  { key: 'approved', label: t('filters.approved') || 'Approved', icon: <FaCheckCircle className="h-4 w-4" /> },
-                  { key: 'rejected', label: t('filters.rejected') || 'Rejected', icon: <FaExclamationTriangle className="h-4 w-4" /> }
+                  { key: 'all', label: 'สินค้าทั้งหมด', icon: <FaBox className="h-4 w-4" /> },
+                  { key: 'pending', label: 'รอการตรวจสอบ', icon: <FaClock className="h-4 w-4" /> },
+                  { key: 'approved', label: 'อนุมัติแล้ว', icon: <FaCheckCircle className="h-4 w-4" /> },
+                  { key: 'rejected', label: 'ถูกปฏิเสธ', icon: <FaExclamationTriangle className="h-4 w-4" /> }
                 ].map(filter => (
                   <button
                     key={filter.key}
@@ -244,7 +243,7 @@ export const AdminManageProductsPage: React.FC = () => {
                   className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                 >
                   <FaSearch className="h-4 w-4 mr-2" />
-                  {t('actions.search')}
+                  ค้นหา
                 </Button>
                 {(search || selectedFilter !== 'all') && (
                   <Button 
@@ -256,7 +255,7 @@ export const AdminManageProductsPage: React.FC = () => {
                     variant="outline"
                   >
                     <FaTimes className="h-4 w-4 mr-2" />
-                    {t('actions.clear')}
+                    ล้าง
                   </Button>
                 )}
         </div>
@@ -275,19 +274,19 @@ export const AdminManageProductsPage: React.FC = () => {
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.title')}
+                      ชื่อสินค้า
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.ownerId')}
+                      ID เจ้าของ
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.pricePerDay')}
+                      ราคาต่อวัน
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.approvalStatus')}
+                      สถานะการอนุมัติ
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('table.actions')}
+                      การกระทำ
                     </th>
             </tr>
           </thead>
@@ -347,17 +346,17 @@ export const AdminManageProductsPage: React.FC = () => {
                               {product.admin_approval_status === 'approved' ? (
                                 <>
                                   <FaCheckCircle className="h-3 w-3 mr-1" />
-                                  {t(`approvalStatus.${product.admin_approval_status}`)}
+                                  อนุมัติแล้ว
                                 </>
                               ) : product.admin_approval_status === 'pending' ? (
                                 <>
                                   <FaClock className="h-3 w-3 mr-1" />
-                                  {t(`approvalStatus.${product.admin_approval_status}`)}
+                                  รอการตรวจสอบ
                                 </>
                               ) : (
                                 <>
                                   <FaExclamationTriangle className="h-3 w-3 mr-1" />
-                    {t(`approvalStatus.${product.admin_approval_status}`)}
+                                  ถูกปฏิเสธ
                                 </>
                               )}
                   </span>
@@ -389,7 +388,7 @@ export const AdminManageProductsPage: React.FC = () => {
                                         onClick={() => setActionRow(null)}
                                       >
                                         <FaEye className="h-4 w-4 mr-2" />
-                                        {t('actions.viewEdit')}
+                                        ดู/แก้ไข
                                       </Link>
                                       
                           {product.admin_approval_status === 'pending' && (
@@ -399,14 +398,14 @@ export const AdminManageProductsPage: React.FC = () => {
                                             className="flex items-center w-full px-4 py-2 text-sm text-green-600 hover:bg-green-50 transition-colors"
                                           >
                                             <FaCheck className="h-4 w-4 mr-2" />
-                                            {t('actions.approve')}
+                                            อนุมัติ
                                           </button>
                                           <button 
                                             onClick={() => { handleApproval(product.id, 'rejected' as ProductAdminApprovalStatus); setActionRow(null); }} 
                                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                                           >
                                             <FaX className="h-4 w-4 mr-2" />
-                                            {t('actions.reject')}
+                                            ปฏิเสธ
                                           </button>
                             </>
                           )}
@@ -427,8 +426,8 @@ export const AdminManageProductsPage: React.FC = () => {
                         <td colSpan={5} className="text-center text-gray-400 py-12">
                           <div className="flex flex-col items-center">
                             <FaBox className="h-12 w-12 text-gray-300 mb-4" />
-                            <p className="text-lg font-medium">No products found</p>
-                            <p className="text-sm text-gray-500">No products match your current filters</p>
+                            <p className="text-lg font-medium">ไม่พบสินค้า</p>
+                            <p className="text-sm text-gray-500">ไม่มีสินค้าที่ตรงกับตัวกรองของคุณ</p>
                       </div>
                         </td>
                       </motion.tr>
@@ -453,10 +452,10 @@ export const AdminManageProductsPage: React.FC = () => {
                 onClick={() => setPage(page - 1)}
                 className="flex items-center gap-2"
               >
-                ← {t('pagination.prev')}
+                ← ก่อนหน้า
               </Button>
               <span className="text-gray-700 font-medium">
-                {t('pagination.page')} {page}
+                หน้า {page}
                 {productsResponse?.meta?.last_page ? ` / ${productsResponse.meta.last_page}` : ''}
               </span>
               <Button 
@@ -465,7 +464,7 @@ export const AdminManageProductsPage: React.FC = () => {
                 onClick={() => setPage(page + 1)}
                 className="flex items-center gap-2"
               >
-                {t('pagination.next')} →
+                ถัดไป →
               </Button>
             </motion.div>
           )}

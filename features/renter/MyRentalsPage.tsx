@@ -5,7 +5,7 @@ import { Rental, ApiError, PaginatedResponse, RentalStatus, } from '../../types'
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { ROUTE_PATHS } from '../../constants';
-import { useTranslation } from 'react-i18next';
+
 import { motion, } from 'framer-motion';
 import { 
   FaSearch, 
@@ -27,7 +27,6 @@ import {
 } from 'react-icons/fa';
 
 export const MyRentalsPage: React.FC = () => {
-  const { t } = useTranslation();
   const [rentalsResponse, setRentalsResponse] = useState<PaginatedResponse<Rental> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,19 +36,18 @@ export const MyRentalsPage: React.FC = () => {
   const [pendingSearch, setPendingSearch] = useState('');
 
   const RENTAL_STATUS_OPTIONS = [
-    { value: '', label: t('all_statuses', 'All') },
-    { value: 'pending_owner_approval', label: t('rentalStatus.pending_owner_approval', 'รอเจ้าของอนุมัติ') },
-    { value: 'pending_payment', label: t('rentalStatus.pending_payment', 'รอชำระเงิน') },
-    { value: 'confirmed', label: t('rentalStatus.confirmed', 'ยืนยันแล้ว') },
-    { value: 'active', label: t('rentalStatus.active', 'กำลังเช่า') },
-    { value: 'return_pending', label: t('rentalStatus.return_pending', 'รอคืนสินค้า') },
-    { value: 'completed', label: t('rentalStatus.completed', 'เสร็จสิ้น') },
-    { value: 'cancelled_by_renter', label: t('rentalStatus.cancelled_by_renter', 'ยกเลิกโดยผู้เช่า') },
-    { value: 'cancelled_by_owner', label: t('rentalStatus.cancelled_by_owner', 'ยกเลิกโดยเจ้าของ') },
-    { value: 'rejected_by_owner', label: t('rentalStatus.rejected_by_owner', 'ถูกปฏิเสธโดยเจ้าของ') },
-    { value: 'dispute', label: t('rentalStatus.dispute', 'ข้อพิพาท') },
-    { value: 'expired', label: t('rentalStatus.expired', 'หมดอายุ') },
-    { value: 'late_return', label: t('rentalStatus.late_return', 'คืนล่าช้า') },
+    { value: '', label: 'ทั้งหมด' },
+    { value: 'pending_owner_approval', label: 'รอเจ้าของอนุมัติ' },
+    { value: 'pending_payment', label: 'รอชำระเงิน' },
+    { value: 'confirmed', label: 'ยืนยันแล้ว' },
+    { value: 'active', label: 'กำลังเช่า' },
+    { value: 'return_pending', label: 'รอคืนสินค้า' },
+    { value: 'completed', label: 'เสร็จสิ้น' },
+    { value: 'cancelled_by_renter', label: 'ยกเลิกโดยผู้เช่า' },
+    { value: 'cancelled_by_owner', label: 'ยกเลิกโดยเจ้าของ' },
+    { value: 'rejected_by_owner', label: 'ถูกปฏิเสธโดยเจ้าของ' },
+    { value: 'dispute', label: 'ข้อพิพาท' },
+    { value: 'late_return', label: 'คืนล่าช้า' },
   ];
 
   const fetchMyRentals = (page = 1) => {
@@ -72,7 +70,7 @@ export const MyRentalsPage: React.FC = () => {
             }
           });
       })
-      .catch(err => setError((err as ApiError).message || "Failed to load your rentals"))
+      .catch(err => setError((err as ApiError).message || "ไม่สามารถโหลดการเช่าของคุณได้"))
       .finally(() => setIsLoading(false));
   };
 
@@ -120,12 +118,32 @@ export const MyRentalsPage: React.FC = () => {
 
   const getStatusText = (status: RentalStatus): string => {
     switch (status) {
+      case RentalStatus.PENDING_OWNER_APPROVAL:
+        return 'รอเจ้าของอนุมัติ';
+      case RentalStatus.PENDING_PAYMENT:
+        return 'รอชำระเงิน';
+      case RentalStatus.CONFIRMED:
+        return 'ยืนยันแล้ว';
+      case RentalStatus.ACTIVE:
+        return 'กำลังเช่า';
       case RentalStatus.RETURN_PENDING:
-        return t('renterRentalDetailPage.status.return_pending');
+        return 'รอคืนสินค้า';
+      case RentalStatus.COMPLETED:
+        return 'เสร็จสิ้น';
+      case RentalStatus.CANCELLED_BY_RENTER:
+        return 'ยกเลิกโดยผู้เช่า';
+      case RentalStatus.CANCELLED_BY_OWNER:
+        return 'ยกเลิกโดยเจ้าของ';
+      case RentalStatus.REJECTED_BY_OWNER:
+        return 'ถูกปฏิเสธโดยเจ้าของ';
+      case RentalStatus.DISPUTE:
+        return 'ข้อพิพาท';
       case RentalStatus.LATE_RETURN:
-        return t('renterRentalDetailPage.status.late_return');
-      default:
-        return status.replace(/_/g, ' ').toUpperCase();
+        return 'คืนล่าช้า';
+      case RentalStatus.DRAFT:
+        return 'ร่าง';
+      case RentalStatus.PENDING_VERIFICATION:
+        return 'รอการตรวจสอบ';
     }
   };
 
@@ -154,7 +172,7 @@ export const MyRentalsPage: React.FC = () => {
   }, [search]);
 
   // ย้าย early return หลัง hook ทั้งหมด
-  if (isLoading && !rentalsResponse) return <LoadingSpinner message={t('loading_your_rentals')} />;
+  if (isLoading && !rentalsResponse) return <LoadingSpinner message="กำลังโหลดการเช่าของคุณ..." />;
   if (error) return <ErrorMessage message={error} />;
 
   return (
@@ -172,7 +190,7 @@ export const MyRentalsPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                {t('my_rentals_as_renter')}
+                การเช่าของฉัน
               </h1>
               <p className="text-gray-600 text-lg">จัดการการเช่าของคุณ</p>
             </div>
@@ -190,7 +208,7 @@ export const MyRentalsPage: React.FC = () => {
               <div className="p-2 bg-blue-100 rounded-xl">
                 <FaFilter className="h-5 w-5 text-blue-600" />
               </div>
-              <label htmlFor="statusFilter" className="font-semibold text-gray-700">{t('filter_by_status')}</label>
+              <label htmlFor="statusFilter" className="font-semibold text-gray-700">กรองตามสถานะ</label>
               <select 
                 id="statusFilter"
                 value={statusFilter} 
@@ -209,7 +227,7 @@ export const MyRentalsPage: React.FC = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder={t('search_rentals')}
+                  placeholder="ค้นหาการเช่า"
                   value={pendingSearch}
                   onChange={e => setPendingSearch(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
@@ -222,7 +240,7 @@ export const MyRentalsPage: React.FC = () => {
                 onClick={handleSearch}
                 className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                {t('search')}
+                ค้นหา
               </motion.button>
             </div>
           </div>
@@ -290,24 +308,24 @@ export const MyRentalsPage: React.FC = () => {
                               </span>
                             )}
                           </div>
-                          <div className="text-sm text-gray-500 mb-3">Rental ID: {rental.rental_uid.substring(0,8)}...</div>
+                          <div className="text-sm text-gray-500 mb-3">รหัสการเช่า: {rental.rental_uid.substring(0,8)}...</div>
                           
                           <div className="space-y-2 text-sm text-gray-700">
                             <div className="flex items-center gap-2">
                               <FaCalendarAlt className="h-4 w-4 text-blue-500" />
-                              <span><strong>{t('renterRentalDetailPage.labels.rentalPeriod', 'ช่วงเช่า')}:</strong> {new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}</span>
+                              <span><strong>ช่วงเช่า:</strong> {new Date(rental.start_date).toLocaleDateString('th-TH')} - {new Date(rental.end_date).toLocaleDateString('th-TH')}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <FaUser className="h-4 w-4 text-green-500" />
-                              <span><strong>{t('renterRentalDetailPage.labels.owner', 'เจ้าของ')}:</strong> {rental.owner?.first_name || 'N/A'} {rental.owner?.last_name || ''}</span>
+                              <span><strong>เจ้าของ:</strong> {rental.owner?.first_name || 'ไม่ระบุ'} {rental.owner?.last_name || ''}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <FaMoneyBillWave className="h-4 w-4 text-yellow-500" />
-                              <span><strong>{t('renterRentalDetailPage.labels.totalPaid', 'ยอดชำระ')}:</strong> <span className="text-blue-600 font-semibold">฿{(rental.final_amount_paid || rental.total_amount_due).toLocaleString()}</span></span>
+                              <span><strong>ยอดชำระ:</strong> <span className="text-blue-600 font-semibold">฿{(rental.final_amount_paid || rental.total_amount_due).toLocaleString('th-TH')}</span></span>
                             </div>
                             <div className="flex items-center gap-2">
                               <FaClock className="h-4 w-4 text-gray-500" />
-                              <span><strong>{t('renterRentalDetailPage.labels.bookedOn', 'จองเมื่อ')}:</strong> {new Date(rental.created_at).toLocaleDateString()}</span>
+                              <span><strong>จองเมื่อ:</strong> {rental.created_at ? new Date(rental.created_at).toLocaleDateString('th-TH') : 'ไม่ระบุ'}</span>
                             </div>
                           </div>
                           
@@ -316,7 +334,7 @@ export const MyRentalsPage: React.FC = () => {
                             <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
                               <div className="flex items-center gap-2 text-sm text-green-700">
                                 <FaCheckCircle className="h-4 w-4" />
-                                <span><strong>{t('renterRentalDetailPage.labels.actualPickup', 'Actual Pickup')}:</strong> {new Date(rental.actual_pickup_time).toLocaleString()}</span>
+                                <span><strong>รับของจริง:</strong> {new Date(rental.actual_pickup_time).toLocaleString('th-TH')}</span>
                               </div>
                             </div>
                           )}
@@ -326,7 +344,7 @@ export const MyRentalsPage: React.FC = () => {
                             <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-xl">
                               <div className="flex items-center gap-2 text-sm text-purple-700">
                                 <FaBox className="h-4 w-4" />
-                                <span><strong>ℹ️ {t('renterRentalDetailPage.status.return_pending_desc')}</strong></span>
+                                <span><strong>ℹ️ รอการคืนสินค้าจากผู้เช่า</strong></span>
                               </div>
                             </div>
                           )}
@@ -334,7 +352,7 @@ export const MyRentalsPage: React.FC = () => {
                             <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
                               <div className="flex items-center gap-2 text-sm text-red-700">
                                 <FaExclamationTriangle className="h-4 w-4" />
-                                <span><strong>⚠️ {t('renterRentalDetailPage.status.late_return_desc')}</strong></span>
+                                <span><strong>⚠️ สินค้าถูกคืนเกินกำหนด</strong></span>
                               </div>
                             </div>
                           )}
@@ -348,7 +366,7 @@ export const MyRentalsPage: React.FC = () => {
                               className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                             >
                               <FaEye className="h-4 w-4" />
-                              {t('view_details')}
+                              ดูรายละเอียด
                             </motion.button>
                           </Link>
                           {rental.rental_status === RentalStatus.COMPLETED && !reviews[rental.id] && ( 
@@ -359,7 +377,7 @@ export const MyRentalsPage: React.FC = () => {
                                 className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                               >
                                 <FaStar className="h-4 w-4" />
-                                {t('leave_a_review')}
+                                ให้คะแนน
                               </motion.button>
                             </Link>
                           )}
@@ -409,8 +427,8 @@ export const MyRentalsPage: React.FC = () => {
             <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full mb-6">
               <FaHistory className="h-12 w-12 text-gray-400" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">{t('no_rentals_found')}</h3>
-            <p className="text-gray-600 mb-6 text-center max-w-md">{t('start_by_browsing_items_to_rent')}</p>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">ไม่พบการเช่า</h3>
+            <p className="text-gray-600 mb-6 text-center max-w-md">เริ่มต้นด้วยการเรียกดูสินค้าที่ต้องการเช่า</p>
             <Link to={ROUTE_PATHS.HOME}>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -418,7 +436,7 @@ export const MyRentalsPage: React.FC = () => {
                 className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <FaSearch className="h-5 w-5" />
-                {t('browsing_items')}
+                เรียกดูสินค้า
                 <FaArrowRight className="h-5 w-5" />
               </motion.button>
             </Link>

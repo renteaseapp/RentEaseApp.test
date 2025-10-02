@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { LoginResponse, ApiError } from '../types';
+import { API_BASE_URL } from '../constants';
 
 export interface GoogleAuthResponse {
   access_token: string;
@@ -39,7 +40,7 @@ export const googleAuthService = {
   // ส่งข้อมูล Google ไปยัง backend เพื่อ login/register
   async authenticateWithGoogle(googleUserInfo: GoogleUserInfo): Promise<GoogleAuthResponse> {
     try {
-      const response = await axios.post('http://localhost:3001/api/auth/google/callback', {
+      const response = await axios.post(`${API_BASE_URL}/auth/google/callback`, {
         userInfo: googleUserInfo
       });
 
@@ -59,7 +60,7 @@ export const googleAuthService = {
   // ตรวจสอบ Google ID token (สำหรับ mobile apps)
   async verifyIdToken(idToken: string): Promise<GoogleAuthResponse> {
     try {
-      const response = await axios.post('http://localhost:3001/api/auth/google/verify-id-token', {
+      const response = await axios.post(`${API_BASE_URL}/auth/google/verify-id-token`, {
         idToken,
       });
 
@@ -79,7 +80,7 @@ export const googleAuthService = {
   // ดึง Google OAuth URL จาก backend
   async getGoogleAuthUrl(): Promise<string> {
     try {
-      const response = await axios.get('http://localhost:3001/api/auth/google/auth-url');
+      const response = await axios.get(`${API_BASE_URL}/auth/google/auth-url`);
       return response.data.data.authUrl;
     } catch (error: any) {
       console.error('Error getting Google auth URL:', error);
@@ -88,4 +89,4 @@ export const googleAuthService = {
   },
 };
 
-export default googleAuthService; 
+export default googleAuthService;

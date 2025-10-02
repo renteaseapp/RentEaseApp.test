@@ -6,7 +6,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 
 import { Button } from '../../components/ui/Button';
-import { useTranslation } from 'react-i18next';
+
 import { useAuth } from '../../contexts/AuthContext';
 import { createRentalRequest, getProductReviews } from '../../services/rentalService';
 import { getUserAddresses, addToWishlist, removeFromWishlist, checkWishlistStatus, getPublicUserProfile } from '../../services/userService';
@@ -64,8 +64,6 @@ import {
   FaCopy,
   FaCalculator,
   FaMoneyBillWave,
-
-
 } from 'react-icons/fa';
 
 import ProductRentalCalendar from './ProductRentalCalendar';
@@ -74,8 +72,6 @@ import OpenStreetMapPicker from '../../components/common/OpenStreetMapPicker';
 const StarIcon: React.FC<{ filled: boolean; className?: string }> = ({ filled, className }) => (
   <FaStar className={`h-5 w-5 ${filled ? 'text-yellow-400' : 'text-gray-300'} ${className}`} />
 );
-
-
 
 // ProductReviews Component
 const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
@@ -86,7 +82,6 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const limit = 5;
-  const { t } = useTranslation('productDetailPage');
 
   useEffect(() => {
     setLoading(true);
@@ -99,12 +94,12 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
         setMeta(res.meta);
       })
       .catch(() => {
-        setError(t('reviews.errorLoadingReviews'));
+        setError("ไม่สามารถโหลดรีวิวได้");
       })
       .finally(() => setLoading(false));
-  }, [productId, page, t]);
+  }, [productId, page]);
 
-  if (loading) return <div className="py-8 text-center">{t('reviews.loadingReviews')}</div>;
+  if (loading) return <div className="py-8 text-center">{"กำลังโหลดรีวิว..."}</div>;
   if (error) return <div className="text-red-500 text-center py-8">{error}</div>;
 
   return (
@@ -118,7 +113,7 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
         <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
           <FaThumbsUp className="w-6 h-6 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800">{t('reviews.title')}</h2>
+        <h2 className="text-2xl font-bold text-gray-800">{"รีวิวจากผู้เช่า"}</h2>
       </div>
 
       {reviews.length === 0 && (
@@ -128,7 +123,7 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
           animate={{ opacity: 1 }}
         >
           <FaThumbsUp className="mx-auto text-6xl text-gray-300 mb-4" />
-          <p className="text-gray-500 text-lg">{t('reviews.noReviews')}</p>
+          <p className="text-gray-500 text-lg">{"ยังไม่มีรีวิวสำหรับสินค้านี้"}</p>
         </motion.div>
       )}
 
@@ -146,7 +141,7 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-blue-700 flex items-center gap-1">
                   <FaStar className="w-4 h-4" />
-                  {t('reviews.productRating')}
+                  {"คะแนนสินค้า"}
                 </span>
                 {[...Array(5)].map((_, i) => (
                   <StarIcon key={i} filled={i < review.rating_product} />
@@ -155,7 +150,7 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-green-700 flex items-center gap-1">
                   <FaUser className="w-4 h-4" />
-                  {t('reviews.ownerRating')}
+                  {"คะแนนเจ้าของ"}
                 </span>
                 {[...Array(5)].map((_, i) => (
                   <StarIcon key={i} filled={i < review.rating_owner} />
@@ -168,13 +163,13 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
             <div className="flex items-center justify-between text-sm text-gray-500">
               <div className="flex items-center gap-2">
                 <FaCalendarAlt className="w-4 h-4" />
-                <span>{new Date(review.created_at).toLocaleString()}</span>
+                <span>{new Date(review.created_at).toLocaleString('th-TH')}</span>
               </div>
               {review.rentals && (
                 <div className="flex items-center gap-2">
                   <FaUser className="w-4 h-4" />
                   <span>
-                    {t('reviews.reviewer')} {review.rentals.renter?.first_name
+                    {"รีวิวโดย"} {review.rentals.renter?.first_name
                       ? review.rentals.renter.first_name
                       : review.rentals.renter_id
                     }
@@ -212,18 +207,17 @@ const ProductReviews: React.FC<{ productId: number }> = ({ productId }) => {
 };
 
 export const ProductDetailPage: React.FC = () => {
-  const { t } = useTranslation('productDetailPage');
   
   // Helper function to get localized status display text
   const getStatusDisplayText = (status: string): string => {
     const statusMap: Record<string, string> = {
-      'available': t('availability.available'),
-      'rented_out': t('availability.rented_out'),
-      'unavailable': t('availability.unavailable'),
-      'pending_approval': t('availability.pending_approval'),
-      'rejected': t('availability.rejected'),
-      'hidden': t('availability.hidden'),
-      'draft': t('availability.draft')
+      'available': "พร้อมให้เช่า",
+      'rented_out': "ถูกเช่าออกไป",
+      'unavailable': "ไม่พร้อมใช้งาน",
+      'pending_approval': "รออนุมัติ",
+      'rejected': "ถูกปฏิเสธ",
+      'hidden': "ซ่อนอยู่",
+      'draft': "ฉบับร่าง"
     };
     return statusMap[status] || status.replace('_', ' ').toUpperCase();
   };
@@ -232,7 +226,7 @@ export const ProductDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const { user: authUser } = useAuth();
+  const { user: authUser, tokenExpired } = useAuth();
   const navigate = useNavigate();
   const [showRentalModal, setShowRentalModal] = useState(false);
   const [startDate, setStartDate] = useState('');
@@ -285,7 +279,12 @@ export const ProductDetailPage: React.FC = () => {
   const [estimatedFees, setEstimatedFees] = useState<EstimatedFees | null>(null);
   const [loadingFees, setLoadingFees] = useState(false);
 
-  // Realtime product updates
+  // Date availability states
+  const [dateAvailability, setDateAvailability] = useState<Record<string, boolean>>({});
+  const [loadingDateAvailability, setLoadingDateAvailability] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
+
+  // Realtime product updates - only join when we have a valid productId
   const productId = product?.id?.toString();
   const { product: realtimeProduct, isConnected: isRealtimeConnected } = useRealtimeProduct({
     productId: productId || ''
@@ -294,26 +293,50 @@ export const ProductDetailPage: React.FC = () => {
   // Update local product state when realtime data comes in
   useEffect(() => {
     if (realtimeProduct && product) {
-      // Merge realtime data with existing product data to preserve required fields
+      // Only update specific fields that are expected to change in real-time
+      // Preserve all existing product data and only update the fields that 
+      // are likely to change in real-time updates
       setProduct({
         ...product,
-        ...realtimeProduct,
+        quantity_available: realtimeProduct.quantity_available !== undefined ? realtimeProduct.quantity_available : product.quantity_available,
+        availability_status: realtimeProduct.availability_status || product.availability_status,
         // Preserve slug from original product if realtime data doesn't have it
         slug: realtimeProduct.slug || product.slug
       } as unknown as Product);
     }
   }, [realtimeProduct, product]);
+  
+  // Debug logging for realtime connection (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 Realtime Debug:', {
+      productId,
+      hasProduct: !!product,
+      isRealtimeConnected,
+      realtimeProduct: realtimeProduct ? 'present' : 'null'
+    });
+    
+    // Log when realtimeProduct changes
+    useEffect(() => {
+      if (realtimeProduct) {
+        console.log('📦 Realtime product update:', {
+          keys: Object.keys(realtimeProduct),
+          id: realtimeProduct.id,
+          hasKeyFields: !!(realtimeProduct as any).title && !!(realtimeProduct as any).description
+        });
+      }
+    }, [realtimeProduct]);
+  }
 
   // Calculate tomorrow's date for min start date
   const today = getCurrentDate().toDate();
   const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
-  // Calculate rental days
-  const rentalDays = startDateObj && endDateObj ? Math.max(0, Math.ceil((endDateObj.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24))) : 0;
+  // Calculate rental days (inclusive - includes both start and end dates)
+  const rentalDays = startDateObj && endDateObj ? Math.max(0, Math.ceil((endDateObj.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24)) + 1) : 0;
 
   useEffect(() => {
     if (!slugOrId) {
-      setError(t('missingProductId'));
+      setError("ไม่พบรหัสสินค้า");
       setIsLoading(false);
       return;
     }
@@ -332,7 +355,7 @@ export const ProductDetailPage: React.FC = () => {
         }
       } catch (err) {
         const apiError = err as ApiError;
-        setError(apiError.message || 'Failed to load product details.'); // Translate
+        setError(apiError.message || 'ไม่สามารถโหลดรายละเอียดสินค้าได้');
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -340,7 +363,7 @@ export const ProductDetailPage: React.FC = () => {
     };
 
     fetchProduct();
-  }, [slugOrId, t]);
+  }, [slugOrId]);
 
   useEffect(() => {
     if (showRentalModal && pickupMethod === RentalPickupMethod.DELIVERY && authUser) {
@@ -376,8 +399,98 @@ export const ProductDetailPage: React.FC = () => {
     else setEndDate('');
   }, [startDateObj, endDateObj]);
 
+  // Function to fetch date availability for a date range
+  const fetchDateAvailability = async (startDate: Date, endDate: Date) => {
+    if (!product?.id) return;
+    
+    setLoadingDateAvailability(true);
+    setAvailabilityError(null);
+    
+    try {
+      const dateAvailabilityMap: Record<string, boolean> = {};
+      
+      // Generate all dates in the range
+      const currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        const dateStr = format(currentDate, 'yyyy-MM-dd');
+        
+        try {
+          // Check availability for each date
+          const availabilityCheck = await checkProductAvailabilityWithBuffer(
+            product.id,
+            dateStr,
+            dateStr
+          );
+          dateAvailabilityMap[dateStr] = availabilityCheck.available;
+        } catch (error) {
+          console.error(`Error checking availability for ${dateStr}:`, error);
+          dateAvailabilityMap[dateStr] = false;
+        }
+        
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      
+      setDateAvailability(dateAvailabilityMap);
+    } catch (error) {
+      console.error('Error fetching date availability:', error);
+      setAvailabilityError('ไม่สามารถตรวจสอบความพร้อมใช้งานของวันที่ได้');
+    } finally {
+      setLoadingDateAvailability(false);
+    }
+  };
+
+  // Fetch date availability when product or date range changes
   useEffect(() => {
-    if (authUser && product?.id) {
+    if (product?.id && startDateObj && endDateObj) {
+      // Extend the date range to show more context (30 days before and after)
+      const extendedStart = new Date(startDateObj);
+      extendedStart.setDate(extendedStart.getDate() - 30);
+      
+      const extendedEnd = new Date(endDateObj);
+      extendedEnd.setDate(extendedEnd.getDate() + 30);
+      
+      fetchDateAvailability(extendedStart, extendedEnd);
+    }
+  }, [product?.id, startDateObj, endDateObj]);
+
+  // Real-time availability check when user selects dates
+  useEffect(() => {
+    if (product?.id && startDateObj && endDateObj && isAfter(endDateObj, startDateObj)) {
+      const checkRealTimeAvailability = async () => {
+        try {
+          setLoadingDateAvailability(true);
+          const result = await checkProductAvailabilityWithBuffer(
+            product.id,
+            startDateObj.toISOString().split('T')[0],
+            endDateObj.toISOString().split('T')[0]
+          );
+          
+          // Update the specific date range in our availability map
+          const currentDate = new Date(startDateObj);
+          while (currentDate <= endDateObj) {
+            const dateKey = currentDate.toISOString().split('T')[0];
+            setDateAvailability(prev => ({
+              ...prev,
+              [dateKey]: result.available
+            }));
+            currentDate.setDate(currentDate.getDate() + 1);
+          }
+        } catch (error) {
+          console.error('Error checking real-time availability:', error);
+          setAvailabilityError('ไม่สามารถตรวจสอบความพร้อมใช้งานได้');
+        } finally {
+          setLoadingDateAvailability(false);
+        }
+      };
+
+      // Debounce the real-time check to avoid too many API calls
+      const timeoutId = setTimeout(checkRealTimeAvailability, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [product?.id, startDateObj, endDateObj]);
+
+  useEffect(() => {
+    if (authUser && product?.id && !tokenExpired) {
       setWishlistLoading(true);
       setWishlistError(null);
       checkWishlistStatus(product.id)
@@ -397,7 +510,7 @@ export const ProductDetailPage: React.FC = () => {
     } else {
       setInWishlist(null);
     }
-  }, [authUser, product?.id]);
+  }, [authUser, product?.id, tokenExpired]);
 
   // Auto-calculate end date based on selected quantity for weekly/monthly rentals
   useEffect(() => {
@@ -512,17 +625,17 @@ export const ProductDetailPage: React.FC = () => {
   const handleRentalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!authUser || !product || rentalDays <= 0) {
-      setFormError(t('formInvalid'));
+      setFormError("ข้อมูลแบบฟอร์มไม่ถูกต้อง");
       return;
     }
     if (pickupMethod === RentalPickupMethod.DELIVERY && !selectedAddressId) {
-      setFormError(t('selectDeliveryAddress'));
+      setFormError("กรุณาเลือกที่อยู่สำหรับจัดส่ง");
       return;
     }
     
     // Validate that dates are selected
     if (!startDate || !endDate) {
-      setFormError(t('selectDates', 'กรุณาเลือกวันที่เริ่มต้นและสิ้นสุดการเช่า'));
+      setFormError("กรุณาเลือกวันที่เริ่มต้นและสิ้นสุดการเช่า");
       return;
     }
 
@@ -535,13 +648,13 @@ export const ProductDetailPage: React.FC = () => {
     );
 
     if (!durationValidation.isValid) {
-      setFormError(durationValidation.error || "Invalid rental duration.");
+      setFormError(durationValidation.error || "ระยะเวลาเช่าไม่ถูกต้อง");
       return;
     }
 
     // Validate start date must be in the future (at least tomorrow)
     if (new Date(startDate) < tomorrow) {
-      setFormError(t('startDateMustBeFuture'));
+      setFormError("วันเริ่มต้นการเช่าต้องเป็นวันพรุ่งนี้หรือหลังจากนั้น");
       return;
     }
 
@@ -554,12 +667,12 @@ export const ProductDetailPage: React.FC = () => {
       );
 
       if (!availabilityCheck.available) {
-        setFormError(t('productNotAvailableForSelectedDates', 'สินค้าไม่พร้อมให้เช่าในช่วงวันที่เลือก กรุณาเลือกวันที่อื่น'));
+        setFormError("สินค้าไม่พร้อมให้เช่าในช่วงวันที่เลือก กรุณาเลือกวันที่อื่น");
         return;
       }
     } catch (error) {
       console.error('Error checking availability:', error);
-      setFormError(t('errorCheckingAvailability', 'เกิดข้อผิดพลาดในการตรวจสอบความพร้อมของสินค้า'));
+      setFormError("เกิดข้อผิดพลาดในการตรวจสอบความพร้อมของสินค้า");
       return;
     }
     
@@ -575,7 +688,7 @@ export const ProductDetailPage: React.FC = () => {
     };
     if (pickupMethod === RentalPickupMethod.DELIVERY) {
       if (!selectedAddressId) {
-        setFormError(t('selectDeliveryAddress'));
+        setFormError("กรุณาเลือกที่อยู่สำหรับจัดส่ง");
         return;
       }
       payload.delivery_address_id = selectedAddressId;
@@ -592,7 +705,7 @@ export const ProductDetailPage: React.FC = () => {
       const newRental = await createRentalRequest(payload);
       console.log('newRental:', newRental);
       if (!newRental.id) {
-        setFormError('Rental ID is missing from API response.');
+        setFormError('ไม่พบรหัสการเช่าจาก API');
         return;
       }
       // Navigate to payment page instead of just showing success message
@@ -601,7 +714,7 @@ export const ProductDetailPage: React.FC = () => {
       setFormError(
         (err as any)?.response?.data?.message ||
         (err as ApiError).message ||
-        t('rentalRequestFailed')
+        "ส่งคำขอเช่าไม่สำเร็จ"
       );
     } finally {
       setIsSubmitting(false);
@@ -613,7 +726,7 @@ export const ProductDetailPage: React.FC = () => {
     setContactingOwner(true);
     try {
       const productUrl = window.location.href;
-      const messageText = t('defaultContactMessage', { product: product.title }) + '\n' + productUrl;
+      const messageText = `สวัสดีครับ/ค่ะ ฉันสนใจเช่าสินค้า ${product.title} ของคุณ\n` + productUrl;
       const msg = await sendMessage({
         receiver_id: product.owner.id,
         message_content: messageText,
@@ -623,11 +736,11 @@ export const ProductDetailPage: React.FC = () => {
       if (msg && msg.conversation_id) {
         navigate(ROUTE_PATHS.CHAT_ROOM.replace(':conversationId', String(msg.conversation_id)));
       } else {
-        alert('No conversation_id returned from API. msg=' + JSON.stringify(msg));
+        alert('ไม่พบรหัสห้องสนทนาจาก API. msg=' + JSON.stringify(msg));
       }
     } catch (err: any) {
       console.error('Contact owner error:', err);
-      let msg = t('errors.contactOwner');
+      let msg = "เกิดข้อผิดพลาดในการติดต่อเจ้าของสินค้า";
       if (err?.response?.data?.message) msg = err.response.data.message;
       else if (err?.message) msg = err.message;
       alert(msg);
@@ -647,7 +760,7 @@ export const ProductDetailPage: React.FC = () => {
       const detailedProfile = await getPublicUserProfile(product.owner.id);
       setOwnerDetailedProfile(detailedProfile);
     } catch (err: any) {
-      setOwnerProfileError(err?.message || t('ownerProfile.errorLoadingProfile'));
+      setOwnerProfileError(err?.message || "ไม่สามารถโหลดโปรไฟล์เจ้าของสินค้าได้");
       console.error('Error fetching owner profile:', err);
     } finally {
       setLoadingOwnerProfile(false);
@@ -660,7 +773,7 @@ export const ProductDetailPage: React.FC = () => {
     setAddAddressError(null);
     try {
       const token = localStorage.getItem('authToken');
-      const res = await axios.post('http://localhost:3001/api/users/me/addresses', newAddress, {
+      const res = await axios.post('https://renteaseapi2.onrender.com/api/users/me/addresses', newAddress, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -694,7 +807,7 @@ export const ProductDetailPage: React.FC = () => {
           });
         });
     } catch (err: any) {
-      setAddAddressError(err?.response?.data?.message || t('addressForm.errorAddingAddress'));
+      setAddAddressError(err?.response?.data?.message || "ไม่สามารถเพิ่มที่อยู่ได้");
     } finally {
       setAddingAddress(false);
     }
@@ -713,26 +826,26 @@ export const ProductDetailPage: React.FC = () => {
         setInWishlist(true);
       }
     } catch (err: any) {
-      setWishlistError(err?.response?.data?.message || err?.message || t('errors.wishlist'));
+      setWishlistError(err?.response?.data?.message || err?.message || "เกิดข้อผิดพลาดในการจัดการรายการโปรด");
     } finally {
       setWishlistLoading(false);
     }
   };
 
   if (isLoading) {
-    return <LoadingSpinner message={t('loadingDetails')} />;
+    return <LoadingSpinner message={"กำลังโหลดรายละเอียดสินค้า..."} />;
   }
 
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <ErrorMessage message={error} title={t('general.error')} />
+        <ErrorMessage message={error} title={"เกิดข้อผิดพลาด"} />
         <div className="mt-4 text-center">
           <Button
             variant="primary"
             onClick={() => window.history.back()}
           >
-            {t('general.goBack')}
+            {"ย้อนกลับ"}
           </Button>
         </div>
       </div>
@@ -740,7 +853,7 @@ export const ProductDetailPage: React.FC = () => {
   }
 
   if (!product) {
-    return <div className="text-center py-10">{t('productNotFound')}</div>;
+    return <div className="text-center py-10">{"ไม่พบสินค้านี้"}</div>;
   }
 
   const allImages = product.images || (product.primary_image ? [product.primary_image] : []);
@@ -784,7 +897,7 @@ export const ProductDetailPage: React.FC = () => {
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                      <span className="text-gray-400">{t('noImage')}</span>
+                      <span className="text-gray-400">{"ไม่มีรูปภาพ"}</span>
                     </div>
                   )}
                 </div>
@@ -819,12 +932,12 @@ export const ProductDetailPage: React.FC = () => {
                         <StarIcon key={i} filled={i < Math.round(product.average_rating || 0)} />
                       ))}
                       <span className="text-gray-600 text-sm font-medium">
-                        {t('reviewsCount', { count: product.total_reviews || 0 })}
+                        {product.total_reviews || 0} {"รีวิว"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-500">
                       <FaEye className="w-4 h-4" />
-                      <span className="text-sm">{t('viewedCount', { count: product.view_count || 0 })}</span>
+                      <span className="text-sm">{"เข้าชม"} {product.view_count || 0}</span>
                     </div>
                     {/* Availability Status and Quantity */}
                     <div className="flex flex-wrap items-center gap-3">
@@ -842,7 +955,7 @@ export const ProductDetailPage: React.FC = () => {
                           ) : (
                             <FaExclamationTriangle className="w-4 h-4" />
                           )}
-                          {t('statusLabel')} {getStatusDisplayText(product.availability_status)}
+                          {"สถานะ"} {getStatusDisplayText(product.availability_status)}
                         </span>
                       )}
 
@@ -853,15 +966,21 @@ export const ProductDetailPage: React.FC = () => {
                           : 'bg-gray-100 text-gray-700 border border-gray-200'
                           }`}>
                           <FaTag className="w-4 h-4" />
-                          {t('quantityAvailable', { quantity: product.quantity_available })}
+                          {"มีให้เช่า"} {product.quantity_available} {"ชิ้น"}
                         </span>
                       )}
 
                       {/* Realtime Connection Status */}
-                      {isRealtimeConnected && (
+                      {isRealtimeConnected && !tokenExpired && (
                         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700 border border-green-200">
                           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          {t('realtimeActive')}
+                          {"เรียลไทม์"}
+                        </span>
+                      )}
+                      {tokenExpired && (
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-700 border border-yellow-200">
+                          <FaExclamationTriangle className="w-4 h-4" />
+                          {"เซสชันหมดอายุ"}
                         </span>
                       )}
                     </div>
@@ -882,7 +1001,7 @@ export const ProductDetailPage: React.FC = () => {
                         ฿{(product.rental_price_per_day ?? 0).toLocaleString()}
                       </span>
                       <span className="text-xl text-gray-600 font-medium">
-                        {t('pricePerDay')}
+                        {"/วัน"}
                       </span>
                     </div>
 
@@ -891,46 +1010,35 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="flex flex-wrap gap-3 mb-3">
                         {product.rental_price_per_week && (
                           <span className="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-xl text-sm font-semibold text-blue-700 border border-blue-200">
-                            ฿{product.rental_price_per_week.toLocaleString()} / สัปดาห์
+                            ฿{product.rental_price_per_week.toLocaleString()} / {"สัปดาห์"}
                           </span>
                         )}
                         {product.rental_price_per_month && (
                           <span className="inline-flex items-center gap-2 bg-purple-50 px-4 py-2 rounded-xl text-sm font-semibold text-purple-700 border border-purple-200">
-                            ฿{product.rental_price_per_month.toLocaleString()} / เดือน
+                            ฿{product.rental_price_per_month.toLocaleString()} / {"เดือน"}
                           </span>
                         )}
                       </div>
                     )}
 
                     {/* Security Deposit */}
-                    {product.security_deposit && (
-                      <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-3">
+                      {product.security_deposit && product.security_deposit > 0 ? (
                         <span className="inline-flex items-center gap-2 bg-yellow-50 px-4 py-2 rounded-xl text-sm font-semibold text-yellow-700 border border-yellow-200">
                           <FaShieldAlt className="w-4 h-4" />
-                          {t('securityDeposit', { amount: (product.security_deposit ?? 0).toLocaleString() })}
+                          {"เงินประกัน"} ฿{product.security_deposit.toLocaleString()}
                         </span>
-                      </div>
-                    )}
+                      ) : (
+                        <span className="inline-flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200">
+                          <FaShieldAlt className="w-4 h-4" />
+                          {"ไม่มีเงินประกัน"}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
 
-                {/* Description */}
-                <motion.div
-                  className="mb-6"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                      <FaInfoCircle className="w-5 h-5 text-blue-500" />
-                      {t('productDescription')}
-                    </h3>
-                    <p className="text-gray-700 leading-relaxed">
-                      {product.description || <span className="italic text-gray-400">No description available.</span>}
-                    </p>
-                  </div>
-                </motion.div>
+
 
                 {/* Location and Duration */}
                 <motion.div
@@ -944,8 +1052,8 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4">
                         <FaMapMarkerAlt className="w-5 h-5 text-red-500" />
                         <div>
-                          <p className="text-sm text-gray-600">{t('locationLabel')}</p>
-                          <p className="font-semibold text-gray-800">{t('location', { locationName: product.province.name_th })}</p>
+                          <p className="text-sm text-gray-600">{"สถานที่ตั้งสินค้า"}</p>
+                          <p className="font-semibold text-gray-800">{product.province.name_th}</p>
                         </div>
                       </div>
                     )}
@@ -953,9 +1061,9 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4">
                         <FaClock className="w-5 h-5 text-blue-500" />
                         <div>
-                          <p className="text-sm text-gray-600">{t('rentalDurationLabel')}</p>
+                          <p className="text-sm text-gray-600">{"ช่วงเวลาเช่า"}</p>
                           <p className="font-semibold text-gray-800">
-                            {product.min_rental_duration_days} - {product.max_rental_duration_days} {t('days')}
+                            {product.min_rental_duration_days} - {product.max_rental_duration_days} {"วัน"}
                           </p>
                         </div>
                       </div>
@@ -989,7 +1097,7 @@ export const ProductDetailPage: React.FC = () => {
                           // ถ้า login แล้วแต่ยังไม่ได้ verify ID
                           if (authUser.id_verification_status !== UserIdVerificationStatus.APPROVED && 
                               String(authUser.id_verification_status) !== 'verified') {
-                            alert(t('pleaseVerifyIdentity'));
+                            alert("กรุณายืนยันตัวตนก่อนส่งคำขอเช่า");
                             navigate(ROUTE_PATHS.PROFILE);
                             return;
                           }
@@ -1003,12 +1111,12 @@ export const ProductDetailPage: React.FC = () => {
                       >
                         <FaShoppingCart className="w-5 h-5 mr-2" />
                         {!authUser 
-                          ? t('loginToRentButton')
+                          ? "เข้าสู่ระบบเพื่อเช่า"
                           : product.availability_status === 'available' && (product.quantity_available || 0) > 0
-                            ? t('requestToRentButton')
+                            ? "ส่งคำขอเช่า"
                             : product.availability_status === 'rented_out'
-                              ? t('productFullyRented')
-                              : t('notAvailableForRent')
+                              ? "ถูกเช่าไปแล้วทั้งหมด"
+                              : "ไม่พร้อมให้เช่า"
                         }
                       </Button>
                       <Button
@@ -1016,32 +1124,30 @@ export const ProductDetailPage: React.FC = () => {
                         variant="ghost"
                         className="w-full sm:w-auto px-8 py-4 text-lg font-bold border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                         onClick={() => {
-                          // ถ้าไม่ได้ login ให้ redirect ไปหน้า login
-                          if (!authUser) {
+                          if (!authUser || tokenExpired) {
+                            alert("กรุณาเข้าสู่ระบบเพื่อเพิ่มรายการโปรด");
                             navigate(ROUTE_PATHS.LOGIN);
                             return;
                           }
-                          
-                          // ถ้า login แล้วให้ทำงานปกติ
                           handleWishlistClick();
                         }}
                         disabled={wishlistLoading}
                         isLoading={wishlistLoading}
                       >
-                        {!authUser ? (
+                        {(!authUser || tokenExpired) ? (
                           <>
-                            <FaHeart className="w-5 h-5 mr-2 text-red-500" />
-                            {t('addToFavoritesButton')}
+                            <FaHeart className="w-5 h-5 mr-2 text-gray-400" />
+                            {"เข้าสู่ระบบเพื่อเพิ่มรายการโปรด"}
                           </>
                         ) : inWishlist ? (
                           <>
                             <FaHeartBroken className="w-5 h-5 mr-2 text-red-500" />
-                            {t('removeFromWishlistButton')}
+                            {"ลบออกจากรายการโปรด"}
                           </>
                         ) : (
                           <>
                             <FaHeart className="w-5 h-5 mr-2 text-red-500" />
-                            {t('addToWishlistButton')}
+                            {"เพิ่มในรายการโปรด"}
                           </>
                         )}
                       </Button>
@@ -1050,7 +1156,7 @@ export const ProductDetailPage: React.FC = () => {
                   ) : (
                     <div className="text-center py-6 bg-gray-50 rounded-xl border border-gray-200">
                       <FaUser className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500 font-medium">{t('thisIsYourOwnProduct')}</p>
+                      <p className="text-gray-500 font-medium">{"นี่คือสินค้าของคุณเอง"}</p>
                     </div>
                   )}
 
@@ -1099,12 +1205,12 @@ export const ProductDetailPage: React.FC = () => {
                             {product.owner.created_at && (
                               <p className="text-sm text-gray-500 flex items-center gap-2">
                                 <FaCalendarAlt className="w-4 h-4" />
-                                {t('memberSince', { date: new Date(product.owner.created_at).toLocaleDateString() })}
+                                {"เป็นสมาชิกตั้งแต่"} {new Date(product.owner.created_at).toLocaleDateString('th-TH')}
                               </p>
                             )}
                             <p className="text-sm text-blue-600 mt-1 flex items-center gap-1">
                               <FaEye className="w-3 h-3" />
-                              คลิกเพื่อดูโปรไฟล์
+                              {"คลิกเพื่อดูโปรไฟล์"}
                             </p>
                           </div>
                         </button>
@@ -1127,12 +1233,12 @@ export const ProductDetailPage: React.FC = () => {
                             isLoading={contactingOwner}
                           >
                             <FaComments className="w-4 h-4 mr-2" />
-                            {!authUser ? t('loginToContactButton') : t('contactOwnerButton')}
+                            {!authUser ? "เข้าสู่ระบบเพื่อติดต่อ" : "ติดต่อเจ้าของ"}
                           </Button>
                         ) : (
                           <div className="text-sm text-gray-400 text-center">
                             <FaUser className="w-5 h-5 mx-auto mb-1" />
-                            {t('cannotChatWithOwnProduct')}
+                            {"ไม่สามารถแชทกับสินค้าของตัวเองได้"}
                           </div>
                         )}
                       </div>
@@ -1153,10 +1259,10 @@ export const ProductDetailPage: React.FC = () => {
         >
           <div className="p-6">
             <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
-              <Tab label={t('detailsTab')} />
-              <Tab label={t('specsTab')} />
-              <Tab label={t('tabs.reviews')} />
-              <Tab label="ปฏิทินการเช่า" />
+              <Tab label={"รายละเอียด"} />
+              <Tab label={"ข้อมูลจำเพาะ"} />
+              <Tab label={"รีวิว"} />
+              <Tab label={"ปฏิทินการเช่า"} />
             </Tabs>
           </div>
 
@@ -1167,13 +1273,13 @@ export const ProductDetailPage: React.FC = () => {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                <h2 className="text-2xl font-bold mb-4 text-gray-800">{t('productDetailPage.detailsTab', 'รายละเอียดสินค้า')}</h2>
+                <h2 className="text-2xl font-bold mb-4 text-gray-800">{"รายละเอียด"}</h2>
                 <div className="text-gray-700 text-base leading-relaxed whitespace-pre-line bg-gray-50 p-6 rounded-xl">
-                  {product.description || <span className="italic text-gray-400">No description available.</span>}
+                  {product.description || <span className="italic text-gray-400">{"ไม่มีคำอธิบาย"}</span>}
                 </div>
                 {product.condition_notes && (
                   <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('productDetailPage.conditionNotes')}</h3>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">{"หมายเหตุ/สภาพสินค้า"}</h3>
                     <p className="text-gray-600 bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">{product.condition_notes}</p>
                   </div>
                 )}
@@ -1181,7 +1287,7 @@ export const ProductDetailPage: React.FC = () => {
                   <div className="mt-6">
                     <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <FaMapMarkerAlt className="w-5 h-5 text-red-500" />
-                      {t('productDetailPage.pickupLocation')}
+                      {"สถานที่รับสินค้า"}
                     </h3>
                     <p className="text-gray-600 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">{product.address_details}</p>
                     {product.latitude && product.longitude && (
@@ -1205,7 +1311,7 @@ export const ProductDetailPage: React.FC = () => {
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                           >
                             <FaMapMarkerAlt className="w-4 h-4" />
-                            {t('productDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}
+                            {"เปิดใน Google Maps"}
                           </button>
                         </div>
                       </div>
@@ -1224,7 +1330,7 @@ export const ProductDetailPage: React.FC = () => {
                   <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
                     <FaInfoCircle className="w-6 h-6 text-white" />
                   </div>
-                  {t('productDetailPage.specsTab', 'สเปค/คุณสมบัติ')}
+                  {"ข้อมูลจำเพาะ"}
                 </h2>
 
                 {product.specifications && Object.keys(product.specifications).length > 0 ? (
@@ -1268,10 +1374,10 @@ export const ProductDetailPage: React.FC = () => {
                       <FaInfoCircle className="w-8 h-8 text-white" />
                     </div>
                     <h3 className="text-xl font-semibold text-gray-700 mb-3">
-                      {t('productDetailPage.noSpecsTitle', 'ไม่มีข้อมูลสเปค')}
+                      {"ไม่มีข้อมูลสเปค"}
                     </h3>
                     <p className="text-gray-500 max-w-md mx-auto">
-                      {t('productDetailPage.noSpecs', 'ไม่มีข้อมูลสเปค/คุณสมบัติ')}
+                      {"เจ้าของสินค้านี้ยังไม่ได้เพิ่มข้อมูลจำเพาะ/คุณสมบัติใดๆ"}
                     </p>
                   </motion.div>
                 )}
@@ -1320,7 +1426,7 @@ export const ProductDetailPage: React.FC = () => {
               <button 
                 className="absolute top-4 right-4 text-white/80 hover:text-white text-2xl transition-colors duration-200 z-10" 
                 onClick={() => setShowRentalModal(false)} 
-                aria-label={t('buttons.close')}
+                aria-label={"ปิด"}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1333,11 +1439,11 @@ export const ProductDetailPage: React.FC = () => {
                     <FaShoppingCart className="w-6 h-6" />
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-bold">
-                    {t('productDetailPage.rentalRequestTitle')}
+                    {"ส่งคำขอเช่าสินค้า"}
                   </h2>
                 </div>
                 <p className="text-blue-100 text-sm sm:text-base leading-relaxed">
-                  {t('productDetailPage.rentalFormDescription', 'กรุณากรอกข้อมูลให้ครบถ้วนเพื่อส่งคำขอเช่าสินค้านี้')}
+                  {"กรุณากรอกข้อมูลให้ครบถ้วนเพื่อส่งคำขอเช่าสินค้านี้"}
                 </p>
               </div>
             </div>
@@ -1354,7 +1460,7 @@ export const ProductDetailPage: React.FC = () => {
                     <FaExclamationTriangle className="w-5 h-5 text-red-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-red-800 font-medium">{t('rentalForm.errorTitle')}</p>
+                    <p className="text-red-800 font-medium">{"เกิดข้อผิดพลาด"}</p>
                     <p className="text-red-600 text-sm">{formError}</p>
                   </div>
                   <button 
@@ -1378,9 +1484,9 @@ export const ProductDetailPage: React.FC = () => {
                     <FaCheckCircle className="w-5 h-5 text-green-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-green-800 font-medium">{t('rentalForm.successTitle')}</p>
+                    <p className="text-green-800 font-medium">{"ส่งคำขอสำเร็จ"}</p>
                     <p className="text-green-600 text-sm">{formSuccess}</p>
-                    <p className="text-green-500 text-xs mt-1">{t('rentalForm.redirectingToPayment')}</p>
+                    <p className="text-green-500 text-xs mt-1">{"กำลังนำทางไปหน้าชำระเงิน..."}</p>
                   </div>
                 </motion.div>
               )}
@@ -1400,10 +1506,10 @@ export const ProductDetailPage: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                         <FaTag className="w-5 h-5 text-purple-600" />
-                        เลือกประเภทการเช่า
+                        {"เลือกประเภทการเช่า"}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">
-                        เลือกรูปแบบการเช่าที่ต้องการ
+                        {"เลือกว่าจะเช่าแบบรายวัน รายสัปดาห์ หรือรายเดือน"}
                       </p>
                     </div>
                   </div>
@@ -1412,7 +1518,7 @@ export const ProductDetailPage: React.FC = () => {
                   <div className="space-y-4">
                     <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
                       <FaTag className="w-4 h-4 text-purple-600" />
-                      เลือกประเภทการเช่า
+                      {"เลือกประเภท"}
                     </h4>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1435,8 +1541,8 @@ export const ProductDetailPage: React.FC = () => {
                             <FaCalendarAlt className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900">รายวัน</p>
-                            <p className="text-xs text-gray-600">เหมาะสำหรับการเช่าระยะสั้น</p>
+                            <p className="font-semibold text-gray-900">{"รายวัน"}</p>
+                            <p className="text-xs text-gray-600">{"คิดราคาต่อวัน"}</p>
                           </div>
                         </div>
                         <div className="text-center">
@@ -1467,8 +1573,8 @@ export const ProductDetailPage: React.FC = () => {
                               <FaCalendarAlt className="w-4 h-4" />
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900">รายสัปดาห์</p>
-                              <p className="text-xs text-gray-600">เหมาะสำหรับการเช่า 7+ วัน</p>
+                              <p className="font-semibold text-gray-900">{"รายสัปดาห์"}</p>
+                              <p className="text-xs text-gray-600">{"เช่าระยะยาว 7 วันขึ้นไป"}</p>
                             </div>
                           </div>
                           <div className="text-center">
@@ -1478,7 +1584,7 @@ export const ProductDetailPage: React.FC = () => {
                             <span className="text-sm text-gray-600 ml-1">/สัปดาห์</span>
                             {rentalDays >= 7 && (
                               <div className="text-xs text-green-600 mt-1">
-                                ประหยัด ฿{Math.max(0, (product.rental_price_per_day * 7) - product.rental_price_per_week).toLocaleString()}
+                                  {"ประหยัด"} ฿{Math.max(0, (product.rental_price_per_day * 7) - product.rental_price_per_week).toLocaleString()}
                               </div>
                             )}
                           </div>
@@ -1505,8 +1611,8 @@ export const ProductDetailPage: React.FC = () => {
                               <FaCalendarAlt className="w-4 h-4" />
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900">รายเดือน</p>
-                              <p className="text-xs text-gray-600">เหมาะสำหรับการเช่า 30+ วัน</p>
+                              <p className="font-semibold text-gray-900">{"รายเดือน"}</p>
+                              <p className="text-xs text-gray-600">{"เช่าระยะยาว 30 วันขึ้นไป"}</p>
                             </div>
                           </div>
                           <div className="text-center">
@@ -1516,7 +1622,7 @@ export const ProductDetailPage: React.FC = () => {
                             <span className="text-sm text-gray-600 ml-1">/เดือน</span>
                             {rentalDays >= 30 && (
                               <div className="text-xs text-green-600 mt-1">
-                                ประหยัด ฿{Math.max(0, (product.rental_price_per_day * 30) - product.rental_price_per_month).toLocaleString()}
+                                  {"ประหยัด"} ฿{Math.max(0, (product.rental_price_per_day * 30) - product.rental_price_per_month).toLocaleString()}
                               </div>
                             )}
                           </div>
@@ -1530,7 +1636,7 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <FaTag className="w-4 h-4 text-green-600" />
                           <span className="text-sm font-medium text-green-800">
-                            แนะนำ: เลือก{getRentalTypeInfo(optimalRentalInfo.type).label} เพื่อประหยัด ฿{optimalRentalInfo.savings.toLocaleString()}
+                            {"แนะนำ! เลือก"} {getRentalTypeInfo(optimalRentalInfo.type).label} {"ประหยัดกว่า"} ฿{optimalRentalInfo.savings.toLocaleString()}
                           </span>
                           <button
                             type="button"
@@ -1548,9 +1654,9 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <FaInfoCircle className="w-4 h-4 text-blue-600" />
                         <span className="text-sm font-medium text-blue-800">
-                          ประเภทที่เลือก: {getRentalTypeInfo(selectedRentalType).label}
+                          {"ประเภทที่เลือก"}: {getRentalTypeInfo(selectedRentalType).label}
                           {rentalDays > 0 && (
-                            <span className="ml-2">({rentalDays} วัน = ฿{subtotal.toLocaleString()})</span>
+                            <span className="ml-2">({rentalDays} {"วัน"} = ฿{subtotal.toLocaleString()})</span>
                           )}
                         </span>
                       </div>
@@ -1565,14 +1671,14 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-2 mb-3">
                           <FaInfoCircle className="w-4 h-4 text-yellow-600" />
                           <span className="text-sm font-semibold text-yellow-800">
-                            {selectedRentalType === RentalType.WEEKLY ? 'เลือกจำนวนสัปดาห์' : 'เลือกจำนวนเดือน'}
+                            {selectedRentalType === RentalType.WEEKLY ? "เลือกจำนวนสัปดาห์" : "เลือกจำนวนเดือน"}
                           </span>
                         </div>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                           <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700">
-                              {selectedRentalType === RentalType.WEEKLY ? 'จำนวนสัปดาห์' : 'จำนวนเดือน'}
+                              {selectedRentalType === RentalType.WEEKLY ? "จำนวนสัปดาห์" : "จำนวนเดือน"}
                               <span className="text-red-500 ml-1">*</span>
                             </label>
                             <div className="flex items-center gap-2">
@@ -1643,7 +1749,7 @@ export const ProductDetailPage: React.FC = () => {
                                         endDate.setDate(endDate.getDate() - 1);
                                         return endDate.toLocaleDateString('th-TH');
                                       }
-                                      return 'เลือกวันเริ่มต้นก่อน';
+                                      return "กรุณาเลือกวันเริ่มต้นก่อน";
                                     })()
                                     }
                                   </div>
@@ -1662,24 +1768,24 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="bg-white p-3 rounded-lg border border-yellow-200">
                           <div className="text-sm">
                             <div className="flex justify-between items-center mb-2">
-                              <span className="text-gray-600">ประเภท:</span>
+                              <span className="text-gray-600">{"ประเภท"}:</span>
                               <span className="font-semibold text-blue-600">
-                                {selectedRentalType === RentalType.WEEKLY ? `รายสัปดาห์ (${numberOfWeeks} สัปดาห์)` : `รายเดือน (${numberOfMonths} เดือน)`}
+                                {selectedRentalType === RentalType.WEEKLY ? `${"รายสัปดาห์"} (${numberOfWeeks} ${"สัปดาห์"})` : `${"รายเดือน"} (${numberOfMonths} ${"เดือน"})`}
                               </span>
                             </div>
                             <div className="flex justify-between items-center mb-2">
-                              <span className="text-gray-600">ราคาต่อหน่วย:</span>
+                              <span className="text-gray-600">{"ราคาต่อหน่วย"}:</span>
                               <span className="font-semibold">
-                                ฿{selectedRentalType === RentalType.WEEKLY 
+                                ฿{selectedRentalType === RentalType.WEEKLY
                                   ? (product?.rental_price_per_week || 0).toLocaleString()
                                   : (product?.rental_price_per_month || 0).toLocaleString()
-                                } / {selectedRentalType === RentalType.WEEKLY ? 'สัปดาห์' : 'เดือน'}
+                                } / {selectedRentalType === RentalType.WEEKLY ? "สัปดาห์" : "เดือน"}
                               </span>
                             </div>
                             <div className="flex justify-between items-center pt-2 border-t border-yellow-200">
-                              <span className="text-gray-600">ค่าเช่ารวม:</span>
+                              <span className="text-gray-600">{"ค่าเช่ารวม"}:</span>
                               <span className="font-bold text-green-600">
-                                ฿{selectedRentalType === RentalType.WEEKLY 
+                                ฿{selectedRentalType === RentalType.WEEKLY
                                   ? ((product?.rental_price_per_week || 0) * numberOfWeeks).toLocaleString()
                                   : ((product?.rental_price_per_month || 0) * numberOfMonths).toLocaleString()
                                 }
@@ -1689,7 +1795,7 @@ export const ProductDetailPage: React.FC = () => {
                         </div>
                         
                         <div className="mt-3 text-xs text-yellow-600">
-                          <strong>หมายเหตุ:</strong> ระบบจะคำนวณวันสิ้นสุดอัตโนมัติจากจำนวนที่เลือก
+                          <strong>{"หมายเหตุ"}:</strong> {"ระบบจะคำนวณวันสิ้นสุดโดยอัตโนมัติ"}
                         </div>
                       </div>
                     </div>
@@ -1707,14 +1813,19 @@ export const ProductDetailPage: React.FC = () => {
                         })()}
                       </span>
                       <span className="text-xl text-gray-600 font-medium">
-                        บาท/{optimalRentalInfo ? getRentalTypeInfo(optimalRentalInfo.type).unit : 'วัน'}
+                        {"บาท"}/{optimalRentalInfo ? getRentalTypeInfo(optimalRentalInfo.type).unit : "วัน"}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-3">
-                      {product?.security_deposit && product.security_deposit > 0 && (
+                      {product?.security_deposit && product.security_deposit > 0 ? (
                         <span className="inline-flex items-center gap-2 bg-yellow-50 px-4 py-2 rounded-xl text-sm font-semibold text-yellow-700 border border-yellow-200">
                           <FaShieldAlt className="w-4 h-4" />
-                          เงินประกัน: ฿{product.security_deposit.toLocaleString()}
+                          {"เงินประกัน"} ฿{product.security_deposit.toLocaleString()}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200">
+                          <FaShieldAlt className="w-4 h-4" />
+                          {"ไม่มีเงินประกัน"}
                         </span>
                       )}
                     </div>
@@ -1735,10 +1846,10 @@ export const ProductDetailPage: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                         <FaCalendarAlt className="w-5 h-5 text-blue-600" />
-                        {t('productDetailPage.step1Title', 'เลือกช่วงวันที่ต้องการเช่า')}
+                        {"เลือกช่วงวันที่ต้องการเช่า"}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">
-                        {t('productDetailPage.step1Description', 'เลือกวันเริ่มต้นและวันสิ้นสุดที่ต้องการเช่า')}
+                        {"เลือกวันเริ่มต้นและวันสิ้นสุดที่ต้องการเช่า"}
                       </p>
                     </div>
                   </div>
@@ -1746,7 +1857,7 @@ export const ProductDetailPage: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-700">
-                        {t('productDetailPage.startDateLabel', 'วันเริ่มต้น')}
+                        {"วันเริ่มต้น"}
                         <span className="text-red-500 ml-1">*</span>
                       </label>
                       <div className="relative">
@@ -1765,7 +1876,7 @@ export const ProductDetailPage: React.FC = () => {
                               ? 'เลือกวันเริ่มต้นสัปดาห์' 
                               : selectedRentalType === RentalType.MONTHLY 
                               ? 'เลือกวันเริ่มต้นเดือน' 
-                              : t('datePicker.selectDate')
+                              : "เลือกวันที่"
                           }
                           dateFormat="dd/MM/yyyy"
                           className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
@@ -1774,9 +1885,21 @@ export const ProductDetailPage: React.FC = () => {
                           showYearDropdown
                           dropdownMode="select"
                           isClearable
-                          todayButton={t('datePicker.today')}
+                          todayButton={"วันนี้"}
                           calendarStartDay={selectedRentalType === RentalType.WEEKLY ? 1 : undefined}
                           showWeekNumbers={selectedRentalType === RentalType.WEEKLY}
+                          dayClassName={(date) => {
+                            const dateStr = format(date, 'yyyy-MM-dd');
+                            const isAvailable = dateAvailability[dateStr];
+                            
+                            if (isAvailable === undefined) {
+                              return 'text-gray-400'; // Loading or unknown
+                            }
+                            
+                            return isAvailable 
+                              ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                              : 'bg-red-100 text-red-800 hover:bg-red-200 line-through';
+                          }}
                         />
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                           <FaCalendarAlt className="w-5 h-5" />
@@ -1786,7 +1909,7 @@ export const ProductDetailPage: React.FC = () => {
                     
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-700">
-                        {t('productDetailPage.endDateLabel', 'วันสิ้นสุด')}
+                        {"วันสิ้นสุด"}
                         <span className="text-red-500 ml-1">*</span>
                       </label>
                       <div className="relative">
@@ -1797,7 +1920,7 @@ export const ProductDetailPage: React.FC = () => {
                           disabled={!startDateObj || selectedRentalType !== RentalType.DAILY}
                           placeholderText={
                             selectedRentalType === RentalType.DAILY 
-                              ? t('datePicker.selectDate') 
+                              ? "เลือกวันที่" 
                               : `คำนวณอัตโนมัติ (${selectedRentalType === RentalType.WEEKLY ? `${numberOfWeeks} สัปดาห์` : `${numberOfMonths} เดือน`})`
                           }
                           dateFormat="dd/MM/yyyy"
@@ -1807,8 +1930,20 @@ export const ProductDetailPage: React.FC = () => {
                           showYearDropdown
                           dropdownMode="select"
                           isClearable={selectedRentalType === RentalType.DAILY}
-                          todayButton={selectedRentalType === RentalType.DAILY ? t('datePicker.today') : undefined}
+                          todayButton={selectedRentalType === RentalType.DAILY ? "วันนี้" : undefined}
                           readOnly={selectedRentalType !== RentalType.DAILY}
+                          dayClassName={(date) => {
+                            const dateStr = format(date, 'yyyy-MM-dd');
+                            const isAvailable = dateAvailability[dateStr];
+                            
+                            if (isAvailable === undefined) {
+                              return 'text-gray-400'; // Loading or unknown
+                            }
+                            
+                            return isAvailable 
+                              ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                              : 'bg-red-100 text-red-800 hover:bg-red-200 line-through';
+                          }}
                         />
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                           <FaCalendarAlt className="w-5 h-5" />
@@ -1817,20 +1952,39 @@ export const ProductDetailPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  {/* Rental Type Information */}
-                  {false && (
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                  {/* Date Availability Legend */}
+                  <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                      <FaInfoCircle className="w-4 h-4" />
+                      {"คำอธิบายสีในปฏิทิน"}
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                       <div className="flex items-center gap-2">
-                        <FaInfoCircle className="w-4 h-4 text-yellow-500" />
-                        <span className="text-sm font-medium text-yellow-700">
-                          {selectedRentalType === RentalType.WEEKLY 
-                            ? `การเช่ารายสัปดาห์: จาก ${rentalDays} วัน คิดเป็น ${Math.ceil(rentalDays / 7)} สัปดาห์ (${Math.ceil(rentalDays / 7) * 7} วัน)`
-                            : `การเช่ารายเดือน: จาก ${rentalDays} วัน คิดเป็น ${Math.ceil(rentalDays / 30)} เดือน`
-                          }
-                        </span>
+                        <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
+                        <span className="text-green-700 font-medium">{"เช่าได้"}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
+                        <span className="text-red-700 font-medium">{"เช่าไม่ได้"}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-gray-100 border border-gray-200 rounded"></div>
+                        <span className="text-gray-600 font-medium">{"กำลังตรวจสอบ"}</span>
                       </div>
                     </div>
-                  )}
+                    {loadingDateAvailability && (
+                      <div className="mt-2 text-xs text-blue-600 flex items-center gap-1">
+                        <div className="animate-spin w-3 h-3 border border-blue-500 border-t-transparent rounded-full"></div>
+                        {"กำลังตรวจสอบความพร้อมใช้งาน..."}
+                      </div>
+                    )}
+                    {availabilityError && (
+                      <div className="mt-2 text-xs text-red-600 flex items-center gap-1">
+                        <FaExclamationTriangle className="w-3 h-3" />
+                        {availabilityError}
+                      </div>
+                    )}
+                  </div>
                   
                   {/* Quantity is fixed at 1 for single item rental */}
                   <div className="space-y-2">
@@ -1838,11 +1992,11 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <FaInfoCircle className="w-4 h-4 text-blue-500" />
                         <span className="text-sm font-medium text-blue-700">
-                          {t('productDetailPage.singleItemRental', 'เช่าได้ทีละ 1 ชิ้นเท่านั้น')}
+                          {"สินค้านี้อนุญาตให้เช่าได้ทีละ 1 ชิ้นเท่านั้น"}
                         </span>
                       </div>
                       <p className="text-xs text-blue-600 mt-1">
-                        {t('productDetailPage.quantityNote', 'จำนวนสินค้าที่พร้อมใช้งาน:')} {product?.quantity || 0} {t('productDetailPage.pieces', 'ชิ้น')}
+                        {"จำนวนสินค้าที่พร้อมใช้งาน"}: {product?.quantity || 0} {"ชิ้น"}
                       </p>
                     </div>
                   </div>
@@ -1855,7 +2009,7 @@ export const ProductDetailPage: React.FC = () => {
                     >
                       <FaExclamationTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
                       <span className="text-red-700 text-sm">
-                        {t('rentalForm.dateValidationError')}
+                        {"วันสิ้นสุดต้องอยู่หลังวันเริ่มต้น"}
                       </span>
                     </motion.div>
                   )}
@@ -1878,7 +2032,7 @@ export const ProductDetailPage: React.FC = () => {
                           <>
                             <FaCheckCircle className="h-4 w-4 text-green-600" />
                             <span className="text-sm text-green-700">
-                              {t('rentalForm.rentalDurationValid', { days: rentalCostsResult.rentalDays })}
+                              {"ระยะเวลาเช่าถูกต้อง"} ({rentalCostsResult.rentalDays} {"วัน"})
                             </span>
                           </>
                         ) : (
@@ -1886,8 +2040,8 @@ export const ProductDetailPage: React.FC = () => {
                             <FaExclamationTriangle className="h-4 w-4 text-red-600" />
                             <span className="text-sm text-red-700">
                               {rentalCostsResult.rentalDays < (product?.min_rental_duration_days || 1) 
-                                ? t('rentalForm.rentalDurationTooShort', { minDays: product?.min_rental_duration_days || 1 })
-                                : t('rentalForm.rentalDurationTooLong', { maxDays: product?.max_rental_duration_days })
+                                ? `ระยะเวลาเช่าสั้นเกินไป ต้องเช่าอย่างน้อย ${product?.min_rental_duration_days || 1} วัน`
+                                : `ระยะเวลาเช่ายาวเกินไป ต้องเช่าไม่เกิน ${product?.max_rental_duration_days} วัน`
                               }
                             </span>
                           </>
@@ -1899,7 +2053,7 @@ export const ProductDetailPage: React.FC = () => {
                   <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
                     <p className="text-blue-700 text-sm flex items-center gap-2">
                       <FaInfoCircle className="w-4 h-4 flex-shrink-0" />
-                      {t('productDetailPage.datePickerNote')}
+                      {"วันเริ่มต้นคือวันแรกของการเช่า วันสิ้นสุดคือวันสุดท้ายของการเช่า"}
                     </p>
                   </div>
                   
@@ -1912,31 +2066,31 @@ export const ProductDetailPage: React.FC = () => {
                     >
                       <div className="flex items-center gap-2 mb-3">
                         <FaClock className="w-4 h-4 text-indigo-600" />
-                        <h4 className="text-sm font-semibold text-indigo-800">สรุประเภทการเช่า</h4>
+                        <h4 className="text-sm font-semibold text-indigo-800">{"สรุปช่วงเวลาเช่า"}</h4>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-white p-3 rounded-lg border border-indigo-100">
-                          <div className="text-xs text-gray-600 mb-1">ระยะเวลา</div>
+                          <div className="text-xs text-gray-600 mb-1">{"ช่วงเวลา"}</div>
                           <div className="font-semibold text-gray-900">
                             {startDateObj.toLocaleDateString('th-TH')} - {endDateObj.toLocaleDateString('th-TH')}
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
-                            รวม {rentalDays} วัน
+                            {"รวม"} {rentalDays} {"วัน"}
                           </div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border border-indigo-100">
-                          <div className="text-xs text-gray-600 mb-1">ประเภทการเช่า</div>
+                          <div className="text-xs text-gray-600 mb-1">{"ประเภทการเช่า"}</div>
                           <div className="font-semibold text-indigo-800">
                             {getRentalTypeInfo(selectedRentalType).label}
                           </div>
                           {selectedRentalType === RentalType.WEEKLY && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {Math.ceil(rentalDays / 7)} สัปดาห์ ({Math.ceil(rentalDays / 7) * 7} วัน)
-                            </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {Math.ceil(rentalDays / 7)} {"สัปดาห์"} ({Math.ceil(rentalDays / 7) * 7} {"วัน"})
+                          </div>
                           )}
                           {selectedRentalType === RentalType.MONTHLY && (
                             <div className="text-xs text-gray-500 mt-1">
-                              {Math.ceil(rentalDays / 30)} เดือน (~{Math.ceil(rentalDays / 30) * 30} วัน)
+                              {Math.ceil(rentalDays / 30)} {"เดือน"} (~{Math.ceil(rentalDays / 30) * 30} {"วัน"})
                             </div>
                           )}
                         </div>
@@ -1944,12 +2098,12 @@ export const ProductDetailPage: React.FC = () => {
                       {/* Show pricing breakdown */}
                       <div className="mt-3 pt-3 border-t border-indigo-200">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">ค่าเช่ารวม:</span>
+                          <span className="text-sm text-gray-600">{"ค่าเช่ารวม"}:</span>
                           <span className="font-bold text-indigo-800">฿{subtotal.toLocaleString()}</span>
                         </div>
                         {optimalRentalInfo && optimalRentalInfo.savings > 0 && optimalRentalInfo.type === selectedRentalType && (
                           <div className="flex justify-between items-center mt-1">
-                            <span className="text-sm text-green-600">ประหยัดได้:</span>
+                            <span className="text-sm text-green-600">{"ประหยัด"}:</span>
                             <span className="font-semibold text-green-600">฿{optimalRentalInfo.savings.toLocaleString()}</span>
                           </div>
                         )}
@@ -1973,10 +2127,10 @@ export const ProductDetailPage: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                         <FaTruck className="w-5 h-5 text-green-600" />
-                        {t('productDetailPage.step2Title', 'วิธีรับสินค้า')}
+                        {"วิธีรับสินค้า"}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">
-                        {t('rentalForm.pickupMethodDescription')}
+                        {"เลือกว่าคุณจะไปรับเอง หรือให้จัดส่ง"}
                       </p>
                     </div>
                   </div>
@@ -2000,8 +2154,8 @@ export const ProductDetailPage: React.FC = () => {
                           <FaHandshake className="w-5 h-5" />
                         </div>
                         <div className="text-left">
-                          <p className="font-semibold text-gray-900">{t('rentalForm.selfPickupOption')}</p>
-                          <p className="text-sm text-gray-600">{t('rentalForm.selfPickupDescription')}</p>
+                          <p className="font-semibold text-gray-900">{"รับสินค้าด้วยตนเอง"}</p>
+                          <p className="text-sm text-gray-600">{"ไปรับสินค้าจากเจ้าของโดยตรง"}</p>
                         </div>
                       </div>
                     </button>
@@ -2024,8 +2178,8 @@ export const ProductDetailPage: React.FC = () => {
                           <FaTruck className="w-5 h-5" />
                         </div>
                         <div className="text-left">
-                          <p className="font-semibold text-gray-900">{t('rentalForm.deliveryOption')}</p>
-                          <p className="text-sm text-gray-600">{t('rentalForm.deliveryDescription')}</p>
+                          <p className="font-semibold text-gray-900">{"จัดส่งสินค้า"}</p>
+                          <p className="text-sm text-gray-600">{"จัดส่งถึงที่อยู่ของคุณ (มีค่าธรรมเนียม)"}</p>
                         </div>
                       </div>
                     </button>
@@ -2047,10 +2201,10 @@ export const ProductDetailPage: React.FC = () => {
                       <div>
                         <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                           <FaMapMarkerAlt className="w-5 h-5 text-purple-600" />
-                          {t('productDetailPage.step3Title', 'ที่อยู่สำหรับจัดส่ง')}
+                          {"ที่อยู่สำหรับจัดส่ง"}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          {t('rentalForm.deliveryAddressDescription')}
+                          {"เลือกที่อยู่ที่ต้องการให้จัดส่งสินค้า"}
                         </p>
                       </div>
                     </div>
@@ -2058,7 +2212,7 @@ export const ProductDetailPage: React.FC = () => {
                     {isLoadingAddresses ? (
                       <div className="flex items-center justify-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                        <span className="ml-3 text-purple-600">{t('productDetailPage.loadingAddresses')}</span>
+                        <span className="ml-3 text-purple-600">{"กำลังโหลดที่อยู่..."}</span>
                       </div>
                     ) : addresses.length > 0 ? (
                       <div className="space-y-4">
@@ -2067,7 +2221,7 @@ export const ProductDetailPage: React.FC = () => {
                           onChange={e => setSelectedAddressId(Number(e.target.value))} 
                           className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
                         >
-                          <option value="">{t('productDetailPage.selectAddressOption')}</option>
+                          <option value="">{"เลือกที่อยู่"}</option>
                           {addresses.map(addr => (
                             <option key={addr.id} value={addr.id}>
                               {addr.recipient_name} - {addr.address_line1}{addr.address_line2 ? `, ${addr.address_line2}` : ''}{addr.sub_district ? `, ${addr.sub_district}` : ''}, {addr.district}, {provinces.find(p => p.id === addr.province_id)?.name_th || `จังหวัด ID: ${addr.province_id}`}{addr.postal_code ? ` ${addr.postal_code}` : ''}
@@ -2083,7 +2237,7 @@ export const ProductDetailPage: React.FC = () => {
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                           </svg>
-                          {t('productDetailPage.addNewAddress', 'เพิ่มที่อยู่ใหม่')}
+                          {"เพิ่มที่อยู่ใหม่"}
                         </button>
                       </div>
                     ) : (
@@ -2091,7 +2245,7 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                           <FaMapMarkerAlt className="w-8 h-8 text-purple-600" />
                         </div>
-                        <p className="text-gray-600 mb-4">{t('productDetailPage.noAddressesFound')}</p>
+                        <p className="text-gray-600 mb-4">{"ไม่พบที่อยู่สำหรับจัดส่ง"}</p>
                         <button 
                           type="button" 
                           className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-xl hover:bg-purple-700 transition-colors duration-200" 
@@ -2100,7 +2254,7 @@ export const ProductDetailPage: React.FC = () => {
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                           </svg>
-                          {t('productDetailPage.addNewAddress', 'เพิ่มที่อยู่ใหม่')}
+                          {"เพิ่มที่อยู่ใหม่"}
                         </button>
                       </div>
                     )}
@@ -2121,10 +2275,10 @@ export const ProductDetailPage: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                         <FaComments className="w-5 h-5 text-orange-600" />
-                        {t('productDetailPage.step4Title', 'หมายเหตุเพิ่มเติม')}
+                        {"หมายเหตุเพิ่มเติม"}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">
-                        {t('rentalForm.additionalNotesDescription')}
+                        {"ระบุรายละเอียดเพิ่มเติมถึงเจ้าของสินค้า (ถ้ามี)"}
                       </p>
                     </div>
                   </div>
@@ -2136,7 +2290,7 @@ export const ProductDetailPage: React.FC = () => {
                     onChange={e => setNotes(e.target.value)} 
                     rows={3} 
                     className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white resize-none" 
-                    placeholder={t('productDetailPage.notesPlaceholder')}
+                    placeholder={"เช่น เวลานัดรับสินค้าที่สะดวก, จุดสังเกตของสถานที่จัดส่ง"}
                   />
                 </motion.div>
 
@@ -2155,10 +2309,10 @@ export const ProductDetailPage: React.FC = () => {
                       <div>
                         <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                           <FaMoneyBillWave className="w-5 h-5 text-indigo-600" />
-                          สรุปยอดค่าเช่า
+                          {"สรุปค่าใช้จ่าย"}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          รายละเอียดค่าใช้จ่ายทั้งหมดสำหรับการเช่านี้
+                          {"สรุปยอดเงินที่คุณต้องชำระ (ยอดเงินสุดท้ายจะยืนยันในหน้าชำระเงิน)"}
                         </p>
                       </div>
                     </div>
@@ -2169,14 +2323,14 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <FaClock className="w-4 h-4 text-indigo-600" />
-                            <span className="text-sm font-medium text-gray-700">ระยะเวลาการเช่า</span>
+                            <span className="text-sm font-medium text-gray-700">{"ระยะเวลาเช่า"}</span>
                           </div>
                           <span className="text-sm font-bold text-gray-900">
-                            {rentalDays} วัน
+                            {rentalDays} {"วัน"}
                           </span>
                         </div>
                         <div className="text-xs text-gray-600">
-                          จาก {startDateObj?.toLocaleDateString('th-TH')} ถึง {endDateObj?.toLocaleDateString('th-TH')}
+                          {"ตั้งแต่วันที่"} {startDateObj?.toLocaleDateString('th-TH')} {"ถึง"} {endDateObj?.toLocaleDateString('th-TH')}
                         </div>
                       </div>
 
@@ -2184,7 +2338,7 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="bg-white rounded-xl p-4 border border-indigo-100">
                         <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
                           <FaTag className="w-4 h-4 text-indigo-600" />
-                          รายการค่าเช่า
+                          {"รายการค่าเช่า"}
                         </h4>
                         
                         <div className="space-y-2">
@@ -2192,11 +2346,11 @@ export const ProductDetailPage: React.FC = () => {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-gray-700">
-                                ค่าเช่า ({getRentalTypeInfo(selectedRentalType).label})
+                                {"ค่าเช่า"} ({getRentalTypeInfo(selectedRentalType).label})
                               </span>
                               {optimalRentalInfo && optimalRentalInfo.savings > 0 && (
                                 <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                                  ประหยัด ฿{optimalRentalInfo.savings.toLocaleString()}
+                                  {"ประหยัด"} ฿{optimalRentalInfo.savings.toLocaleString()}
                                 </span>
                               )}
                             </div>
@@ -2224,8 +2378,8 @@ export const ProductDetailPage: React.FC = () => {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <FaShieldAlt className="w-4 h-4 text-yellow-600" />
-                              <span className="text-sm font-medium text-gray-700">เงินประกัน</span>
-                              <span className="text-xs text-yellow-600">(คืนเมื่อสิ้นสุดการเช่า)</span>
+                              <span className="text-sm font-medium text-gray-700">{"เงินประกัน"}</span>
+                              <span className="text-xs text-yellow-600">({"จะได้รับคืนเมื่อสิ้นสุดการเช่า"})</span>
                             </div>
                             <span className="text-sm font-bold text-gray-900">
                               ฿{product.security_deposit.toLocaleString()}
@@ -2239,21 +2393,21 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                           <div className="flex items-center gap-2">
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
-                            <span className="text-sm text-gray-600">กำลังคำนวณค่าธรรมเนียม...</span>
+                            <span className="text-sm text-gray-600">{"กำลังคำนวณค่าธรรมเนียม..."}</span>
                           </div>
                         </div>
                       ) : estimatedFees ? (
                         <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                           <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
                             <FaCalculator className="w-4 h-4 text-blue-600" />
-                            ค่าธรรมเนียมโดยประมาณ
+                            {"ค่าธรรมเนียมโดยประมาณ"}
                           </h4>
                           
                           <div className="space-y-2">
                             {/* Platform fee for renter */}
                             {estimatedFees.platform_fee_renter > 0 && (
                               <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-700">ค่าธรรมเนียมแพลตฟอร์ม (ผู้เช่า)</span>
+                                <span className="text-sm text-gray-700">{"ค่าธรรมเนียมแพลตฟอร์ม"}</span>
                                 <span className="text-sm font-bold text-gray-900">
                                   ฿{estimatedFees.platform_fee_renter.toLocaleString()}
                                 </span>
@@ -2263,7 +2417,7 @@ export const ProductDetailPage: React.FC = () => {
                             {/* Delivery fee */}
                             {pickupMethod === RentalPickupMethod.DELIVERY && estimatedFees.delivery_fee > 0 && (
                               <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-700">ค่าจัดส่ง</span>
+                                <span className="text-sm text-gray-700">{"ค่าจัดส่ง"}</span>
                                 <span className="text-sm font-bold text-gray-900">
                                   ฿{estimatedFees.delivery_fee.toLocaleString()}
                                 </span>
@@ -2274,7 +2428,7 @@ export const ProductDetailPage: React.FC = () => {
                             {estimatedFees.total_estimated_fees > 0 && (
                               <div className="pt-2 border-t border-blue-200">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-sm font-semibold text-blue-700">รวมค่าธรรมเนียม</span>
+                                  <span className="text-sm font-semibold text-blue-700">{"รวมค่าธรรมเนียม"}</span>
                                   <span className="text-sm font-bold text-blue-900">
                                     ฿{estimatedFees.total_estimated_fees.toLocaleString()}
                                   </span>
@@ -2284,7 +2438,7 @@ export const ProductDetailPage: React.FC = () => {
                             
                             {estimatedFees.total_estimated_fees === 0 && (
                               <div className="text-center py-2">
-                                <span className="text-sm text-green-600 font-medium">ไม่มีค่าธรรมเนียมเพิ่มเติม</span>
+                                <span className="text-sm text-green-600 font-medium">{"ไม่มีค่าธรรมเนียมเพิ่มเติม"}</span>
                               </div>
                             )}
                           </div>
@@ -2293,10 +2447,10 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                           <div className="flex items-center gap-2">
                             <FaTruck className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm font-medium text-blue-700">ค่าธรรมเนียม</span>
+                            <span className="text-sm font-medium text-blue-700">{"ค่าธรรมเนียม"}</span>
                           </div>
                           <p className="text-xs text-blue-600 mt-1">
-                            ค่าธรรมเนียมจะได้รับการคำนวณในขั้นตอนการชำระเงิน
+                            {"ค่าธรรมเนียมจะถูกคำนวณอีกครั้งในหน้าชำระเงิน"}
                           </p>
                         </div>
                       )}
@@ -2306,7 +2460,7 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <FaCalculator className="w-5 h-5 text-indigo-700" />
-                            <span className="text-lg font-bold text-indigo-900">ยอดรวมเบื้องต้น</span>
+                            <span className="text-lg font-bold text-indigo-900">{"ยอดรวมเบื้องต้น"}</span>
                           </div>
                           <div className="text-right">
                             <div className="text-2xl font-bold text-indigo-900">
@@ -2317,11 +2471,11 @@ export const ProductDetailPage: React.FC = () => {
                               ).toLocaleString()}
                             </div>
                             <div className="text-xs text-indigo-600">
-                              {estimatedFees?.total_estimated_fees 
-                                ? 'รวมเงินประกันและค่าธรรมเนียม' 
-                                : product?.security_deposit 
-                                ? 'รวมเงินประกัน' 
-                                : 'ไม่รวมค่าธรรมเนียม'
+                              {estimatedFees?.total_estimated_fees
+                                ? "รวมเงินประกันและค่าธรรมเนียมโดยประมาณ"
+                                : product?.security_deposit
+                                ? "รวมเงินประกัน"
+                                : "ยังไม่รวมค่าธรรมเนียม"
                               }
                             </div>
                           </div>
@@ -2332,18 +2486,18 @@ export const ProductDetailPage: React.FC = () => {
                           <div className="mt-3 pt-3 border-t border-indigo-200">
                             <div className="text-xs text-indigo-700 space-y-1">
                               <div className="flex justify-between">
-                                <span>ค่าเช่า:</span>
+                                <span>{"ค่าเช่า"}:</span>
                                 <span>฿{subtotal.toLocaleString()}</span>
                               </div>
                               {product?.security_deposit && product.security_deposit > 0 && (
-                                <div className="flex justify-between">
-                                  <span>เงินประกัน:</span>
-                                  <span>฿{product.security_deposit.toLocaleString()}</span>
-                                </div>
+                              <div className="flex justify-between">
+                                <span>{"เงินประกัน"}:</span>
+                                <span>฿{product.security_deposit.toLocaleString()}</span>
+                              </div>
                               )}
                               {estimatedFees.total_estimated_fees > 0 && (
                                 <div className="flex justify-between">
-                                  <span>ค่าธรรมเนียม:</span>
+                                  <span>{"รวมค่าธรรมเนียม"}:</span>
                                   <span>฿{estimatedFees.total_estimated_fees.toLocaleString()}</span>
                                 </div>
                               )}
@@ -2356,18 +2510,18 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                         <h5 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
                           <FaInfoCircle className="w-4 h-4 text-gray-600" />
-                          หมายเหตุสำคัญ
+                          {"ข้อควรทราบ"}
                         </h5>
                         <ul className="text-xs text-gray-600 space-y-1">
-                          <li>• ยอดข้างต้นแสดงค่าธรรมเนียมตามการตั้งค่าของระบบ</li>
-                          <li>• ค่าธรรมเนียมแพลตฟอร์มปัจจุบัน: {estimatedFees ? `${((estimatedFees.platform_fee_renter / subtotal) * 100).toFixed(1)}%` : '0%'}</li>
+                          <li>• {"ค่าธรรมเนียมอ้างอิงจากการตั้งค่าระบบในปัจจุบัน"}</li>
+                          <li>• {"ค่าธรรมเนียมแพลตฟอร์มสำหรับผู้เช่าในปัจจุบัน"} {estimatedFees ? `${((estimatedFees.platform_fee_renter / subtotal) * 100).toFixed(1)}%` : '0%'}</li>
                           {pickupMethod === RentalPickupMethod.DELIVERY && (
-                            <li>• ค่าจัดส่งพื้นฐาน: {estimatedFees ? `฿${estimatedFees.delivery_fee.toLocaleString()}` : 'กำลังโหลด...'}</li>
+                            <li>• {"ค่าจัดส่งเริ่มต้น"} {estimatedFees ? `฿${estimatedFees.delivery_fee.toLocaleString()}` : "กำลังโหลด"}</li>
                           )}
                           {product?.security_deposit && (
-                            <li>• เงินประกันจะถูกคืนภายใน 7 วันหลังการตรวจสอบสินค้า</li>
+                            <li>• {"เงินประกันจะถูกคืนเมื่อสิ้นสุดการเช่าหากไม่มีความเสียหาย"}</li>
                           )}
-                          <li>• ยอดสุดท้ายจะแสดงในหน้าชำระเงิน</li>
+                          <li>• {"ยอดเงินสุดท้ายจะยืนยันในหน้าชำระเงิน"}</li>
                         </ul>
                       </div>
                     </div>
@@ -2406,12 +2560,12 @@ export const ProductDetailPage: React.FC = () => {
                       <FaShoppingCart className="w-6 h-6" />
                       <span className="text-lg">
                         {rentalDays <= 0 
-                          ? t('datePicker.selectDate')
+                          ? "กรุณาเลือกวันที่"
                           : rentalDays < (product?.min_rental_duration_days || 1)
-                          ? t('rentalForm.rentalDurationTooShort', { minDays: product?.min_rental_duration_days || 1 })
+                          ? `ระยะเวลาเช่าสั้นเกินไป (ขั้นต่ำ ${product?.min_rental_duration_days || 1} วัน)`
                           : (product?.max_rental_duration_days ? rentalDays > product.max_rental_duration_days : false)
-                          ? t('rentalForm.rentalDurationTooLong', { maxDays: product?.max_rental_duration_days })
-                          : t('productDetailPage.submitRentalRequestButton')
+                          ? `ระยะเวลาเช่ายาวเกินไป (สูงสุด ${product?.max_rental_duration_days} วัน)`
+                          : "ส่งคำขอเช่า"
                         }
                       </span>
                     </div>
@@ -2440,7 +2594,7 @@ export const ProductDetailPage: React.FC = () => {
               <button 
                 className="absolute top-4 right-4 text-white/80 hover:text-white text-2xl transition-colors duration-200 z-10" 
                 onClick={() => setShowAddAddress(false)} 
-                aria-label={t('buttons.close')}
+                aria-label={"ปิด"}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2453,11 +2607,11 @@ export const ProductDetailPage: React.FC = () => {
                     <FaMapMarkerAlt className="w-6 h-6" />
                   </div>
                   <h3 className="text-2xl font-bold">
-                    {t('addressForm.addNewAddressTitle', 'เพิ่มที่อยู่ใหม่')}
+                    {"เพิ่มที่อยู่ใหม่"}
                   </h3>
                 </div>
                 <p className="text-purple-100 text-sm leading-relaxed">
-                  {t('addressForm.addNewAddressDescription')}
+                  {"กรุณากรอกข้อมูลที่อยู่สำหรับจัดส่งให้ครบถ้วน"}
                 </p>
               </div>
             </div>
@@ -2474,7 +2628,7 @@ export const ProductDetailPage: React.FC = () => {
                     <FaExclamationTriangle className="w-5 h-5 text-red-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-red-800 font-medium">{t('addressForm.errorTitle')}</p>
+                    <p className="text-red-800 font-medium">{"เกิดข้อผิดพลาด"}</p>
                     <p className="text-red-600 text-sm">{addAddressError}</p>
                   </div>
                 </motion.div>
@@ -2484,12 +2638,12 @@ export const ProductDetailPage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('addressForm.recipientName')}
+                      {"ชื่อผู้รับ"}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input 
                       className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                      placeholder={t('addressForm.recipientName')} 
+                      placeholder={"ชื่อผู้รับ"} 
                       required 
                       value={newAddress.recipient_name} 
                       onChange={e => setNewAddress({ ...newAddress, recipient_name: e.target.value })} 
@@ -2498,12 +2652,12 @@ export const ProductDetailPage: React.FC = () => {
                   
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('addressForm.phoneNumber')}
+                      {"เบอร์โทรศัพท์"}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input 
                       className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                      placeholder={t('addressForm.phoneNumber')} 
+                      placeholder={"เบอร์โทรศัพท์"} 
                       required 
                       value={newAddress.phone_number} 
                       onChange={e => setNewAddress({ ...newAddress, phone_number: e.target.value })} 
@@ -2513,12 +2667,12 @@ export const ProductDetailPage: React.FC = () => {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    {t('addressForm.addressLine1')}
+                    {"ที่อยู่บรรทัดที่ 1"}
                     <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input 
                     className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                    placeholder={t('addressForm.addressLine1')} 
+                    placeholder={"บ้านเลขที่, ถนน, หมู่บ้าน"} 
                     required 
                     value={newAddress.address_line1} 
                     onChange={e => setNewAddress({ ...newAddress, address_line1: e.target.value })} 
@@ -2527,11 +2681,11 @@ export const ProductDetailPage: React.FC = () => {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    {t('addressForm.addressLine2')}
+                    {"ที่อยู่บรรทัดที่ 2 (ถ้ามี)"}
                   </label>
                   <input 
                     className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                    placeholder={t('addressForm.addressLine2')} 
+                    placeholder={"รายละเอียดเพิ่มเติม"} 
                     value={newAddress.address_line2} 
                     onChange={e => setNewAddress({ ...newAddress, address_line2: e.target.value })} 
                   />
@@ -2540,11 +2694,11 @@ export const ProductDetailPage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('addressForm.subDistrict')}
+                      {"ตำบล/แขวง"}
                     </label>
                     <input 
                       className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                      placeholder={t('addressForm.subDistrict')} 
+                      placeholder={"ตำบล/แขวง"} 
                       value={newAddress.sub_district} 
                       onChange={e => setNewAddress({ ...newAddress, sub_district: e.target.value })} 
                     />
@@ -2552,12 +2706,12 @@ export const ProductDetailPage: React.FC = () => {
                   
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('addressForm.district')}
+                      {"อำเภอ/เขต"}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input 
                       className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                      placeholder={t('addressForm.district')} 
+                      placeholder={"อำเภอ/เขต"} 
                       required 
                       value={newAddress.district} 
                       onChange={e => setNewAddress({ ...newAddress, district: e.target.value })} 
@@ -2568,7 +2722,7 @@ export const ProductDetailPage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('addressForm.selectProvince')}
+                      {"จังหวัด"}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <select 
@@ -2577,7 +2731,7 @@ export const ProductDetailPage: React.FC = () => {
                       value={newAddress.province_id} 
                       onChange={e => setNewAddress({ ...newAddress, province_id: Number(e.target.value) })}
                     >
-                      <option value="">{t('addressForm.selectProvince')}</option>
+                      <option value="">{"เลือกจังหวัด"}</option>
                       {provinces.map(prov => (
                         <option key={prov.id} value={prov.id}>{prov.name_th}</option>
                       ))}
@@ -2586,12 +2740,12 @@ export const ProductDetailPage: React.FC = () => {
                   
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('addressForm.postalCode')}
+                      {"รหัสไปรษณีย์"}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input 
                       className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white" 
-                      placeholder={t('addressForm.postalCode')} 
+                      placeholder={"รหัสไปรษณีย์"} 
                       required 
                       value={newAddress.postal_code} 
                       onChange={e => setNewAddress({ ...newAddress, postal_code: e.target.value })} 
@@ -2602,7 +2756,7 @@ export const ProductDetailPage: React.FC = () => {
                 {/* Google Maps Location Picker */}
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    {t('googleMaps.selectLocation')}
+                    {"เลือกตำแหน่งบนแผนที่ (ทางเลือก)"}
                   </label>
                   <OpenStreetMapPicker
                     onLocationSelect={(location) => {
@@ -2613,7 +2767,7 @@ export const ProductDetailPage: React.FC = () => {
                         address_line1: location.formattedAddress || newAddress.address_line1
                       });
                     }}
-                    placeholder={t('googleMaps.searchPlaceholder')}
+                    placeholder={"ค้นหาที่อยู่หรือคลิกบนแผนที่"}
                     height="300px"
                     className="border-2 border-gray-200 rounded-xl overflow-hidden"
                   />
@@ -2621,11 +2775,11 @@ export const ProductDetailPage: React.FC = () => {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    {t('addressForm.notes')}
+                    {"หมายเหตุ (ถ้ามี)"}
                   </label>
                   <textarea 
                     className="w-full p-4 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white resize-none" 
-                    placeholder={t('addressForm.notes')} 
+                    placeholder={"เช่น จุดสังเกต หรือรายละเอียดการส่ง"} 
                     rows={3}
                     value={newAddress.notes} 
                     onChange={e => setNewAddress({ ...newAddress, notes: e.target.value })} 
@@ -2638,7 +2792,7 @@ export const ProductDetailPage: React.FC = () => {
                     onClick={() => setShowAddAddress(false)}
                     className="flex-1 py-4 px-6 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold"
                   >
-                    {t('addressForm.cancel')}
+                    {"ยกเลิก"}
                   </button>
                   <button 
                     type="submit" 
@@ -2648,10 +2802,10 @@ export const ProductDetailPage: React.FC = () => {
                     {addingAddress ? (
                       <div className="flex items-center justify-center gap-2">
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        {t('addressForm.saving')}
+                        {"กำลังบันทึก..."}
                       </div>
                     ) : (
-                      t('addressForm.save')
+                      "บันทึกที่อยู่"
                     )}
                   </button>
                 </div>
@@ -2679,7 +2833,7 @@ export const ProductDetailPage: React.FC = () => {
               <button 
                 className="absolute top-4 right-4 text-white/80 hover:text-white text-2xl transition-colors duration-200 z-10" 
                 onClick={() => setShowOwnerProfile(false)} 
-                aria-label={t('buttons.close')}
+                aria-label={"ปิด"}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2692,11 +2846,11 @@ export const ProductDetailPage: React.FC = () => {
                     <FaUser className="w-6 h-6" />
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-bold">
-                    {t('ownerProfile.title')}
+                    {"โปรไฟล์เจ้าของสินค้า"}
                   </h2>
                 </div>
                 <p className="text-blue-100 text-sm sm:text-base leading-relaxed">
-                  {t('ownerProfile.description')}
+                  {"ข้อมูลสาธารณะของเจ้าของสินค้าชิ้นนี้"}
                 </p>
               </div>
             </div>
@@ -2743,11 +2897,7 @@ export const ProductDetailPage: React.FC = () => {
                   {product.owner.created_at && (
                     <p className="text-gray-600 flex items-center justify-center gap-2">
                       <FaCalendarAlt className="w-4 h-4" />
-                      สมาชิกตั้งแต่ {new Date(product.owner.created_at).toLocaleDateString('th-TH', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {"เป็นสมาชิกตั้งแต่"} {new Date(product.owner.created_at).toLocaleDateString('th-TH')}
                     </p>
                   )}
                 </motion.div>
@@ -2761,13 +2911,13 @@ export const ProductDetailPage: React.FC = () => {
                 >
                   <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <FaEnvelope className="w-5 h-5 text-blue-600" />
-                    {t('ownerProfile.contactInformation')}
+                    {"ข้อมูลติดต่อ"}
                   </h4>
                   
                   {loadingOwnerProfile ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                      <p className="text-gray-600 mt-2">{t('ownerProfile.loadingProfile')}</p>
+                      <p className="text-gray-600 mt-2">{"กำลังโหลดโปรไฟล์..."}</p>
                     </div>
                   ) : ownerProfileError ? (
                     <div className="text-center py-8">
@@ -2782,7 +2932,7 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
                         <FaUser className="w-5 h-5 text-gray-500" />
                         <div className="flex-1">
-                          <p className="text-sm text-gray-600">{t('ownerProfile.basicInfo')}</p>
+                          <p className="text-sm text-gray-600">{"ชื่อ"}</p>
                           <p className="font-semibold text-gray-900">
                             {ownerDetailedProfile.first_name} {ownerDetailedProfile.last_name || ''}
                           </p>
@@ -2793,7 +2943,7 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
                         <FaUser className="w-5 h-5 text-gray-500" />
                         <div className="flex-1">
-                          <p className="text-sm text-gray-600">{t('ownerProfile.username')}</p>
+                          <p className="text-sm text-gray-600">{"ชื่อผู้ใช้"}</p>
                           <p className="font-semibold text-gray-900">@{ownerDetailedProfile.username}</p>
                         </div>
                       </div>
@@ -2803,16 +2953,16 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
                           <FaEnvelope className="w-5 h-5 text-gray-500" />
                           <div className="flex-1">
-                            <p className="text-sm text-gray-600">{t('ownerProfile.email')}</p>
+                            <p className="text-sm text-gray-600">{"อีเมล"}</p>
                             <p className="font-semibold text-gray-900 break-all">{ownerDetailedProfile.email}</p>
                           </div>
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(ownerDetailedProfile.email);
-                              alert(t('ownerProfile.emailCopied'));
+                              alert("คัดลอกอีเมลแล้ว");
                             }}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                            title={t('ownerProfile.copyEmail')}
+                            title={"คัดลอกอีเมล"}
                           >
                             <FaCopy className="w-4 h-4" />
                           </button>
@@ -2824,7 +2974,7 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
                           <FaPhone className="w-5 h-5 text-gray-500" />
                           <div className="flex-1">
-                            <p className="text-sm text-gray-600">{t('ownerProfile.phoneNumber')}</p>
+                            <p className="text-sm text-gray-600">{"เบอร์โทรศัพท์"}</p>
                             <p className="font-semibold text-gray-900">{ownerDetailedProfile.phone_number}</p>
                           </div>
                           <div className="flex gap-2">
@@ -2832,18 +2982,18 @@ export const ProductDetailPage: React.FC = () => {
                               onClick={() => {
                                 if (ownerDetailedProfile.phone_number) {
                                   navigator.clipboard.writeText(ownerDetailedProfile.phone_number);
-                                  alert(t('ownerProfile.phoneCopied'));
+                                  alert("คัดลอกเบอร์โทรศัพท์แล้ว");
                                 }
                               }}
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                              title={t('ownerProfile.copyPhone')}
+                              title={"คัดลอกเบอร์โทรศัพท์"}
                             >
                               <FaCopy className="w-4 h-4" />
                             </button>
                             <a
                               href={`tel:${ownerDetailedProfile.phone_number || ''}`}
                               className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
-                              title={t('ownerProfile.call')}
+                              title={"โทร"}
                             >
                               <FaPhone className="w-4 h-4" />
                             </a>
@@ -2856,7 +3006,7 @@ export const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
                           <FaMapMarkerAlt className="w-5 h-5 text-gray-500" />
                           <div className="flex-1">
-                            <p className="text-sm text-gray-600">{t('ownerProfile.address')}</p>
+                            <p className="text-sm text-gray-600">{"ที่อยู่"}</p>
                             <p className="font-semibold text-gray-900">
                               {ownerDetailedProfile.address_line1}
                               {ownerDetailedProfile.address_line2 && `, ${ownerDetailedProfile.address_line2}`}
@@ -2873,10 +3023,10 @@ export const ProductDetailPage: React.FC = () => {
                                 ownerDetailedProfile.postal_code
                               ].filter(Boolean).join(', ');
                               navigator.clipboard.writeText(address);
-                              alert(t('ownerProfile.addressCopied'));
+                              alert("คัดลอกที่อยู่แล้ว");
                             }}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                            title={t('ownerProfile.copyAddress')}
+                            title={"คัดลอกที่อยู่"}
                           >
                             <FaCopy className="w-4 h-4" />
                           </button>
@@ -2887,10 +3037,10 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                         <h5 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
                           <FaComments className="w-4 h-4" />
-                          {t('ownerProfile.contactViaPlatform')}
+                          {"ติดต่อผ่านแพลตฟอร์ม"}
                         </h5>
                         <p className="text-sm text-blue-700 mb-3">
-                          {t('ownerProfile.contactViaPlatformDescription')}
+                          {"คุณสามารถส่งข้อความถึงเจ้าของสินค้าได้โดยตรงผ่านระบบแชทของเรา"}
                         </p>
                         {product.owner.id !== authUser?.id && (
                           <Button
@@ -2902,7 +3052,7 @@ export const ProductDetailPage: React.FC = () => {
                             isLoading={contactingOwner}
                           >
                             <FaComments className="w-4 h-4 mr-2" />
-                            {t('ownerProfile.sendMessage')}
+                            {"ส่งข้อความ"}
                           </Button>
                         )}
                       </div>
@@ -2911,16 +3061,16 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                         <h5 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center gap-2">
                           <FaInfoCircle className="w-4 h-4" />
-                          {t('ownerProfile.privacyNote')}
+                          {"หมายเหตุความเป็นส่วนตัว"}
                         </h5>
                         <p className="text-sm text-yellow-700">
-                          {t('ownerProfile.privacyNoteDescription')}
+                          {"ข้อมูลติดต่อส่วนบุคคลบางส่วนจะถูกเปิดเผยต่อเมื่อมีการยืนยันการเช่าเท่านั้น"}
                         </p>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-gray-600">{t('ownerProfile.cannotLoadProfile')}</p>
+                      <p className="text-gray-600">{"ไม่สามารถโหลดโปรไฟล์เจ้าของสินค้าได้"}</p>
                     </div>
                   )}
                 </motion.div>
@@ -2934,7 +3084,7 @@ export const ProductDetailPage: React.FC = () => {
                 >
                   <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <FaShieldAlt className="w-5 h-5 text-green-600" />
-                    {t('ownerProfile.verificationStatus')}
+                    {"สถานะการยืนยันตัวตน"}
                   </h4>
                   
                   <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-green-200">
@@ -2942,8 +3092,8 @@ export const ProductDetailPage: React.FC = () => {
                       <FaCheckCircle className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-green-800">{t('ownerProfile.verified')}</p>
-                      <p className="text-sm text-green-600">{t('ownerProfile.verifiedDescription')}</p>
+                      <p className="font-semibold text-green-800">{"ยืนยันตัวตนแล้ว"}</p>
+                      <p className="text-sm text-green-600">{"ผู้ใช้รายนี้ได้ผ่านการตรวจสอบการยืนยันตัวตนกับเรา"}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -2965,7 +3115,7 @@ export const ProductDetailPage: React.FC = () => {
                       isLoading={contactingOwner}
                     >
                       <FaComments className="w-5 h-5 mr-2" />
-                      {t('ownerProfile.sendMessage')}
+                      {"ส่งข้อความ"}
                     </Button>
                   )}
                   
@@ -2975,7 +3125,7 @@ export const ProductDetailPage: React.FC = () => {
                     className="flex-1 border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
                     onClick={() => setShowOwnerProfile(false)}
                   >
-                    {t('buttons.close')}
+                    {"ปิด"}
                   </Button>
                 </motion.div>
               </div>

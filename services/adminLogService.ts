@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { ApiResponse, ApiError } from '../types';
 
-const API_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from '../constants';
+
+const API_URL = API_BASE_URL;
 
 const api = axios.create({ baseURL: API_URL });
 api.interceptors.request.use((config) => {
@@ -76,4 +78,4 @@ export const getAdminLogs = async (query: AdminLogsQuery = {}): Promise<AdminLog
     }
     throw error;
   }
-}; 
+};

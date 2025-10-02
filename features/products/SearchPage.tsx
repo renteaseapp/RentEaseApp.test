@@ -1,20 +1,18 @@
-import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
+import React, { useEffect, useState, ChangeEvent, FormEvent, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Product, Category, Province, ProductSearchParams } from '../../types';
-import { getCategories, getProvinces, searchProducts } from '../../services/productService';
+import { getCategories, getProvinces, searchProducts, searchProductsByLocation } from '../../services/productService';
 import { ProductCard } from './ProductCard';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
-import { useTranslation } from 'react-i18next';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaSearch, 
   FaFilter, 
   FaTimes, 
-  FaSort, 
   FaMapMarkerAlt, 
-  FaTag, 
   FaDollarSign,
   FaBoxOpen,
   FaChevronLeft,
@@ -22,19 +20,23 @@ import {
   FaTh,
   FaList
 } from 'react-icons/fa';
+import { useAuth } from '../../contexts/AuthContext';
 
 const FilterIcon = () => <FaFilter className="h-5 w-5 mr-2" />;
 const ClearIcon = () => <FaTimes className="h-5 w-5 mr-2" />;
 
 export const SearchPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  
+  const [nearMe, setNearMe] = useState<boolean>(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
   const [filters, setFilters] = useState<ProductSearchParams>({
     q: searchParams.get('q') || '',
     category_id: searchParams.get('category_id') ? Number(searchParams.get('category_id')) : undefined,
@@ -51,6 +53,124 @@ export const SearchPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(12);
+  
+  // Ref to track if we need to update filters to avoid infinite loops
+  const shouldUpdateFilters = useRef(true);
+
+  // Get user's current location
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('เบราว์เซอร์ของคุณไม่รองรับการระบุตำแหน่ง');
+      return;
+    }
+
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+        setNearMe(true);
+      },
+      (error) => {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setLocationError('คุณปฏิเสธการเข้าถึงตำแหน่ง กรุณาเปิดใช้งานการเข้าถึงตำแหน่งในเบราว์เซอร์ของคุณ');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setLocationError('ไม่สามารถระบุตำแหน่งของคุณได้');
+            break;
+          case error.TIMEOUT:
+            setLocationError('หมดเวลาการเชื่อมต่อในการระบุตำแหน่ง');
+            break;
+          default:
+            setLocationError('เกิดข้อผิดพลาดในการระบุตำแหน่ง');
+            break;
+        }
+      }
+    );
+  };
+
+  // Near Me functionality with GPS
+  useEffect(() => {
+    if (nearMe && userLocation) {
+      // When using GPS, we'll search by coordinates
+      const fetchProductsByLocation = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const params = { ...filters, limit: itemsPerPage };
+          const response = await searchProductsByLocation(userLocation.lat, userLocation.lng, 50, params);
+          setProducts(response.data);
+          setTotalPages(response.meta.last_page);
+          setTotalItems(response.meta.total);
+        } catch (err: any) {
+          setError(err.message || 'ไม่สามารถโหลดสินค้าได้');
+          setProducts([]);
+          setTotalPages(1);
+          setTotalItems(0);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchProductsByLocation();
+    } else if (nearMe && user?.province_id) {
+      // Use province from user profile
+      if (shouldUpdateFilters.current) {
+        setFilters((prev: ProductSearchParams) => {
+          // Only update if the province_ids is not already set to user's province
+          if (prev.province_ids !== String(user.province_id)) {
+            return { ...prev, province_ids: String(user.province_id), page: 1 };
+          }
+          return prev;
+        });
+      }
+    } else if (!nearMe) {
+      // เมื่อปิด Near Me ให้เคลียร์ province_ids ที่อาจถูกตั้งจากการใช้ Near Me
+      if (shouldUpdateFilters.current) {
+        setFilters((prev: ProductSearchParams) => {
+          // ถ้าผู้ใช้มี province_id และ province_ids ถูกตั้งเป็นค่าเดียวกันกับ province ของผู้ใช้
+          // ให้เคลียร์ province_ids เพราะมันถูกตั้งจากการใช้ Near Me
+          const myProv = user?.province_id ? String(user.province_id) : undefined;
+          if (myProv && prev.province_ids === myProv) {
+            return { ...prev, province_ids: '', page: 1 };
+          }
+          return prev;
+        });
+      }
+      // Reset the flag after handling
+      shouldUpdateFilters.current = true;
+    }
+  }, [nearMe, user?.province_id, userLocation, filters, itemsPerPage]);
+
+  // Fetch products with filters & pagination (for non-location searches)
+  useEffect(() => {
+    // Skip this effect if we're using location-based search
+    if (nearMe && userLocation) {
+      return;
+    }
+    
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const params = { ...filters, limit: itemsPerPage };
+        const response = await searchProducts(params);
+        setProducts(response.data);
+        setTotalPages(response.meta.last_page);
+        setTotalItems(response.meta.total);
+      } catch (err: any) {
+        setError(err.message || 'ไม่สามารถโหลดสินค้าได้');
+        setProducts([]);
+        setTotalPages(1);
+        setTotalItems(0);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [filters, itemsPerPage]);
 
   // Count active filters
   useEffect(() => {
@@ -61,8 +181,10 @@ export const SearchPage: React.FC = () => {
     if (filters.min_price) count++;
     if (filters.max_price) count++;
     if (filters.sort !== 'created_at_desc') count++;
+    // Add location filter to count if active
+    if (nearMe) count++;
     setActiveFilters(count);
-  }, [filters]);
+  }, [filters, nearMe]);
 
   // Fetch categories, provinces, and products (pagination)
   useEffect(() => {
@@ -77,7 +199,7 @@ export const SearchPage: React.FC = () => {
         setCategories(cats.data);
         setProvinces(provs.data);
       } catch (err) {
-        setError('Failed to load categories or provinces.');
+        setError('ไม่สามารถโหลดหมวดหมู่หรือจังหวัดได้');
         setCategories([]);
         setProvinces([]);
       } finally {
@@ -86,29 +208,6 @@ export const SearchPage: React.FC = () => {
     };
     fetchInitialData();
   }, []);
-
-  // Fetch products with filters & pagination
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const params = { ...filters, limit: itemsPerPage };
-        const response = await searchProducts(params);
-        setProducts(response.data);
-        setTotalPages(response.meta.last_page);
-        setTotalItems(response.meta.total);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load products.');
-        setProducts([]);
-        setTotalPages(1);
-        setTotalItems(0);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProducts();
-  }, [filters, itemsPerPage]);
 
   const handleFilterChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -148,8 +247,10 @@ export const SearchPage: React.FC = () => {
       page: 1
     });
     setSearchParams(new URLSearchParams());
+    setNearMe(false);
+    setUserLocation(null);
+    setLocationError(null);
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
@@ -164,25 +265,60 @@ export const SearchPage: React.FC = () => {
           >
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {t('searchPage.title')}
+                ค้นหาสินค้า
               </h1>
               <p className="text-gray-600 mt-1">
-                {t('searchPage.foundProductsInfo', { 
-                  count: totalItems,
-                  currentPage: filters.page || 1,
-                  lastPage: totalPages
-                })}
+                พบ {totalItems} สินค้า หน้า {filters.page || 1} จาก {totalPages} หน้า
               </p>
             </div>
             
             <div className="flex items-center gap-3">
+              {/* Near Me Toggle */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    if (nearMe) {
+                      // If already active, turn it off
+                      setNearMe(false);
+                      setUserLocation(null);
+                      setLocationError(null);
+                      // Allow filter updates when turning off Near Me
+                      shouldUpdateFilters.current = true;
+                    } else {
+                      // Try to get current location
+                      getCurrentLocation();
+                      // Prevent filter updates when turning on Near Me
+                      shouldUpdateFilters.current = false;
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+                    nearMe
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <FaMapMarkerAlt className="h-4 w-4" />
+                  ใกล้ฉัน
+                </button>
+                {locationError && (
+                  <div className="absolute -bottom-12 left-0 bg-red-100 border border-red-300 text-red-800 text-xs rounded-lg px-2 py-1 whitespace-nowrap z-10">
+                    {locationError}
+                  </div>
+                )}
+                {userLocation && (
+                  <div className="absolute -bottom-8 left-0 bg-green-100 border border-green-300 text-green-800 text-xs rounded-lg px-2 py-1 whitespace-nowrap z-10">
+                  ใช้ตำแหน่งปัจจุบัน
+                  </div>
+                )}
+              </div>
+              
               {/* View Mode Toggle */}
-              <div className="flex bg-gray-100 rounded-lg p-1">
+              <div className="flex rounded-xl bg-gray-100 p-1">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-md transition-all ${
+                  className={`p-2 rounded-lg transition-all duration-200 ${
                     viewMode === 'grid' 
-                      ? 'bg-white shadow-sm text-blue-600' 
+                      ? 'bg-white text-blue-600 shadow-sm' 
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
@@ -190,321 +326,327 @@ export const SearchPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-md transition-all ${
+                  className={`p-2 rounded-lg transition-all duration-200 ${
                     viewMode === 'list' 
-                      ? 'bg-white shadow-sm text-blue-600' 
+                      ? 'bg-white text-blue-600 shadow-sm' 
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   <FaList className="h-4 w-4" />
                 </button>
               </div>
-
-              {/* Mobile Filter Toggle */}
-              <button
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="md:hidden flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <FilterIcon />
-                {t('searchPage.filtersTitle')}
-                {activeFilters > 0 && (
-                  <span className="ml-2 bg-white text-blue-600 rounded-full px-2 py-1 text-xs font-bold">
-                    {activeFilters}
-                  </span>
-                )}
-              </button>
-
-              {/* Active Filters Display */}
-              {activeFilters > 0 && (
-                <div className="hidden md:flex items-center gap-2">
-                  <span className="text-sm text-gray-600">
-                    {t('searchPage.activeFilters', { count: activeFilters })}
-                  </span>
-                  <Button
-                    onClick={handleClearFilters}
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center bg-red-50 text-red-600 hover:bg-red-100"
-                  >
-                    <ClearIcon />
-                    {t('searchPage.clearFiltersButton')}
-                  </Button>
-                </div>
-              )}
             </div>
           </motion.div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
-          <motion.aside 
-            className={`lg:col-span-1 ${isFilterOpen ? 'block' : 'hidden lg:block'}`}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-8">
-              <form onSubmit={handleSearchSubmit} className="space-y-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-gray-800 flex items-center">
-                    <FilterIcon />
-                    {t('searchPage.filtersTitle')}
-                  </h3>
-                  {activeFilters > 0 && (
-                    <span className="bg-blue-100 text-blue-600 text-xs font-bold rounded-full px-2 py-1">
-                      {activeFilters}
-                    </span>
-                  )}
-                </div>
+          <aside className={`lg:w-80 flex-shrink-0 ${isFilterOpen ? 'block' : 'hidden'} lg:block`}>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sticky top-24"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <FilterIcon />
+                  ตัวกรอง
+                </h2>
+                <button
+                  onClick={() => setIsFilterOpen(false)}
+                  className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+                >
+                  <FaTimes className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
 
+              <form onSubmit={handleSearchSubmit}>
+                {/* Active Location Filter Indicator */}
+                {nearMe && userLocation && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FaMapMarkerAlt className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">
+                        ใกล้ฉัน
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNearMe(false);
+                        setUserLocation(null);
+                        setLocationError(null);
+                        shouldUpdateFilters.current = true;
+                      }}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <FaTimes className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+                
                 {/* Search Input */}
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <input
-                    type="text"
-                    name="q"
-                    placeholder={t('searchPage.keywordPlaceholder')}
-                    value={filters.q || ''}
-                    onChange={handleFilterChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  />
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    คำค้นหา
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="q"
+                      value={filters.q || ''}
+                      onChange={handleFilterChange}
+                      placeholder="ค้นหาสินค้า..."
+                      className="w-full px-4 py-3 pl-12 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    />
+                    <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
                 </div>
 
                 {/* Category Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                    <FaTag className="h-4 w-4 mr-2 text-blue-500" />
-                    {t('searchPage.categoryLabel')}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    หมวดหมู่
                   </label>
-                  <select 
-                    name="category_id" 
-                    value={filters.category_id || ''} 
+                  <select
+                    name="category_id"
+                    value={filters.category_id || ''}
                     onChange={handleFilterChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   >
-                    <option value="">{t('searchPage.allCategoriesOption')}</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    <option value="">หมวดหมู่ทั้งหมด</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 {/* Province Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                    <FaMapMarkerAlt className="h-4 w-4 mr-2 text-green-500" />
-                    {t('searchPage.provinceLabel')}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    จังหวัด
                   </label>
-                  <select 
-                    name="province_ids" 
-                    value={filters.province_ids || ''} 
+                  <select
+                    name="province_ids"
+                    value={filters.province_ids || ''}
                     onChange={handleFilterChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   >
-                    <option value="">{t('searchPage.allProvincesOption')}</option>
-                    {provinces.map(prov => (
-                      <option key={prov.id} value={prov.id}>{prov.name_th}</option>
+                    <option value="">จังหวัดทั้งหมด</option>
+                    {provinces.map(province => (
+                      <option key={province.id} value={province.id}>
+                        {province.name_th}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 {/* Price Range */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                    <FaDollarSign className="h-4 w-4 mr-2 text-yellow-500" />
-                    {t('searchPage.priceRangeLabel')}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    ช่วงราคา
                   </label>
                   <div className="grid grid-cols-2 gap-3">
-                    <input 
-                      type="number" 
-                      name="min_price" 
-                      placeholder={t('searchPage.minPricePlaceholder')} 
-                      value={filters.min_price || ''} 
-                      onChange={handleFilterChange} 
-                      className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    />
-                    <input 
-                      type="number" 
-                      name="max_price" 
-                      placeholder={t('searchPage.maxPricePlaceholder')} 
-                      value={filters.max_price || ''} 
-                      onChange={handleFilterChange} 
-                      className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        name="min_price"
+                        value={filters.min_price || ''}
+                        onChange={handleFilterChange}
+                        placeholder="ราคาต่ำสุด"
+                        className="w-full px-4 py-3 pl-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      />
+                      <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        name="max_price"
+                        value={filters.max_price || ''}
+                        onChange={handleFilterChange}
+                        placeholder="ราคาสูงสุด"
+                        className="w-full px-4 py-3 pl-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      />
+                      <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    </div>
                   </div>
                 </div>
 
-                {/* Sort Options */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                    <FaSort className="h-4 w-4 mr-2 text-purple-500" />
-                    {t('searchPage.sortByLabel')}
+                {/* Sort */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    เรียงลำดับตาม
                   </label>
-                  <select 
-                    name="sort" 
+                  <select
+                    name="sort"
                     value={filters.sort || 'created_at_desc'}
                     onChange={handleFilterChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   >
-                    <option value="created_at_desc">{t('searchPage.sortNewest')}</option>
-                    <option value="created_at_asc">{t('searchPage.sortOldest')}</option>
-                    <option value="price_asc">{t('searchPage.sortPriceAsc')}</option>
-                    <option value="price_desc">{t('searchPage.sortPriceDesc')}</option>
-                    <option value="rating_desc">{t('searchPage.sortRatingHighToLow')}</option>
-                    <option value="rating_asc">{t('searchPage.sortRatingLowToHigh')}</option>
-                    <option value="views_desc">{t('searchPage.sortMostViewed')}</option>
-                    <option value="views_asc">{t('searchPage.sortLeastViewed')}</option>
-                    <option value="updated_at_desc">{t('searchPage.sortRecentlyUpdated')}</option>
-                    <option value="updated_at_asc">{t('searchPage.sortLeastRecentlyUpdated')}</option>
+                    <option value="created_at_desc">ใหม่ล่าสุด</option>
+                    <option value="price_asc">ราคาน้อยไปมาก</option>
+                    <option value="price_desc">ราคามากไปน้อย</option>
+                    <option value="rating_desc">คะแนนรีวิวสูงสุด</option>
                   </select>
                 </div>
 
-                {/* Apply Filters Button */}
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all transform hover:scale-105"
-                >
-                  <FaSearch className="h-4 w-4 mr-2" />
-                  {t('searchPage.applyFiltersButton')}
-                </Button>
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-3">
+                  <Button type="submit" variant="primary" className="w-full py-3 rounded-xl">
+                    <FaSearch className="h-4 w-4 mr-2" />
+                    ใช้ตัวกรอง
+                  </Button>
+                  {activeFilters > 0 && (
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      onClick={handleClearFilters}
+                      className="w-full py-3 rounded-xl border border-gray-200 hover:bg-gray-50"
+                    >
+                      <ClearIcon />
+                      ล้างตัวกรอง ({activeFilters})
+                    </Button>
+                  )}
+                </div>
               </form>
-            </div>
-          </motion.aside>
+            </motion.div>
+          </aside>
 
           {/* Main Content */}
-          <main className="lg:col-span-3">
-            {isLoading && (
-              <div className="flex justify-center items-center py-20">
-                <LoadingSpinner message={t('searchPage.loadingProducts')} />
-              </div>
-            )}
-            
-            {error && (
+          <main className="flex-1">
+            {/* Mobile Filter Toggle */}
+            <div className="lg:hidden mb-6">
+              <Button 
+                onClick={() => setIsFilterOpen(true)}
+                variant="secondary"
+                className="w-full py-3 rounded-xl flex items-center justify-center"
+              >
+                <FilterIcon />
+                ตัวกรอง {activeFilters > 0 && `(${activeFilters})`}
+              </Button>
+            </div>
+
+            {/* Loading & Error States */}
+            {isLoading && <LoadingSpinner message="กำลังโหลดสินค้า..." />}
+            {error && <ErrorMessage message={error} title="ข้อผิดพลาด" />}
+
+            {/* Empty State */}
+            {!isLoading && !error && products.length === 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
+                className="text-center py-16"
               >
-                <ErrorMessage message={error} title={t('general.error')} />
+                <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                  <FaBoxOpen className="h-12 w-12 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  ไม่พบสินค้า
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  ลองปรับตัวกรองหรือคำค้นหาเพื่อหาสินค้าที่ต้องการ
+                </p>
+                {activeFilters > 0 && (
+                  <Button 
+                    onClick={handleClearFilters}
+                    variant="primary"
+                    className="px-6 py-3 rounded-xl"
+                  >
+                    ล้างตัวกรองทั้งหมด
+                  </Button>
+                )}
               </motion.div>
             )}
-            
-            {!isLoading && !error && (
-              <AnimatePresence mode="wait">
-                {products.length > 0 ? (
+
+            {/* Products Grid/List */}
+            {!isLoading && !error && products.length > 0 && (
+              <>
+                <motion.div
+                  layout
+                  className={viewMode === 'grid' 
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8' 
+                    : 'flex flex-col gap-6 mb-8'
+                  }
+                >
+                  <AnimatePresence>
+                    {products.map((product, index) => (
+                      <motion.div
+                        key={product.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                      >
+                        <ProductCard product={product} viewMode={viewMode} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
                   <motion.div
-                    key="products"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-center gap-2 flex-wrap"
                   >
-                    <div className={`grid gap-6 ${
-                      viewMode === 'grid' 
-                        ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' 
-                        : 'grid-cols-1'
-                    }`}>
-                      {products.map((product, index) => (
-                        <motion.div
-                          key={product.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.1 }}
-                          whileHover={{ y: -5 }}
-                        >
-                          <ProductCard product={product} viewMode={viewMode} />
-                        </motion.div>
-                      ))}
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="no-products"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.3 }}
-                    className="text-center py-20 bg-white rounded-2xl shadow-lg border border-gray-100"
-                  >
-                    <FaBoxOpen className="mx-auto text-6xl text-gray-300 mb-6" />
-                    <h3 className="text-2xl font-semibold text-gray-700 mb-3">
-                      {t('searchPage.noProductsFoundTitle')}
-                    </h3>
-                    <p className="text-gray-500 max-w-md mx-auto">
-                      {t('searchPage.noProductsFoundSubtitle')}
-                    </p>
-                    <Button
-                      onClick={handleClearFilters}
-                      variant="primary"
-                      className="mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    <Button 
+                      onClick={() => handlePageChange((filters.page || 1) - 1)}
+                      disabled={(filters.page || 1) === 1}
+                      variant="secondary"
+                      size="sm"
+                      className="flex items-center px-4 py-2 rounded-xl"
                     >
-                      {t('searchPage.clearFiltersButton')}
+                      <FaChevronLeft className="h-4 w-4 mr-1" />
+                      หน้าก่อนหน้า
+                    </Button>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(pageNumber => 
+                        pageNumber === 1 || 
+                        pageNumber === totalPages ||
+                        (pageNumber >= (filters.page || 1) - 1 && pageNumber <= (filters.page || 1) + 1)
+                      )
+                      .map((pageNumber, index, arr) => (
+                        <React.Fragment key={pageNumber}>
+                          {index > 0 && arr[index-1] + 1 < pageNumber && (
+                            <span className="text-gray-400 px-2">...</span>
+                          )}
+                          <Button
+                            onClick={() => handlePageChange(pageNumber)}
+                            variant={pageNumber === (filters.page || 1) ? 'primary' : 'ghost'}
+                            size="sm"
+                            className={`w-12 h-12 rounded-xl ${
+                              pageNumber === (filters.page || 1) 
+                                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' 
+                                : 'hover:bg-gray-100'
+                            }`}
+                          >
+                            {pageNumber}
+                          </Button>
+                        </React.Fragment>
+                      ))
+                    }
+                    
+                    <Button 
+                      onClick={() => handlePageChange((filters.page || 1) + 1)}
+                      disabled={(filters.page || 1) === totalPages}
+                      variant="secondary"
+                      size="sm"
+                      className="flex items-center px-4 py-2 rounded-xl"
+                    >
+                      หน้าถัดไป
+                      <FaChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </motion.div>
                 )}
-              </AnimatePresence>
-            )}
-
-            {/* Pagination */}
-            {totalPages > 1 && !isLoading && !error && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-                className="mt-12 flex justify-center items-center space-x-2"
-              >
-                <Button 
-                  onClick={() => handlePageChange((filters.page || 1) - 1)}
-                  disabled={(filters.page || 1) === 1}
-                  variant="secondary"
-                  size="sm"
-                  className="flex items-center px-4 py-2 rounded-xl"
-                >
-                  <FaChevronLeft className="h-4 w-4 mr-1" />
-                  {t('searchPage.previousPageButton')}
-                </Button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(pageNumber => 
-                    pageNumber === 1 || 
-                    pageNumber === totalPages ||
-                    (pageNumber >= (filters.page || 1) - 1 && pageNumber <= (filters.page || 1) + 1)
-                  )
-                  .map((pageNumber, index, arr) => (
-                    <React.Fragment key={pageNumber}>
-                      {index > 0 && arr[index-1] + 1 < pageNumber && (
-                        <span className="text-gray-400 px-2">...</span>
-                      )}
-                      <Button
-                        onClick={() => handlePageChange(pageNumber)}
-                        variant={pageNumber === (filters.page || 1) ? 'primary' : 'ghost'}
-                        size="sm"
-                        className={`w-12 h-12 rounded-xl ${
-                          pageNumber === (filters.page || 1) 
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' 
-                            : 'hover:bg-gray-100'
-                        }`}
-                      >
-                        {pageNumber}
-                      </Button>
-                    </React.Fragment>
-                  ))
-                }
-                
-                <Button 
-                  onClick={() => handlePageChange((filters.page || 1) + 1)}
-                  disabled={(filters.page || 1) === totalPages}
-                  variant="secondary"
-                  size="sm"
-                  className="flex items-center px-4 py-2 rounded-xl"
-                >
-                  {t('searchPage.nextPageButton')}
-                  <FaChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </motion.div>
+              </>
             )}
           </main>
         </div>
@@ -513,3 +655,4 @@ export const SearchPage: React.FC = () => {
   );
 };
 
+export default SearchPage;

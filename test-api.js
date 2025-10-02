@@ -41,7 +41,7 @@ async function testAPI() {
       apiKey: apiKey,
       dangerouslyAllowBrowser: true, // Required for browser environments
       defaultHeaders: {
-        'HTTP-Referer': 'http://localhost:5173',
+        'HTTP-Referer': 'http://https://renteaseapi2.onrender.com:5173',
         'X-Title': 'RentEase AI Assistant Test',
       },
     });

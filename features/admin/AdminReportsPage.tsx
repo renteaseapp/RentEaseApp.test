@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getRentalsReport, getIncomeReport, getPlatformStats, getUserReputationReport, getComplaintsReport, getProductsReport } from '../../services/adminReportsService';
 import { Card, CardContent } from '../../components/ui/Card';
-import { useTranslation } from 'react-i18next';
+
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { motion } from 'framer-motion';
 import { 
@@ -106,18 +106,15 @@ const BarChart = ({ data, labels, height = 200 }: { data: number[]; labels: stri
 };
 
 // Helper to export array of objects to CSV
-function exportProductsToCSV(products: any[], filterType: string, productMonth: string, productStartDate: string, productEndDate: string, t: any) {
+function exportProductsToCSV(products: any[], filterType: string, productMonth: string, productStartDate: string, productEndDate: string) {
   if (!products || products.length === 0) return;
   let filterSummary = '';
   if (filterType === 'all') {
-    filterSummary = t('showingAllData');
+    filterSummary = 'แสดงข้อมูลทั้งหมด';
   } else if (filterType === 'month') {
-    filterSummary = t('showingDataForMonth', { month: dayjs(productMonth + '-01').format('MMMM YYYY') });
+    filterSummary = `แสดงข้อมูลสำหรับเดือน ${dayjs(productMonth + '-01').format('MMMM YYYY')}`;
   } else if (filterType === 'dateRange') {
-    filterSummary = t('showingDataForRange', {
-      start: dayjs(productStartDate).format('DD MMM YYYY'),
-      end: dayjs(productEndDate).format('DD MMM YYYY')
-    });
+    filterSummary = `แสดงข้อมูลตั้งแต่วันที่ ${dayjs(productStartDate).format('DD MMM YYYY')} ถึง ${dayjs(productEndDate).format('DD MMM YYYY')}`;
   }
   const headers = Object.keys(products[0]);
   const csvRows = [
@@ -138,7 +135,6 @@ function exportProductsToCSV(products: any[], filterType: string, productMonth: 
 }
 
 export const AdminReportsPage: React.FC = () => {
-  const { t } = useTranslation('adminReportsPage');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // Store raw data for all years
@@ -174,7 +170,7 @@ export const AdminReportsPage: React.FC = () => {
         setAllComplaints(complaintsRes?.complaints ?? null);
         setProductsReport(productsRes || null);
       })
-      .catch((err: any) => setError(err.message || t('error.loadFailed')))
+      .catch((err: any) => setError(err.message || 'ไม่สามารถโหลดข้อมูลได้'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -228,7 +224,7 @@ export const AdminReportsPage: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
           <div className="text-center">
             <FaChartBar className="h-16 w-16 text-blue-400 mx-auto mb-4 animate-pulse" />
-            <p className="text-lg font-medium text-gray-700">{t('loadingReports')}</p>
+            <p className="text-lg font-medium text-gray-700">กำลังโหลดรายงาน...</p>
           </div>
         </div>
       </AdminLayout>
@@ -266,17 +262,17 @@ export const AdminReportsPage: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-                    {t('title')}
+                    รายงานและสถิติ
                   </h1>
                   <p className="text-gray-600 mt-1">
-                    Comprehensive platform analytics and insights
+                    สถิติและข้อมูลเชิงลึกของแพลตฟอร์ม
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <label htmlFor="year-select" className="text-sm font-medium text-gray-600 flex items-center gap-2">
                   <FaCalendarAlt className="h-4 w-4" />
-                  {t('filterByYear')}:
+                  กรองตามปี:
                 </label>
                 <select
                   id="year-select"
@@ -284,9 +280,9 @@ export const AdminReportsPage: React.FC = () => {
                   value={selectedYear}
                   onChange={e => setSelectedYear(e.target.value === 'all' ? 'all' : Number(e.target.value))}
                 >
-                  <option value="all">{t('allYears')}</option>
+                  <option value="all">ทุกปี</option>
                   {yearOptions.map(y => (
-                    <option key={y} value={y}>{y === currentYear ? t('thisYear') + ` (${y})` : y}</option>
+                    <option key={y} value={y}>{y === currentYear ? `ปีนี้ (${y})` : y}</option>
                   ))}
                 </select>
               </div>
@@ -302,25 +298,25 @@ export const AdminReportsPage: React.FC = () => {
           >
             <StatCard
               icon={<FaChartLine className="h-6 w-6" />}
-              label={t('rentalsThisMonth')}
+              label="การเช่าในเดือนนี้"
               value={statRentalsThisMonth}
               color="indigo"
             />
             <StatCard
               icon={<FaMoneyBillWave className="h-6 w-6" />}
-              label={t('totalIncome')}
+              label="รายได้รวม"
               value={income !== null ? `฿${income.toLocaleString()}` : '-'}
               color="green"
             />
             <StatCard
               icon={<FaUsers className="h-6 w-6" />}
-              label={t('users')}
+              label="ผู้ใช้"
               value={platformStats?.users?.toLocaleString() ?? '-'}
               color="blue"
             />
             <StatCard
               icon={<FaExclamationTriangle className="h-6 w-6" />}
-              label={t('complaints')}
+              label="เรื่องร้องเรียน"
               value={complaints?.toLocaleString() ?? '-'}
               color="red"
             />
@@ -339,7 +335,7 @@ export const AdminReportsPage: React.FC = () => {
                   <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600">
                     <FaChartBar className="h-5 w-5 text-white" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-800">{t('rentalsByMonth')}</h2>
+                  <h2 className="text-xl font-bold text-gray-800">การเช่าตามเดือน</h2>
                 </div>
                 <div className="overflow-x-auto">
                   <BarChart data={rentalCounts} labels={rentalLabels} />
@@ -361,26 +357,26 @@ export const AdminReportsPage: React.FC = () => {
                   <div className="p-2 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-600">
                     <FaStar className="h-5 w-5 text-white" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-800">{t('userReputation')}</h2>
+                  <h2 className="text-xl font-bold text-gray-800">ชื่อเสียงของผู้ใช้</h2>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                       <tr>
                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                          {t('ownerName') || 'Owner Name'}
+                          ชื่อเจ้าของ
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                          {t('ownerEmail') || 'Email'}
+                          อีเมล
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                          {t('score') || 'Score'}
+                          คะแนน
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                          {t('reviewCount') || 'Reviews'}
+                          รีวิว
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                          {t('productCount') || 'Products'}
+                          สินค้า
                         </th>
                       </tr>
                     </thead>
@@ -390,7 +386,7 @@ export const AdminReportsPage: React.FC = () => {
                           <td colSpan={5} className="text-center text-gray-400 py-12">
                             <div className="flex flex-col items-center">
                               <FaStar className="h-12 w-12 text-gray-300 mb-4" />
-                              <p className="text-lg font-medium">{t('noResults') || 'No data available'}</p>
+                              <p className="text-lg font-medium">ไม่พบข้อมูล</p>
                             </div>
                           </td>
                         </tr>
@@ -409,7 +405,7 @@ export const AdminReportsPage: React.FC = () => {
                               className="hover:bg-gray-50 transition-all duration-200"
                             >
                               <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                                {r.owner_name || `Owner ${r.owner_id}`}
+                                {r.owner_name || `เจ้าของ ${r.owner_id}`}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {r.owner_email || '-'}
@@ -454,7 +450,7 @@ export const AdminReportsPage: React.FC = () => {
                   <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600">
                     <FaBox className="h-5 w-5 text-white" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-800">{t('products')}</h2>
+                  <h2 className="text-xl font-bold text-gray-800">สินค้า</h2>
                 </div>
 
                 {/* Filter Controls */}
@@ -462,16 +458,16 @@ export const AdminReportsPage: React.FC = () => {
                   <div className="flex flex-wrap gap-4 items-center">
                     <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <FaFilter className="h-4 w-4" />
-                      {t('filterBy')}:
+                      กรองตาม:
                     </label>
                     <select
                       className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white"
                       value={productFilterType}
                       onChange={e => setProductFilterType(e.target.value as any)}
                     >
-                      <option value="all">{t('allYears')}</option>
-                      <option value="month">{t('month')}</option>
-                      <option value="dateRange">{t('dateRange')}</option>
+                      <option value="all">ทุกปี</option>
+                      <option value="month">เดือน</option>
+                      <option value="dateRange">ช่วงวันที่</option>
                     </select>
                     
                     {productFilterType === 'month' && (
@@ -511,7 +507,7 @@ export const AdminReportsPage: React.FC = () => {
                       className="flex items-center gap-2"
                     >
                       <FaTimes className="h-4 w-4" />
-                      {t('clearFilter')}
+                      ล้างตัวกรอง
                     </Button>
                     
                     <Button
@@ -522,14 +518,13 @@ export const AdminReportsPage: React.FC = () => {
                         productFilterType,
                         productMonth,
                         productStartDate,
-                        productEndDate,
-                        t
+                        productEndDate
                       )}
                       disabled={!productsReport || !productsReport.top_rented_products || productsReport.top_rented_products.length === 0}
                       className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 flex items-center gap-2"
                     >
                       <FaFileExport className="h-4 w-4" />
-                      {t('exportCSV')}
+                      ส่งออก CSV
                     </Button>
                   </div>
                 </div>
@@ -538,19 +533,16 @@ export const AdminReportsPage: React.FC = () => {
                 <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
                   <p className="text-sm text-blue-700">
                     {productFilterType === 'all' && (
-                      <span>{t('showingAllData')}</span>
+                      <span>แสดงข้อมูลทั้งหมด</span>
                     )}
                     {productFilterType === 'month' && (
                       <span>
-                        {t('showingDataForMonth', { month: dayjs(productMonth + '-01').format('MMMM YYYY') })}
+                        แสดงข้อมูลสำหรับเดือน {dayjs(productMonth + '-01').format('MMMM YYYY')}
                       </span>
                     )}
                     {productFilterType === 'dateRange' && (
                       <span>
-                        {t('showingDataForRange', {
-                          start: dayjs(productStartDate).format('DD MMM YYYY'),
-                          end: dayjs(productEndDate).format('DD MMM YYYY')
-                        })}
+                        แสดงข้อมูลตั้งแต่วันที่ {dayjs(productStartDate).format('DD MMM YYYY')} ถึง {dayjs(productEndDate).format('DD MMM YYYY')}
                       </span>
                     )}
                   </p>
@@ -561,25 +553,25 @@ export const AdminReportsPage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                       <StatCard 
                         icon={<FaBox className="h-6 w-6" />} 
-                        label={t('totalProducts')} 
+                        label="สินค้าทั้งหมด" 
                         value={productsReport.total_products?.toLocaleString()} 
                         color="indigo" 
                       />
                       <StatCard 
                         icon={<FaCheck className="h-6 w-6" />} 
-                        label={t('approved')} 
+                        label="อนุมัติแล้ว" 
                         value={productsReport.status_counts?.approved?.toLocaleString() ?? '0'} 
                         color="green" 
                       />
                       <StatCard 
                         icon={<FaClock className="h-6 w-6" />} 
-                        label={t('pending')} 
+                        label="รอการตรวจสอบ" 
                         value={productsReport.status_counts?.pending?.toLocaleString() ?? '0'} 
                         color="yellow" 
                       />
                       <StatCard 
                         icon={<FaX className="h-6 w-6" />} 
-                        label={t('rejected')} 
+                        label="ถูกปฏิเสธ" 
                         value={productsReport.status_counts?.rejected?.toLocaleString() ?? '0'} 
                         color="red" 
                       />
@@ -588,20 +580,20 @@ export const AdminReportsPage: React.FC = () => {
                     <div className="bg-gray-50 rounded-xl p-4">
                       <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
                         <FaChartBar className="h-5 w-5 text-indigo-500" />
-                        {t('topRentedProducts')}
+                        สินค้ายอดนิยม
                       </h3>
                       <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                             <tr>
                               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                {t('product')}
+                                สินค้า
                               </th>
                               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                {t('rentalCount')}
+                                จำนวนการเช่า
                               </th>
                               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                {t('productIncome')}
+                                รายได้
                               </th>
                             </tr>
                           </thead>
@@ -611,7 +603,7 @@ export const AdminReportsPage: React.FC = () => {
                                 <td colSpan={3} className="text-center text-gray-400 py-12">
                                   <div className="flex flex-col items-center">
                                     <FaBox className="h-12 w-12 text-gray-300 mb-4" />
-                                    <p className="text-lg font-medium">No products found</p>
+                                    <p className="text-lg font-medium">ไม่พบสินค้า</p>
                                   </div>
                                 </td>
                               </tr>

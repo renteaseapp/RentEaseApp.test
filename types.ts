@@ -22,6 +22,7 @@ export interface User {
   id_document_back_url?: string | null;
   id_selfie_url?: string | null;
   is_active?: boolean;
+  registration_ip?: string | null; // IP address used during registration
   preferences?: Record<string, any>; // JSONB
   created_at?: string; // ISO Date string
   updated_at?: string; // ISO Date string
@@ -138,6 +139,7 @@ export interface AuthContextType {
   isAdmin: boolean;
   isOwner: boolean;
   isLoading: boolean;
+  tokenExpired: boolean;
   login: (token: string, userData: User, isAdminFlag: boolean) => void;
   logout: () => void;
   updateUserContext: (updatedUserData: Partial<User>) => void;
@@ -252,7 +254,10 @@ export enum UserIdDocumentType {
 
 export interface ProductSearchParams {
   q?: string;
+  search?: string; // Alternative search parameter
+  category?: string; // Category name
   category_id?: number;
+  province?: string; // Province name
   province_ids?: string; // comma-separated
   min_price?: number;
   max_price?: number;

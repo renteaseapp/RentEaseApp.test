@@ -7,7 +7,7 @@ import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
-import { useTranslation } from 'react-i18next';
+
 import { useAlert } from '../../contexts/AlertContext';
 import { getPayoutMethodsByOwnerId, updateRentalDeliveryStatus } from '../../services/ownerService';
 import { getProvinces } from '../../services/productService';
@@ -19,6 +19,7 @@ import AlertNotification from '../../components/common/AlertNotification';
 import ActionGuidePopup from '../../components/common/ActionGuidePopup';
 import { useRealtimeRental } from '../../hooks/useRealtimeRental';
 import OpenStreetMapPicker from '../../components/common/OpenStreetMapPicker';
+import { RentalStatusStepper } from '../../components/common/RentalStatusStepper';
 
 
 // Import icons for a richer UI
@@ -30,9 +31,57 @@ import {
   FaWifi, FaShieldAlt
 } from 'react-icons/fa';
 
+// --- Helper function for Thai Status Text ---
+const getStatusThaiText = (status: string, type: 'rental' | 'payment' | 'delivery_status' | 'return_condition'): string => {
+    if (type === 'rental') {
+      switch (status) {
+        case 'completed': return 'เสร็จสิ้น';
+        case 'active': return 'กำลังใช้งาน';
+        case 'pending_owner_approval': return 'รอเจ้าของอนุมัติ';
+        case 'pending_payment': return 'รอการชำระเงิน';
+        case 'confirmed': return 'ยืนยันแล้ว';
+        case 'return_pending': return 'รอการคืน';
+        case 'cancelled_by_renter': return 'ผู้เช่าการยกเลิก';
+        case 'cancelled_by_owner': return 'เจ้าของยกเลิก';
+        case 'rejected_by_owner': return 'เจ้าของปฏิเสธ';
+        case 'dispute': return 'มีข้อพิพาท';
+        case 'expired': return 'หมดอายุ';
+        case 'late_return': return 'คืนล่าช้า';
+        default: return status;
+      }
+    } else if (type === 'payment') {
+      switch (status) {
+        case 'paid': return 'ชำระแล้ว';
+        case 'pending_verification': return 'รอการตรวจสอบ';
+        case 'pending': return 'รอดำเนินการ';
+        case 'unpaid': return 'ยังไม่ชำระ';
+        case 'failed': return 'ชำระไม่สำเร็จ';
+        case 'refunded': return 'คืนเงินแล้ว';
+        default: return status;
+      }
+    } else if (type === 'delivery_status') {
+      switch (status) {
+        case 'pending': return 'รอดำเนินการ';
+        case 'shipped': return 'จัดส่งแล้ว';
+        case 'delivered': return 'ส่งมอบแล้ว';
+        case 'failed': return 'ส่งไม่สำเร็จ';
+        case 'returned': return 'คืนแล้ว';
+        default: return status;
+      }
+    } else if (type === 'return_condition') {
+      switch (status) {
+        case 'as_rented': return 'เหมือนตอนเช่า';
+        case 'minor_wear': return 'มีร่องรอยการใช้งานเล็กน้อย';
+        case 'damaged': return 'เสียหาย';
+        case 'lost': return 'สูญหาย';
+        default: return status;
+      }
+    }
+    return status;
+};
+
 // --- Status badge component ---
 const StatusBadge: React.FC<{ status: string; type: 'rental' | 'payment' | 'delivery_status' | 'return_condition' }> = ({ status, type }) => {
-  const { t } = useTranslation();
 
   const getStatusColor = () => {
     if (type === 'rental') {
@@ -80,14 +129,6 @@ const StatusBadge: React.FC<{ status: string; type: 'rental' | 'payment' | 'deli
       }
     }
     return 'bg-gray-100 text-gray-800 border-gray-200';
-  };
-
-  const getStatusText = () => {
-    if (type === 'rental') return t(`ownerRentalDetailPage.status.rental.${status}`);
-    if (type === 'payment') return t(`ownerRentalDetailPage.status.payment.${status}`);
-    if (type === 'delivery_status') return t(`ownerRentalDetailPage.status.delivery.${status}`);
-    if (type === 'return_condition') return t(`ownerRentalDetailPage.status.returnCondition.${status}`);
-    return status;
   };
 
   const getStatusIcon = () => {
@@ -141,7 +182,7 @@ const StatusBadge: React.FC<{ status: string; type: 'rental' | 'payment' | 'deli
   return (
     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor()}`}>
       {getStatusIcon()}
-      {getStatusText()}
+      {getStatusThaiText(status, type)}
     </span>
   );
 };
@@ -185,7 +226,6 @@ const TabButton: React.FC<{ label: string; icon: React.ReactNode; isActive: bool
 
 // --- Main Page Component ---
 export const OwnerRentalDetailPage: React.FC = () => {
-  const { t } = useTranslation();
   const { rentalId } = useParams<{ rentalId: string }>();
   const { token, user } = useAuth();
   const [rental, setRental] = useState<Rental | null>(null);
@@ -229,141 +269,113 @@ export const OwnerRentalDetailPage: React.FC = () => {
     type: 'info'
   });
   const [activeTab, setActiveTab] = useState<TabId>('overview');
-  const { rental: realtimeRental } = useRealtimeRental({ rentalId: rentalId || '' });
+  const { rental: realtimeRental, isConnected: isRealtimeConnected, setInitialRental } = useRealtimeRental({ rentalId: rentalId || '' });
 
+  // Enhanced real-time rental updates with notifications
   useEffect(() => {
     if (realtimeRental && rental) {
-      setRental(realtimeRental as unknown as Rental);
-      // Real-time notification logic here...
-    }
-  }, [realtimeRental, rental, t]);
+      const previousStatus = rental.rental_status;
+      const previousPaymentStatus = rental.payment_status;
+      const previousDeliveryStatus = rental.delivery_status;
 
+      setRental(realtimeRental as unknown as Rental);
+
+      // Show notifications for status changes
+      if (previousStatus !== realtimeRental.rental_status) {
+        const statusMessages: Record<string, string> = {
+          'pending_owner_approval': 'มีคำขอเช่าใหม่รอการอนุมัติ',
+          'pending_payment': 'ผู้เช่าต้องชำระเงิน',
+          'confirmed': 'การเช่าได้รับการยืนยันแล้ว',
+          'active': 'การเช่าเริ่มต้นแล้ว',
+          'return_pending': 'ผู้เช่าแจ้งคืนสินค้าแล้ว',
+          'completed': 'การเช่าเสร็จสมบูรณ์',
+          'cancelled_by_renter': 'ผู้เช่ายกเลิกการเช่า',
+          'late_return': 'ตรวจพบการคืนสินค้าล่าช้า'
+        };
+
+        const message = statusMessages[realtimeRental.rental_status];
+        if (message) {
+          setRealtimeNotification({
+            isVisible: true,
+            message,
+            type: realtimeRental.rental_status.includes('cancelled') || realtimeRental.rental_status === 'late_return' ? 'warning' : 'success'
+          });
+          setTimeout(() => setRealtimeNotification(prev => ({ ...prev, isVisible: false })), 5000);
+        }
+      }
+
+      if (previousPaymentStatus !== realtimeRental.payment_status) {
+        const paymentMessages: Record<string, string> = {
+          'pending_verification': 'มีสลิปการโอนเงินใหม่รอตรวจสอบ',
+          'paid': 'การชำระเงินได้รับการยืนยันแล้ว',
+          'failed': 'การชำระเงินไม่สำเร็จ'
+        };
+
+        const message = paymentMessages[realtimeRental.payment_status];
+        if (message) {
+          setRealtimeNotification({
+            isVisible: true,
+            message,
+            type: realtimeRental.payment_status === 'failed' ? 'error' : 'info'
+          });
+          setTimeout(() => setRealtimeNotification(prev => ({ ...prev, isVisible: false })), 5000);
+        }
+      }
+
+      // Update delivery status if changed
+      if (previousDeliveryStatus !== realtimeRental.delivery_status) {
+        setDeliveryStatus(realtimeRental.delivery_status || 'pending');
+        setTrackingNumber(realtimeRental.tracking_number || '');
+        setCarrierCode(realtimeRental.carrier_code || '');
+      }
+    }
+  }, [realtimeRental, rental]);
+
+  // Initial data fetch - only called once on mount
   const fetchRental = useCallback(async () => {
     if (!rentalId) {
-      setError("Rental ID is missing.");
+      setError("ไม่พบรหัสการเช่า");
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
     try {
       if (!user?.id) {
-        setError(t('ownerRentalDetailPage.error.accessDenied'));
+        setError('ไม่มีสิทธิ์เข้าถึงข้อมูลการเช่า');
         setIsLoading(false);
         return;
       }
-      
+
       const data = await getRentalDetails(rentalId, user.id, 'owner');
-// ... existing code ...
-{rental?.return_details && (
-  <div className="mt-4">
-    <p className="text-sm font-medium text-gray-500 mb-2">{t('ownerRentalDetailPage.labels.returnDetails')}</p>
-    <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-      {(() => {
-        try {
-          const details = typeof rental?.return_details === 'string' ? JSON.parse(rental?.return_details) : rental?.return_details;
-          return (
-            <div className="space-y-2 text-sm">
-              {details.carrier && (
-                <div className="flex items-center gap-2">
-                  <FaTruck className="text-blue-500" />
-                  <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.carrier')}:</span>
-                  <span className="text-gray-800">{details.carrier}</span>
-                </div>
-              )}
-              {details.tracking_number && (
-                <div className="flex items-center gap-2">
-                  <FaIdCard className="text-blue-500" />
-                  <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnTrackingNumber')}:</span>
-                  <span className="text-gray-800">{details.tracking_number}</span>
-                </div>
-              )}
-              {details.return_datetime && (
-                <div className="flex items-center gap-2">
-                  <FaCalendarAlt className="text-blue-500" />
-                  <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnDatetime')}:</span>
-                  <span className="text-gray-800">{new Date(details.return_datetime).toLocaleString()}</span>
-                </div>
-              )}
-              {details.locationDetails && (
-                <div className="flex items-center gap-2">
-                  <FaMapMarkerAlt className="text-blue-500" />
-                  <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.meetingLocation')}:</span>
-                  <span className="text-gray-800">{details.locationDetails}</span>
-                </div>
-              )}
-              {details.notes && (
-                <div className="flex items-start gap-2">
-                  <FaInfoCircle className="text-blue-500 mt-0.5" />
-                  <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.renterNotes')}:</span>
-                  <span className="text-gray-800">{details.notes}</span>
-                </div>
-              )}
-              {details.latitude && details.longitude && (
-                <div className="mt-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaMapMarkerAlt className="text-blue-500" />
-                    <span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.meetingLocationMap')}:</span>
-                  </div>
-                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                    <OpenStreetMapPicker
-                      latitude={details.latitude}
-                      longitude={details.longitude}
-                      onLocationSelect={() => {}} // Read-only mode
-                      height="300px"
-                      zoom={15}
-                      readOnly={true}
-                      showSearch={false}
-                      showCurrentLocation={false}
-                    />
-                  </div>
-                  <div className="mt-2 flex justify-end">
-                    <button
-                      onClick={() => {
-                        const googleMapsUrl = `https://www.google.com/maps?q=${details.latitude},${details.longitude}`;
-                        window.open(googleMapsUrl, '_blank');
-                      }}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                    >
-                      <FaMapMarkerAlt className="w-4 h-4" />
-                      {t('ownerRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        } catch (e) {
-          return <span className="text-gray-600">{rental?.return_details as string}</span>;
-        }
-      })()
-    }
-    </div>
-  </div>
-)}
-// ... existing code ...      console.log('Rental data received:', data);
-      console.log('Product data:', data.product);
-      console.log('Product latitude:', data.product?.latitude);
-      console.log('Product longitude:', data.product?.longitude);
       setRental(data);
       setDeliveryStatus(data.delivery_status || 'pending');
       setTrackingNumber(data.tracking_number || '');
       setCarrierCode(data.carrier_code || '');
+
+      // Set initial rental data for real-time hook
+      if (setInitialRental) {
+        setInitialRental(data);
+      }
     } catch (err) {
       const apiError = err as ApiError;
-      setError(apiError.message || t('ownerRentalDetailPage.error.loadFailed'));
+      setError(apiError.message || 'ไม่สามารถโหลดข้อมูลการเช่าได้');
     } finally {
       setIsLoading(false);
     }
-  }, [rentalId, t, user?.id]);
+  }, [rentalId, user?.id, setInitialRental]);
 
+  // Socket connection management
   useEffect(() => {
     if (token) {
       socketService.connect(token);
       setIsSocketConnected(true);
-      return () => { socketService.off('rentalUpdated'); };
+      return () => { 
+        socketService.off('rentalUpdated'); 
+      };
     }
   }, [token]);
   
+  // Initial data fetch - only once on mount
   useEffect(() => {
     fetchRental();
   }, [fetchRental]);
@@ -384,18 +396,18 @@ export const OwnerRentalDetailPage: React.FC = () => {
     setActionLoading(true);
     try {
       await approveRentalRequest(rental.id);
-      showSuccess(t('ownerRentalDetailPage.approveSuccess'));
+      showSuccess('อนุมัติคำขอเช่าสำเร็จ');
       setActionGuidePopup({
         isOpen: true,
-        title: t('actionGuidePopup:rentalApproved.title'),
-        message: t('actionGuidePopup:rentalApproved.message'),
-        nextSteps: t('actionGuidePopup:rentalApproved.steps', { returnObjects: true }) as string[],
+        title: 'อนุมัติคำขอเช่าแล้ว',
+        message: 'คำขอเช่าของผู้ใช้ได้รับการอนุมัติแล้ว กำลังรอผู้เช่าชำระเงิน',
+        nextSteps: ['รอผู้เช่าชำระเงิน', 'ตรวจสอบสลิปการโอนเงิน', 'ยืนยันการชำระเงินเมื่อได้รับแล้ว'],
         type: 'success'
       });
       await fetchRental();
     } catch (err) {
       const apiError = err as ApiError;
-      showError(apiError.message || t('ownerRentalDetailPage.error.approveFailed'));
+      showError(apiError.message || 'ไม่สามารถอนุมัติคำขอเช่าได้');
     } finally {
       setActionLoading(false);
     }
@@ -403,18 +415,18 @@ export const OwnerRentalDetailPage: React.FC = () => {
 
   const handleReject = async () => {
     if (!rental || !rejectReason.trim()) {
-      showError(t('ownerRentalDetailPage.error.rejectReasonRequired'));
+      showError('กรุณากรอกเหตุผลในการปฏิเสธ');
       return;
     }
     setActionLoading(true);
     try {
       await rejectRentalRequest(rental.id, rejectReason.trim());
-      showSuccess(t('ownerRentalDetailPage.rejectSuccess'));
+      showSuccess('ปฏิเสธคำขอเช่าสำเร็จ');
       setActionGuidePopup({
         isOpen: true,
-        title: t('actionGuidePopup:rentalRejected.title'),
-        message: t('actionGuidePopup:rentalRejected.message'),
-        nextSteps: t('actionGuidePopup:rentalRejected.steps', { returnObjects: true }) as string[],
+        title: 'ปฏิเสธคำขอเช่าแล้ว',
+        message: 'คำขอเช่าถูกปฏิเสธแล้ว ผู้เช่าจะได้รับแจ้งถึงเหตุผล',
+        nextSteps: ['แจ้งผู้เช่าเกี่ยวกับเหตุผลการปฏิเสธ', 'รอคำขอเช่าครั้งต่อไป'],
         type: 'info'
       });
       await fetchRental();
@@ -422,7 +434,7 @@ export const OwnerRentalDetailPage: React.FC = () => {
       setRejectReason("");
     } catch (err) {
       const apiError = err as ApiError;
-      showError(apiError.message || t('ownerRentalDetailPage.error.rejectFailed'));
+      showError(apiError.message || 'ไม่สามารถปฏิเสธคำขอเช่าได้');
     } finally {
       setActionLoading(false);
     }
@@ -444,7 +456,7 @@ export const OwnerRentalDetailPage: React.FC = () => {
       const result = await verifySlipByImage({ file, token });
       setVerifySlipResult(result);
     } catch (err: any) {
-      setVerifySlipError(err?.response?.data?.message || err.message || t('ownerRentalDetailPage.error.slipVerificationFailed'));
+      setVerifySlipError(err?.response?.data?.message || err.message || 'ไม่สามารถตรวจสอบสลิปได้');
     } finally {
       setVerifySlipLoading(false);
     }
@@ -452,18 +464,18 @@ export const OwnerRentalDetailPage: React.FC = () => {
 
   const handleMarkSlipInvalid = async () => {
     if (!rental || !invalidSlipReason.trim()) {
-      showError(t('ownerRentalDetailPage.invalidSlip.reasonRequired'));
+      showError('กรุณากรอกเหตุผลที่สลิปไม่ถูกต้อง');
       return;
     }
     setInvalidSlipLoading(true);
     try {
       await markPaymentSlipInvalid(rental.id);
-      showSuccess(t('ownerRentalDetailPage.invalidSlip.success'));
+      showSuccess('แจ้งเตือนสลิปไม่ถูกต้องสำเร็จ');
       setInvalidSlipDialogOpen(false);
       setInvalidSlipReason('');
       await fetchRental();
     } catch (err) {
-      showError(t('ownerRentalDetailPage.invalidSlip.error'));
+      showError('ไม่สามารถแจ้งเตือนสลิปไม่ถูกต้องได้');
     } finally {
       setInvalidSlipLoading(false);
     }
@@ -475,16 +487,16 @@ export const OwnerRentalDetailPage: React.FC = () => {
     try {
       await verifyRentalPayment(rental.id);
       await fetchRental();
-      showSuccess(t('ownerRentalDetailPage.paymentConfirmSuccess'));
+      showSuccess('ยืนยันการชำระเงินสำเร็จ');
       setActionGuidePopup({
         isOpen: true,
-        title: t('actionGuidePopup:paymentConfirmed.title'),
-        message: t('actionGuidePopup:paymentConfirmed.message'),
-        nextSteps: t('actionGuidePopup:paymentConfirmed.steps', { returnObjects: true }) as string[],
+        title: 'ยืนยันการชำระเงินแล้ว',
+        message: 'การชำระเงินได้รับการยืนยันแล้ว กำลังรอการจัดส่งหรือรับสินค้า',
+        nextSteps: ['เตรียมสินค้าสำหรับการเช่า', 'ติดต่อผู้เช่าหรือจัดส่งสินค้า', 'อัปเดตสถานะการจัดส่ง'],
         type: 'success'
       });
     } catch (err) {
-      showError(t('ownerRentalDetailPage.error.paymentConfirmFailed'));
+      showError('ไม่สามารถยืนยันการชำระเงินได้');
     } finally {
       setActionLoading(false);
     }
@@ -495,11 +507,11 @@ export const OwnerRentalDetailPage: React.FC = () => {
     setActionLoading(true);
     try {
       await completeRentalDirectly(rental.id);
-      showSuccess(t('ownerRentalDetailPage.disputeResolveSuccess'));
+      showSuccess('แก้ไขข้อพิพาทสำเร็จ');
       await fetchRental();
     } catch (err) {
       const apiError = err as ApiError;
-      showError(apiError.message || t('ownerRentalDetailPage.error.disputeResolveFailed'));
+      showError(apiError.message || 'ไม่สามารถแก้ไขข้อพิพาทได้');
     } finally {
       setActionLoading(false);
     }
@@ -517,16 +529,16 @@ export const OwnerRentalDetailPage: React.FC = () => {
         carrier_code: carrierCode
       });
       await fetchRental();
-      showSuccess(t('ownerRentalDetailPage.deliveryStatusUpdateSuccess'));
+      showSuccess('อัปเดตสถานะการจัดส่งสำเร็จ');
       setActionGuidePopup({
         isOpen: true,
-        title: t('actionGuidePopup:deliveryStatusUpdated.title'),
-        message: t('actionGuidePopup:deliveryStatusUpdated.message', { status: deliveryStatus }),
-        nextSteps: t('actionGuidePopup:deliveryStatusUpdated.steps', { returnObjects: true }) as string[],
+        title: 'อัปเดตสถานะการจัดส่งแล้ว',
+        message: `สถานะการจัดส่งได้รับการอัปเดตเป็น ${getStatusThaiText(deliveryStatus, 'delivery_status')}`,
+        nextSteps: ['แจ้งผู้เช่าถึงสถานะการจัดส่ง', 'ติดตามการจัดส่งให้เรียบร้อย'],
         type: 'success'
       });
     } catch (err: any) {
-      setDeliveryError(err?.message || t('ownerRentalDetailPage.error.deliveryStatusUpdateFailed'));
+      setDeliveryError(err?.message || 'ไม่สามารถอัปเดตสถานะการจัดส่งได้');
     } finally {
       setDeliveryLoading(false);
     }
@@ -536,12 +548,12 @@ export const OwnerRentalDetailPage: React.FC = () => {
     if (!rental) return;
     const renterId = rental.renter?.id || rental.renter_id;
     if (!renterId) {
-      showError(t('ownerRentalDetailPage.alerts.chatNotAvailable'));
+      showError('ไม่สามารถสนทนากับผู้เช่าได้');
       return;
     }
     setContactingRenter(true);
     try {
-      const messageText = t('ownerRentalDetailPage.defaultChatMessage', { rentalId: rental.rental_uid, product: rental.product?.title || 'Product' });
+      const messageText = `สวัสดีครับ เกี่ยวกับการเช่า ${rental.rental_uid} รายการ ${rental.product?.title || 'สินค้า'}`;
       const msg = await sendMessage({ receiver_id: renterId, message_content: messageText, related_product_id: rental.product_id, related_rental_id: rental.id });
       if (msg && msg.conversation_id) {
         navigate(ROUTE_PATHS.CHAT_ROOM.replace(':conversationId', String(msg.conversation_id)));
@@ -549,14 +561,14 @@ export const OwnerRentalDetailPage: React.FC = () => {
         navigate('/chat');
       }
     } catch (err: any) {
-      showError(err?.response?.data?.message || err?.message || t('ownerRentalDetailPage.alerts.chatNotAvailable'));
+      showError(err?.response?.data?.message || err?.message || 'ไม่สามารถสนทนากับผู้เช่าได้');
     } finally {
       setContactingRenter(false);
     }
   };
   
   const slip = verifySlipResult?.data || verifySlipResult;
-  const slipAmount = typeof slip?.amount === 'object' ? `${slip.amount.amount} ${slip.amount.local || ''}`.trim() : slip?.amount || 0;
+  const slipAmount = typeof slip?.amount === 'object' ? `${slip.amount.amount}`.trim() : slip?.amount || 0;
   const rentalTotalAmount = rental?.total_amount_due || 0;
   const isAccountMatch = slip && ownerPayout && slip.account_number === ownerPayout.account_number && slip.bank_name?.trim().toLowerCase() === ownerPayout.bank_name?.trim().toLowerCase() && slip.account_name?.replace(/\s+/g, '').toLowerCase() === ownerPayout.account_name?.replace(/\s+/g, '').toLowerCase();
   const isAmountMatch = slip && rental && slipAmount && Math.abs(Number(slipAmount) - Number(rentalTotalAmount)) < 5;
@@ -572,10 +584,10 @@ export const OwnerRentalDetailPage: React.FC = () => {
   })();
 
   if (isLoading && !rental) {
-    return <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-16 flex items-center justify-center"><LoadingSpinner message={t('ownerRentalDetailPage.loadingDetails')} /></div>;
+    return <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-16 flex items-center justify-center"><LoadingSpinner message="กำลังโหลดข้อมูลการเช่า..." /></div>;
   }
   if (error) return <ErrorMessage message={error} />;
-  if (!rental) return <div className="p-4 text-center text-gray-700">{t('ownerRentalDetailPage.error.rentalNotFound')}</div>;
+  if (!rental) return <div className="p-4 text-center text-gray-700">ไม่พบข้อมูลการเช่า</div>;
 
   const canApprove = rental.rental_status === 'pending_owner_approval';
   const showPaymentActions = ['pending_payment', 'pending_verification'].includes(rental.payment_status) && Boolean(rental.payment_proof_url);
@@ -583,6 +595,27 @@ export const OwnerRentalDetailPage: React.FC = () => {
   const showDisputeResolveButton = rental.rental_status === 'dispute';
   const showDeliveryUpdateForm = rental.pickup_method === 'delivery' && ['confirmed', 'active', 'shipped'].includes(rental.rental_status) && rental.delivery_status !== 'delivered';
   const showClaimButton = ['active', 'return_pending', 'late_return', 'completed'].includes(rental.rental_status);
+
+  // Helper for Thai pickup method text
+  const getPickupMethodThai = (method: string | undefined) => {
+    if (!method) return '-';
+    switch (method.toLowerCase()) {
+      case 'delivery': return 'จัดส่ง';
+      case 'self_pickup': return 'รับเอง';
+      default: return method;
+    }
+  };
+
+  // Helper for Thai return method text
+  const getReturnMethodThai = (method: string | undefined) => {
+    if (!method) return '-';
+    switch (method.toLowerCase()) {
+      case 'delivery': return 'จัดส่งคืน';
+      case 'self_pickup': return 'นัดรับคืน';
+      default: return method;
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-16">
@@ -593,11 +626,11 @@ export const OwnerRentalDetailPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                 <div className="text-center sm:text-left">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4"><FaFileInvoiceDollar className="h-8 w-8 text-white" /></div>
-                    <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{t('ownerRentalDetailPage.title')}</h1>
-                    <p className="text-blue-100 text-lg">{t('ownerRentalDetailPage.subtitle', { uid: rental.rental_uid || rental.id })}</p>
+                    <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{"รายละเอียดการเช่า"}</h1>
+                    <p className="text-blue-100 text-lg">{"การเช่า"} #{rental.rental_uid || rental.id}</p>
                 </div>
-                <div className="flex items-center gap-2"><div className={`w-3 h-3 rounded-full ${isSocketConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div><span className="text-sm text-blue-100 flex items-center gap-1"><FaWifi className="h-4 w-4" />{isSocketConnected ? 'Live' : 'Offline'}</span></div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}><Link to={ROUTE_PATHS.OWNER_RENTAL_HISTORY}><Button variant="primary" className="bg-white text-black hover:bg-blue-50 hover:text-blue-600 px-8 py-4 rounded-xl font-semibold shadow-lg"><FaArrowLeft className="h-5 w-5 mr-2" />{t('ownerRentalDetailPage.backToHistory')}</Button></Link></motion.div>
+                <div className="flex items-center gap-2"><div className={`w-3 h-3 rounded-full ${isSocketConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div><span className="text-sm text-blue-100 flex items-center gap-1"><FaWifi className="h-4 w-4" />{isSocketConnected ? 'ออนไลน์' : 'ออฟไลน์'}</span></div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}><Link to={ROUTE_PATHS.OWNER_RENTAL_HISTORY}><Button variant="primary" className="bg-white text-black hover:bg-blue-50 hover:text-blue-600 px-8 py-4 rounded-xl font-semibold shadow-lg"><FaArrowLeft className="h-5 w-5 mr-2" />{"กลับไปหน้าประวัติการเช่า"}</Button></Link></motion.div>
             </div>
         </div>
       </motion.div>
@@ -606,10 +639,22 @@ export const OwnerRentalDetailPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           <div className="lg:col-span-2 space-y-6">
+            {/* Rental Status Stepper - Above Tabs */}
+            <Card className="shadow-xl border border-gray-100 rounded-2xl">
+              <CardContent>
+                <SectionTitle icon={<FaClock />} title={"สถานะการเช่า"} />
+                <RentalStatusStepper 
+                  rentalStatus={rental.rental_status}
+                  paymentStatus={rental.payment_status}
+                  userType="owner"
+                />
+              </CardContent>
+            </Card>
+
             <div className="bg-gray-100 p-1 rounded-xl flex items-center gap-1 shadow-inner">
-              <TabButton label={t('ownerRentalDetailPage.tabs.overview', 'ภาพรวม')} icon={<FaInfoCircle />} isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
-              <TabButton label={t('ownerRentalDetailPage.tabs.deliveryReturn', 'การจัดส่งและรับคืน')} icon={<FaTruck />} isActive={activeTab === 'delivery_return'} onClick={() => setActiveTab('delivery_return')} />
-              <TabButton label={t('ownerRentalDetailPage.tabs.paymentVerification', 'ตรวจสอบการชำระเงิน')} icon={<FaReceipt />} isActive={activeTab === 'payment_verification'} onClick={() => setActiveTab('payment_verification')} />
+              <TabButton label={"ภาพรวม"} icon={<FaInfoCircle />} isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
+              <TabButton label={"การจัดส่งและรับคืน"} icon={<FaTruck />} isActive={activeTab === 'delivery_return'} onClick={() => setActiveTab('delivery_return')} />
+              <TabButton label={"ตรวจสอบการชำระเงิน"} icon={<FaReceipt />} isActive={activeTab === 'payment_verification'} onClick={() => setActiveTab('payment_verification')} />
             </div>
             
             <AnimatePresence mode="wait">
@@ -619,21 +664,21 @@ export const OwnerRentalDetailPage: React.FC = () => {
                   <div className="space-y-8">
                     <Card className="shadow-xl border border-gray-100 rounded-2xl">
                       <CardContent>
-                        <SectionTitle icon={<FaBox />} title={t('ownerRentalDetailPage.sections.rentalInformation')} />
+                        <SectionTitle icon={<FaBox />} title={"ข้อมูลการเช่า"} />
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                             <div className="md:col-span-2"><img src={rental.product?.primary_image?.image_url || rental.product?.images?.[0]?.image_url || 'https://picsum.photos/400/225?grayscale'} alt={rental.product?.title} className="w-full h-48 md:h-64 object-cover rounded-lg shadow-md border border-gray-200" /></div>
                             <div className="md:col-span-3 space-y-4">
                                 <h3 className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors"><Link to={ROUTE_PATHS.PRODUCT_DETAIL.replace(':slugOrId', String(rental.product_id))} className="hover:underline">{rental.product?.title}</Link></h3>
                                 <div className="flex flex-col gap-1 text-xs text-gray-500"><span><b>ID:</b> {rental.id}</span><span><b>UID:</b> {rental.rental_uid}</span></div>
-                                <DetailItem icon={<FaUser />} label={t('ownerRentalDetailPage.labels.renter')} value={`${rental.renter?.first_name} ${rental.renter?.last_name}`} color="text-green-500" />
-                                <DetailItem icon={<FaCalendarAlt />} label={t('ownerRentalDetailPage.labels.rentalPeriod')} value={`${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}`} color="text-purple-500" />
-                                <DetailItem icon={<FaTruck />} label={t('ownerRentalDetailPage.labels.pickupMethod')} value={<span className="capitalize">{rental.pickup_method ? t(`ownerRentalDetailPage.pickupMethod.${rental.pickup_method.toLowerCase()}`) : '-'}</span>} color="text-orange-500" />
+                                <DetailItem icon={<FaUser />} label={"ผู้เช่า"} value={`${rental.renter?.first_name} ${rental.renter?.last_name}`} color="text-green-500" />
+                                <DetailItem icon={<FaCalendarAlt />} label={"ช่วงเวลาเช่า"} value={`${new Date(rental.start_date).toLocaleDateString('th-TH')} - ${new Date(rental.end_date).toLocaleDateString('th-TH')}`} color="text-purple-500" />
+                                <DetailItem icon={<FaTruck />} label={"วิธีการรับ-ส่ง"} value={<span className="capitalize">{getPickupMethodThai(rental.pickup_method)}</span>} color="text-orange-500" />
                                 {rental.pickup_method === 'delivery' && rental.delivery_address && (
                                     <div>
-                                        <DetailItem icon={<FaMapMarkerAlt />} label={t('ownerRentalDetailPage.labels.deliveryAddress')} value={<div><div><b>{rental.delivery_address.recipient_name}</b> ({rental.delivery_address.phone_number})</div><div>{rental.delivery_address.address_line1}{rental.delivery_address.address_line2 && <>, {rental.delivery_address.address_line2}</>}</div><div>{rental.delivery_address.sub_district && rental.delivery_address.sub_district + ', '}{rental.delivery_address.district && rental.delivery_address.district + ', '}{provinces.find(p => p.id === rental.delivery_address?.province_id)?.name_th || rental.delivery_address.province_name || rental.delivery_address.province_id}, {rental.delivery_address.postal_code}</div>{rental.delivery_address.notes && <div className="text-xs text-gray-500 mt-1 italic">Notes: {rental.delivery_address.notes}</div>}</div>} color="text-red-500" />
+                                        <DetailItem icon={<FaMapMarkerAlt />} label={"ที่อยู่จัดส่ง"} value={<div><div><b>{rental.delivery_address.recipient_name}</b> ({rental.delivery_address.phone_number})</div><div>{rental.delivery_address.address_line1}{rental.delivery_address.address_line2 && <>, {rental.delivery_address.address_line2}</>}</div><div>{rental.delivery_address.sub_district && rental.delivery_address.sub_district + ', '}{rental.delivery_address.district && rental.delivery_address.district + ', '}{provinces.find(p => p.id === rental.delivery_address?.province_id)?.name_th || rental.delivery_address.province_name || rental.delivery_address.province_id}, {rental.delivery_address.postal_code}</div>{rental.delivery_address.notes && <div className="text-xs text-gray-500 mt-1 italic">{"หมายเหตุ"}: {rental.delivery_address.notes}</div>}</div>} color="text-red-500" />
                                         {rental.delivery_address.latitude && rental.delivery_address.longitude && (
                                             <div className="mt-4">
-                                                <h4 className="text-sm font-medium text-gray-700 mb-2">ที่อยู่จัดส่ง (Delivery Address)</h4>
+                                                <h4 className="text-sm font-medium text-gray-700 mb-2">{"ที่อยู่จัดส่ง"}</h4>
                                                 <div className="mt-3 bg-white rounded-lg border border-gray-200 overflow-hidden">
                                                     <OpenStreetMapPicker
                                                         latitude={rental.delivery_address.latitude}
@@ -655,15 +700,15 @@ export const OwnerRentalDetailPage: React.FC = () => {
                                                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                                                     >
                                                         <FaMapMarkerAlt className="w-4 h-4" />
-                                                        {t('ownerRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}
+                                                        {"เปิดใน Google Maps"}
                                                     </button>
                                                 </div>
                                             </div>
                                         )}
                                         {rental.product?.latitude && rental.product?.longitude && (
                                             <div className="mt-6">
-                                                <h4 className="text-sm font-medium text-gray-700 mb-2">{rental.product?.title || t('ownerRentalDetailPage.productLabel')} - {t('ownerRentalDetailPage.deliveryLocationTitle')}</h4>
-                                                <DetailItem icon={<FaMapMarkerAlt />} label={t('ownerRentalDetailPage.labels.pickupLocation')} value={rental.product?.address_details || '-'} color="text-blue-500" />
+                                                <h4 className="text-sm font-medium text-gray-700 mb-2">{rental.product?.title || "สินค้า"} - {"สถานที่จัดส่ง"}</h4>
+                                                <DetailItem icon={<FaMapMarkerAlt />} label={"สถานที่รับสินค้า"} value={rental.product?.address_details || '-'} color="text-blue-500" />
                                                 <div className="mt-3 bg-white rounded-lg border border-gray-200 overflow-hidden">
                                                     <OpenStreetMapPicker
                                                         latitude={rental.product.latitude}
@@ -685,7 +730,7 @@ export const OwnerRentalDetailPage: React.FC = () => {
                                                         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
                                                     >
                                                         <FaMapMarkerAlt className="w-4 h-4" />
-                                                        {t('ownerRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}
+                                                        {"เปิดใน Google Maps"}
                                                     </button>
                                                 </div>
                                             </div>
@@ -694,8 +739,8 @@ export const OwnerRentalDetailPage: React.FC = () => {
                                 )}
                                 {rental.pickup_method === 'self_pickup' && (
                                     <div className="mt-4">
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">{rental.product?.title || t('ownerRentalDetailPage.productLabel')} - {t('ownerRentalDetailPage.selfPickupLocationTitle')}</h4>
-                                        <DetailItem icon={<FaMapMarkerAlt />} label={t('ownerRentalDetailPage.labels.pickupLocation')} value={rental.product?.address_details || '-'} color="text-blue-500" />
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">{rental.product?.title || "สินค้า"} - {"สถานที่รับสินค้าด้วยตนเอง"}</h4>
+                                        <DetailItem icon={<FaMapMarkerAlt />} label={"สถานที่รับสินค้า"} value={rental.product?.address_details || '-'} color="text-blue-500" />
                                         {rental.product?.latitude && rental.product?.longitude ? (
                                             <div>
                                                 <div className="mt-3 bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -719,7 +764,7 @@ export const OwnerRentalDetailPage: React.FC = () => {
                                                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                                                     >
                                                         <FaMapMarkerAlt className="w-4 h-4" />
-                                                        {t('ownerRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}
+                                                        {"เปิดใน Google Maps"}
                                                     </button>
                                                 </div>
                                             </div>
@@ -727,7 +772,7 @@ export const OwnerRentalDetailPage: React.FC = () => {
                                             <div className="mt-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                                 <div className="flex items-center gap-2 text-yellow-800">
                                                     <FaExclamationTriangle className="h-4 w-4" />
-                                                    <span className="text-sm">{t('ownerRentalDetailPage.noLocationData')}</span>
+                                                    <span className="text-sm">{"ไม่พบข้อมูลตำแหน่งที่ตั้ง"}</span>
                                                 </div>
                                             </div>
                                         )}
@@ -740,46 +785,46 @@ export const OwnerRentalDetailPage: React.FC = () => {
                     </Card>
                     <Card className="shadow-xl border border-gray-100 rounded-2xl">
                         <CardContent>
-                            <SectionTitle icon={<FaMoneyBillWave />} title={t('ownerRentalDetailPage.sections.costBreakdown')} />
+                            <SectionTitle icon={<FaMoneyBillWave />} title={"รายละเอียดค่าใช้จ่าย"} />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                <div className="space-y-3">
-                                  <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-yellow-500" />} label={t('ownerRentalDetailPage.labels.pricePerDay')} value={`฿${rental.rental_price_per_day_at_booking.toLocaleString()}`} color="text-yellow-500" />
+                                  <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-yellow-500" />} label={"ราคาต่อวัน"} value={`฿${rental.rental_price_per_day_at_booking.toLocaleString()}`} color="text-yellow-500" />
                                   {rental.rental_price_per_week_at_booking && (
-                                    <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-blue-500" />} label="ราคารายสัปดาห์" value={`฿${rental.rental_price_per_week_at_booking.toLocaleString()}`} color="text-blue-500" />
+                                    <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-blue-500" />} label={"ราคาต่อสัปดาห์"} value={`฿${rental.rental_price_per_week_at_booking.toLocaleString()}`} color="text-blue-500" />
                                   )}
                                   {rental.rental_price_per_month_at_booking && (
-                                    <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-green-500" />} label="ราคารายเดือน" value={`฿${rental.rental_price_per_month_at_booking.toLocaleString()}`} color="text-green-500" />
+                                    <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-green-500" />} label={"ราคาต่อเดือน"} value={`฿${rental.rental_price_per_month_at_booking.toLocaleString()}`} color="text-green-500" />
                                   )}
                                   {rental.rental_pricing_type_used && (
                                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                       <div className="flex items-center gap-3">
                                         <FaInfoCircle className="h-5 w-5 text-blue-500" />
                                         <div className="flex-1">
-                                          <span className="text-sm text-gray-500">ชนิดราคาที่ใช้คำนวณ:</span>
+                                          <span className="text-sm text-gray-500">{"ประเภทการคำนวณราคา"}:</span>
                                           <p className="font-semibold text-blue-700">
-                                            {rental.rental_pricing_type_used === 'daily' && 'คำนวณด้วยเรตรายวัน'}
-                                            {rental.rental_pricing_type_used === 'weekly' && 'คำนวณด้วยเรตรายสัปดาห์'}
-                                            {rental.rental_pricing_type_used === 'monthly' && 'คำนวณด้วยเรตรายเดือน'}
+                                            {rental.rental_pricing_type_used === 'daily' && "คำนวณรายวัน"}
+                                            {rental.rental_pricing_type_used === 'weekly' && "คำนวณรายสัปดาห์"}
+                                            {rental.rental_pricing_type_used === 'monthly' && "คำนวณรายเดือน"}
                                           </p>
                                           <p className="text-xs text-gray-600 mt-1">
-                                            ระบบเลือกเรตที่คุ้มค่าที่สุดให้อัตโนมัติ
+                                            {"ระบบเลือกราคาที่เหมาะสมที่สุด"}
                                           </p>
                                         </div>
                                       </div>
                                     </div>
                                   )}
-                                  <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-blue-500" />} label={t('ownerRentalDetailPage.labels.subtotal')} value={`฿${(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}`} color="text-blue-500" />
-                                  {typeof rental.security_deposit_at_booking === 'number' && (<DetailItem icon={<FaShieldAlt className="h-5 w-5 text-blue-500" />} label={t('ownerRentalDetailPage.labels.deposit')} value={`฿${rental.security_deposit_at_booking.toLocaleString()}`} color="text-blue-500" />)}
-                                  {typeof rental.delivery_fee === 'number' && rental.delivery_fee > 0 && (<DetailItem icon={<FaTruck className="h-5 w-5 text-green-500" />} label={t('ownerRentalDetailPage.labels.deliveryFee')} value={`฿${rental.delivery_fee.toLocaleString()}`} color="text-green-500" />)}
-                                  {typeof rental.platform_fee_renter === 'number' && rental.platform_fee_renter > 0 && (<DetailItem icon={<FaCreditCard className="h-5 w-5 text-purple-500" />} label={t('ownerRentalDetailPage.labels.platformFeeRenter')} value={`฿${rental.platform_fee_renter.toLocaleString()}`} color="text-purple-500" />)}
-                                  {typeof rental.late_fee_calculated === 'number' && rental.late_fee_calculated > 0 && (<DetailItem icon={<FaExclamationTriangle className="h-5 w-5 text-red-500" />} label={t('ownerRentalDetailPage.labels.lateFee')} value={<span className="text-red-600 font-semibold">฿{rental.late_fee_calculated.toLocaleString()} (หักจากเงินประกัน)</span>} color="text-red-500" />)}
-                                  {typeof rental.security_deposit_refund_amount === 'number' && (<DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-green-500" />} label="เงินประกันที่ต้องคืนให้ผู้เช่า" value={<div><span className="text-green-600 font-semibold">฿{rental.security_deposit_refund_amount.toLocaleString()}</span>{rental.rental_status === 'late_return' && (<div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg"><div className="flex items-center gap-2 text-yellow-800"><FaExclamationTriangle className="h-4 w-4" /><span className="text-sm font-medium">คืนเลทแล้ว - กรุณาติดต่อผู้เช่าผ่านแชทเพื่อจัดการคืนเงินประกัน</span></div></div>)}</div>} color="text-green-500" />)}
+                                  <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-blue-500" />} label={"ยอดรวมค่าเช่า"} value={`฿${(rental.calculated_subtotal_rental_fee || 0).toLocaleString()}`} color="text-blue-500" />
+                                  {typeof rental.security_deposit_at_booking === 'number' && (<DetailItem icon={<FaShieldAlt className="h-5 w-5 text-blue-500" />} label={"เงินประกัน"} value={`฿${rental.security_deposit_at_booking.toLocaleString()}`} color="text-blue-500" />)}
+                                  {typeof rental.delivery_fee === 'number' && rental.delivery_fee > 0 && (<DetailItem icon={<FaTruck className="h-5 w-5 text-green-500" />} label={"ค่าจัดส่ง"} value={`฿${rental.delivery_fee.toLocaleString()}`} color="text-green-500" />)}
+                                  {typeof rental.platform_fee_renter === 'number' && rental.platform_fee_renter > 0 && (<DetailItem icon={<FaCreditCard className="h-5 w-5 text-purple-500" />} label={"ค่าธรรมเนียมแพลตฟอร์ม (ผู้เช่า)"} value={`฿${rental.platform_fee_renter.toLocaleString()}`} color="text-purple-500" />)}
+                                  {typeof rental.late_fee_calculated === 'number' && rental.late_fee_calculated > 0 && (<DetailItem icon={<FaExclamationTriangle className="h-5 w-5 text-red-500" />} label={"ค่าปรับคืนล่าช้า"} value={<span className="text-red-600 font-semibold">฿{rental.late_fee_calculated.toLocaleString()} ({"หักจากเงินประกัน"})</span>} color="text-red-500" />)}
+                                  {typeof rental.security_deposit_refund_amount === 'number' && (<DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-green-500" />} label={"เงินประกันคืน"} value={<div><span className="text-green-600 font-semibold">฿{rental.security_deposit_refund_amount.toLocaleString()}</span>{rental.rental_status === 'late_return' && (<div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg"><div className="flex items-center gap-2 text-yellow-800"><FaExclamationTriangle className="h-4 w-4" /><span className="text-sm font-medium">{"มีการคืนเงินประกันล่าช้าเนื่องจากมีการคืนล่าช้า"}</span></div></div>)}</div>} color="text-green-500" />)}
                                </div>
                                <div className="space-y-3">
-                                  <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-green-500" />} label={t('ownerRentalDetailPage.labels.totalAmount')} value={`฿${(rental.total_amount_due || 0).toLocaleString()}`} color="text-green-500" />
-                                  {typeof rental.final_amount_paid === 'number' && (<DetailItem icon={<FaCheckCircle className="h-5 w-5 text-green-500" />} label={t('ownerRentalDetailPage.labels.finalAmountPaid')} value={`฿${(rental.final_amount_paid || 0).toLocaleString()}`} color="text-green-500" />)}
-                                  {typeof rental.platform_fee_owner === 'number' && rental.platform_fee_owner > 0 && (<DetailItem icon={<FaCreditCard className="h-5 w-5 text-orange-500" />} label={t('ownerRentalDetailPage.labels.platformFeeOwner')} value={`฿${(rental.platform_fee_owner || 0).toLocaleString()}`} color="text-orange-500" />)}
-                                  <DetailItem icon={<FaCoins className="h-5 w-5 text-indigo-500" />} label={t('ownerRentalDetailPage.labels.estimatedPayout')} value={`฿${(((rental.final_amount_paid || rental.total_amount_due) || 0) - (rental.platform_fee_owner || 0)).toLocaleString()}`} color="text-indigo-500" />
+                                  <DetailItem icon={<FaMoneyBillWave className="h-5 w-5 text-green-500" />} label={"ยอดรวมทั้งหมด"} value={`฿${(rental.total_amount_due || 0).toLocaleString()}`} color="text-green-500" />
+                                  {typeof rental.final_amount_paid === 'number' && (<DetailItem icon={<FaCheckCircle className="h-5 w-5 text-green-500" />} label={"ยอดเงินที่ชำระสุดท้าย"} value={`฿${(rental.final_amount_paid || 0).toLocaleString()}`} color="text-green-500" />)}
+                                  {typeof rental.platform_fee_owner === 'number' && rental.platform_fee_owner > 0 && (<DetailItem icon={<FaCreditCard className="h-5 w-5 text-orange-500" />} label={"ค่าธรรมเนียมแพลตฟอร์ม (เจ้าของ)"} value={`฿${(rental.platform_fee_owner || 0).toLocaleString()}`} color="text-orange-500" />)}
+                                  <DetailItem icon={<FaCoins className="h-5 w-5 text-indigo-500" />} label={"ยอดเงินที่คาดว่าจะได้รับ"} value={`฿${(((rental.final_amount_paid || rental.total_amount_due) || 0) - (rental.platform_fee_owner || 0)).toLocaleString()}`} color="text-indigo-500" />
                                </div>
                             </div>
                         </CardContent>
@@ -792,53 +837,53 @@ export const OwnerRentalDetailPage: React.FC = () => {
                     {showDeliveryUpdateForm && (
                       <Card className="shadow-xl border border-gray-100 rounded-2xl">
                           <CardContent>
-                              <SectionTitle icon={<FaShippingFast />} title={t('ownerRentalDetailPage.sections.deliveryStatusUpdate')} />
+                              <SectionTitle icon={<FaShippingFast />} title={"อัปเดตสถานะการจัดส่ง"} />
                               <form onSubmit={handleDeliveryStatusUpdate} className="space-y-4">
                                 <div>
-                                  <label htmlFor="deliveryStatus" className="block text-sm font-medium text-gray-700 mb-1">{t('ownerRentalDetailPage.labels.deliveryStatus')} <span className="text-red-500">*</span></label>
+                                  <label htmlFor="deliveryStatus" className="block text-sm font-medium text-gray-700 mb-1">{"สถานะการจัดส่ง"} <span className="text-red-500">*</span></label>
                                   <select id="deliveryStatus" className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" value={deliveryStatus} onChange={e => setDeliveryStatus(e.target.value)} required>
-                                    <option value="delivered">{t('ownerRentalDetailPage.status.delivery.delivered')}</option>
+                                    <option value="delivered">{"ส่งมอบแล้ว"}</option>
                                   </select>
-                                  <p className="text-sm text-gray-600 mt-1">{t('ownerRentalDetailPage.deliveryStatus.onlyDeliveredAllowed')}</p>
+                                  <p className="text-sm text-gray-600 mt-1">{"อนุญาตให้อัปเดตเป็น 'ส่งมอบแล้ว' เท่านั้น"}</p>
                                 </div>
                                 <div>
-                                  <label htmlFor="trackingNumber" className="block text-sm font-medium text-gray-700 mb-1">{t('ownerRentalDetailPage.labels.trackingNumber')}</label>
-                                  <input id="trackingNumber" className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" type="text" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} placeholder={t('ownerRentalDetailPage.placeholders.trackingNumber')} />
+                                  <label htmlFor="trackingNumber" className="block text-sm font-medium text-gray-700 mb-1">{"หมายเลขติดตาม"}</label>
+                                  <input id="trackingNumber" className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" type="text" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} placeholder={"กรอกหมายเลขติดตาม"} />
                                 </div>
                                 <div>
-                                  <label htmlFor="carrierCode" className="block text-sm font-medium text-gray-700 mb-1">{t('ownerRentalDetailPage.labels.carrierCode')}</label>
-                                  <input id="carrierCode" className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" type="text" value={carrierCode} onChange={e => setCarrierCode(e.target.value)} placeholder={t('ownerRentalDetailPage.placeholders.carrierCode')} />
+                                  <label htmlFor="carrierCode" className="block text-sm font-medium text-gray-700 mb-1">{"รหัสผู้ให้บริการ"}</label>
+                                  <input id="carrierCode" className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" type="text" value={carrierCode} onChange={e => setCarrierCode(e.target.value)} placeholder={"กรอกรหัสผู้ให้บริการ"} />
                                 </div>
                                 {deliveryError && <ErrorMessage message={deliveryError} />}
-                                <Button type="submit" isLoading={deliveryLoading} variant="primary" className="w-full">{t('ownerRentalDetailPage.actions.saveDeliveryStatus')}</Button>
+                                <Button type="submit" isLoading={deliveryLoading} variant="primary" className="w-full">{"บันทึกสถานะการจัดส่ง"}</Button>
                               </form>
                           </CardContent>
                       </Card>
                     )}
                     {rental.pickup_method === 'delivery' && rental.delivery_status === 'delivered' && !showDeliveryUpdateForm && (
-                        <Card className="shadow-xl border border-green-200 rounded-2xl bg-green-50"><CardContent><div className="flex items-center gap-3"><div className="p-2 bg-green-100 rounded-xl"><FaCheckCircle className="h-6 w-6 text-green-600" /></div><div><h3 className="text-lg font-semibold text-green-800">{t('ownerRentalDetailPage.deliveryStatus.alreadyDelivered')}</h3><p className="text-green-700">{t('ownerRentalDetailPage.deliveryStatus.noFurtherUpdates')}</p></div></div></CardContent></Card>
+                        <Card className="shadow-xl border border-green-200 rounded-2xl bg-green-50"><CardContent><div className="flex items-center gap-3"><div className="p-2 bg-green-100 rounded-xl"><FaCheckCircle className="h-6 w-6 text-green-600" /></div><div><h3 className="text-lg font-semibold text-green-800">{"ส่งมอบสินค้าเรียบร้อยแล้ว"}</h3><p className="text-green-700">{"ไม่จำเป็นต้องมีการอัปเดตสถานะเพิ่มเติม"}</p></div></div></CardContent></Card>
                     )}
                     
                     {rental.return_condition_status || rental.actual_return_time ? (
                         <Card className="shadow-xl border border-gray-100 rounded-2xl">
                           <CardContent>
-                            <SectionTitle icon={<FaClipboardCheck />} title={t('ownerRentalDetailPage.sections.returnProcessing')} />
+                            <SectionTitle icon={<FaClipboardCheck />} title={"การดำเนินการรับคืน"} />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                              <DetailItem icon={<FaTag />} label={t('ownerRentalDetailPage.labels.returnMethod')} value={rental.return_method ? t(`ownerRentalDetailPage.returnMethod.${rental.return_method.toLowerCase()}`) : '-'} />
-                              <DetailItem icon={<FaCalendarAlt />} label={t('ownerRentalDetailPage.labels.actualReturnTime')} value={rental.actual_return_time ? new Date(rental.actual_return_time).toLocaleString() : '-'} />
-                              <DetailItem icon={<FaCheckCircle />} label={t('ownerRentalDetailPage.labels.returnConditionStatus')} value={rental.return_condition_status ? <StatusBadge status={rental.return_condition_status} type="return_condition" /> : '-'} />
-                              {rental.return_initiated_at && (<DetailItem icon={<FaClock />} label={t('ownerRentalDetailPage.labels.returnInitiatedAt')} value={new Date(rental.return_initiated_at).toLocaleString()} />)}
+                              <DetailItem icon={<FaTag />} label={"วิธีการคืน"} value={getReturnMethodThai(rental.return_method)} />
+                              <DetailItem icon={<FaCalendarAlt />} label={"เวลาคืนจริง"} value={rental.actual_return_time ? new Date(rental.actual_return_time).toLocaleString('th-TH') : '-'} />
+                              <DetailItem icon={<FaCheckCircle />} label={"สถานะสภาพสินค้าตอนคืน"} value={rental.return_condition_status ? <StatusBadge status={rental.return_condition_status} type="return_condition" /> : '-'} />
+                              {rental.return_initiated_at && (<DetailItem icon={<FaClock />} label={"เริ่มการคืนเมื่อ"} value={new Date(rental.return_initiated_at).toLocaleString('th-TH')} />)}
                             </div>
-                            {rental.notes_from_owner_on_return && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-1">{t('ownerRentalDetailPage.labels.ownerNote')}:</p><p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">{rental.notes_from_owner_on_return}</p></div>)}
-                            {rental.return_details && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{t('ownerRentalDetailPage.labels.returnDetails')}</p><div className="bg-gray-50 p-3 rounded-lg border border-gray-200">{(() => { try { const details = typeof rental.return_details === 'string' ? JSON.parse(rental.return_details) : rental.return_details; return ( <div className="space-y-2 text-sm"> {details.location && (<div className="flex items-start gap-2"><FaMapMarkerAlt className="text-blue-500 mt-0.5" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnLocation')}:</span><span className="text-gray-800">{details.location}</span></div>)} {details.latitude && details.longitude && (<div className="mt-3"><div className="flex items-center gap-2 mb-2"><FaMapMarkerAlt className="text-blue-500" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.meetingLocationMap')}:</span></div><div className="bg-white p-2 rounded-lg border border-gray-200"><OpenStreetMapPicker latitude={details.latitude} longitude={details.longitude} readOnly={true} height="200px" onLocationSelect={() => {}} /></div><button onClick={() => { const googleMapsUrl = `https://www.google.com/maps?q=${details.latitude},${details.longitude}`; window.open(googleMapsUrl, '_blank'); }} className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors"><FaMapMarkerAlt className="w-4 h-4" />{t('ownerRentalDetailPage.openInGoogleMaps', 'เปิดใน Google Maps')}</button></div>)} {details.return_datetime && (<div className="flex items-center gap-2"><FaCalendarAlt className="text-blue-500" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnDatetime')}:</span><span className="text-gray-800">{new Date(details.return_datetime).toLocaleString()}</span></div>)} {details.carrier && (<div className="flex items-center gap-2"><FaTruck className="text-blue-500" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.carrier')}:</span><span className="text-gray-800">{details.carrier}</span></div>)} {details.tracking_number && (<div className="flex items-center gap-2"><FaIdCard className="text-blue-500" /><span className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.returnTrackingNumber')}:</span><span className="text-gray-800">{details.tracking_number}</span></div>)} </div> ); } catch (e) { return <span className="text-gray-600">{rental.return_details as string}</span>; } })()}</div></div>)}
-                            {rental.return_shipping_receipt_url && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{t('ownerRentalDetailPage.labels.returnShippingReceipt')}</p><a href={rental.return_shipping_receipt_url} target="_blank" rel="noopener noreferrer" className="block relative group overflow-hidden rounded-lg max-w-xs"><img src={rental.return_shipping_receipt_url} alt={t('ownerRentalDetailPage.labels.viewReturnReceipt')} className="w-full h-auto object-contain rounded-lg shadow-md border border-gray-200 transition-transform duration-300 group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a></div>)}
-                            <div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{t('ownerRentalDetailPage.labels.returnConditionImages')}</p>{Array.isArray(rental.return_condition_image_urls) && rental.return_condition_image_urls.length > 0 ? (<div className="flex flex-wrap gap-2">{rental.return_condition_image_urls.map((imageUrl: string, idx: number) => (<a key={idx} href={imageUrl} target="_blank" rel="noopener noreferrer" className="block relative group"><img src={imageUrl} alt={t('ownerRentalDetailPage.labels.returnConditionImageAlt', { idx: idx + 1 })} className="w-24 h-24 object-cover rounded-lg border border-gray-200 shadow-sm transition-all group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a>))}</div>) : <p className="text-sm text-gray-400 italic">{t('ownerRentalDetailPage.labels.noReturnImages')}</p>}</div>
+                            {rental.notes_from_owner_on_return && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-1">{"หมายเหตุจากเจ้าของ"}:</p><p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">{rental.notes_from_owner_on_return}</p></div>)}
+                            {rental.return_details && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{"รายละเอียดการคืน"}</p><div className="bg-gray-50 p-3 rounded-lg border border-gray-200">{(() => { try { const details = typeof rental.return_details === 'string' ? JSON.parse(rental.return_details) : rental.return_details; return ( <div className="space-y-2 text-sm"> {details.location && (<div className="flex items-start gap-2"><FaMapMarkerAlt className="text-blue-500 mt-0.5" /><span className="font-medium text-gray-600">{"สถานที่คืน"}:</span><span className="text-gray-800">{details.location}</span></div>)} {details.latitude && details.longitude && (<div className="mt-3"><div className="flex items-center gap-2 mb-2"><FaMapMarkerAlt className="text-blue-500" /><span className="font-medium text-gray-600">{"แผนที่สถานที่นัดพบ"}:</span></div><div className="bg-white p-2 rounded-lg border border-gray-200"><OpenStreetMapPicker latitude={details.latitude} longitude={details.longitude} readOnly={true} height="200px" onLocationSelect={() => {}} /></div><button onClick={() => { const googleMapsUrl = `https://www.google.com/maps?q=${details.latitude},${details.longitude}`; window.open(googleMapsUrl, '_blank'); }} className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors"><FaMapMarkerAlt className="w-4 h-4" />{"เปิดใน Google Maps"}</button></div>)} {details.return_datetime && (<div className="flex items-center gap-2"><FaCalendarAlt className="text-blue-500" /><span className="font-medium text-gray-600">{"วันที่และเวลาคืน"}:</span><span className="text-gray-800">{new Date(details.return_datetime).toLocaleString('th-TH')}</span></div>)} {details.carrier && (<div className="flex items-center gap-2"><FaTruck className="text-blue-500" /><span className="font-medium text-gray-600">{"ผู้ให้บริการขนส่ง"}:</span><span className="text-gray-800">{details.carrier}</span></div>)} {details.tracking_number && (<div className="flex items-center gap-2"><FaIdCard className="text-blue-500" /><span className="font-medium text-gray-600">{"หมายเลขติดตามการคืน"}:</span><span className="text-gray-800">{details.tracking_number}</span></div>)} </div> ); } catch (e) { return <span className="text-gray-600">{rental.return_details as string}</span>; } })()}</div></div>)}
+                            {rental.return_shipping_receipt_url && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{"ใบเสร็จรับเงินการจัดส่งคืน"}</p><a href={rental.return_shipping_receipt_url} target="_blank" rel="noopener noreferrer" className="block relative group overflow-hidden rounded-lg max-w-xs"><img src={rental.return_shipping_receipt_url} alt={"ดูใบเสร็จรับเงินการจัดส่งคืน"} className="w-full h-auto object-contain rounded-lg shadow-md border border-gray-200 transition-transform duration-300 group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a></div>)}
+                            <div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{"รูปภาพสภาพสินค้าตอนคืน"}</p>{Array.isArray(rental.return_condition_image_urls) && rental.return_condition_image_urls.length > 0 ? (<div className="flex flex-wrap gap-2">{rental.return_condition_image_urls.map((imageUrl: string, idx: number) => (<a key={idx} href={imageUrl} target="_blank" rel="noopener noreferrer" className="block relative group"><img src={imageUrl} alt={`รูปภาพสภาพสินค้าตอนคืน #${idx + 1}`} className="w-24 h-24 object-cover rounded-lg border border-gray-200 shadow-sm transition-all group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a>))}</div>) : <p className="text-sm text-gray-400 italic">{"ไม่พบรูปภาพสภาพสินค้าตอนคืน"}</p>}</div>
                           </CardContent>
                         </Card>
                     ) : (
                         <Card className="shadow-xl border border-gray-100 rounded-2xl">
                             <CardContent>
-                                <p className="text-gray-500 text-center py-8">{t('ownerRentalDetailPage.sidebar.noReturnInfo')}</p>
+                                <p className="text-gray-500 text-center py-8">{"ไม่มีข้อมูลการคืนสินค้าในขณะนี้"}</p>
                             </CardContent>
                         </Card>
                     )}
@@ -850,30 +895,30 @@ export const OwnerRentalDetailPage: React.FC = () => {
                      {Boolean(rental.payment_proof_url) ? (
                         <Card className="shadow-xl border border-gray-100 rounded-2xl">
                             <CardContent>
-                                <SectionTitle icon={<FaReceipt />} title={t('ownerRentalDetailPage.sidebar.paymentSlip')} />
-                                <a href={rental.payment_proof_url!} target="_blank" rel="noopener noreferrer" className="block relative group overflow-hidden rounded-lg"><img src={rental.payment_proof_url!} alt={t('ownerRentalDetailPage.sidebar.paymentSlipAlt')} className="w-full h-auto object-contain rounded-lg shadow-md border border-gray-200 transition-transform duration-300 group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a>
-                                {rental.payment_verified_at && <div className="mt-4 text-sm text-green-700 flex items-center gap-2"><FaCheckCircle />{t('ownerRentalDetailPage.labels.paymentVerifiedAt')}: {new Date(rental.payment_verified_at).toLocaleString()}</div>}
-                                {rental.payment_verification_notes && <div className="mt-2 text-sm text-gray-700">{t('ownerRentalDetailPage.labels.paymentVerificationNotes')}: {rental.payment_verification_notes}</div>}
+                                <SectionTitle icon={<FaReceipt />} title={"สลิปการชำระเงิน"} />
+                                <a href={rental.payment_proof_url!} target="_blank" rel="noopener noreferrer" className="block relative group overflow-hidden rounded-lg"><img src={rental.payment_proof_url!} alt={"สลิปการชำระเงิน"} className="w-full h-auto object-contain rounded-lg shadow-md border border-gray-200 transition-transform duration-300 group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a>
+                                {rental.payment_verified_at && <div className="mt-4 text-sm text-green-700 flex items-center gap-2"><FaCheckCircle />{"ยืนยันการชำระเงินเมื่อ"}: {new Date(rental.payment_verified_at).toLocaleString('th-TH')}</div>}
+                                {rental.payment_verification_notes && <div className="mt-2 text-sm text-gray-700">{"หมายเหตุการตรวจสอบการชำระเงิน"}: {rental.payment_verification_notes}</div>}
                                 {rental.payment_status === 'pending_verification' && (
                                     <div className="mt-4 space-y-3">
-                                        <Button onClick={handleVerifySlipByImage} isLoading={verifySlipLoading} className="w-full bg-blue-600 hover:bg-blue-700 text-white">{verifySlipLoading ? t('ownerRentalDetailPage.sidebar.verifyingSlip') : <><FaCoins className="mr-2" />{t('ownerRentalDetailPage.sidebar.verifySlip')}</>}</Button>
+                                        <Button onClick={handleVerifySlipByImage} isLoading={verifySlipLoading} className="w-full bg-blue-600 hover:bg-blue-700 text-white">{verifySlipLoading ? "กำลังตรวจสอบสลิป..." : <><FaCoins className="mr-2" />{"ตรวจสอบสลิปอัตโนมัติ"}</>}</Button>
                                         {verifySlipError && <div className="text-red-600 text-sm mt-2 p-2 bg-red-50 rounded border border-red-200">{verifySlipError}</div>}
                                         {verifySlipResult && (
                                             <div className="p-4 rounded-lg border border-gray-200 bg-gray-50 text-sm space-y-2">
-                                                <h4 className="font-bold mb-2 text-gray-800">{t('ownerRentalDetailPage.sidebar.slipComparisonResult')}</h4>
+                                                <h4 className="font-bold mb-2 text-gray-800">{"ผลการเปรียบเทียบสลิป"}</h4>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                                                  <div className="flex items-center gap-2"><FaIdCard className="text-blue-500" /><div><p className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.accountName')}:</p><span className="text-gray-800">{slip?.account_name || '-'}</span> / <span className="font-semibold">{ownerPayout?.account_name || '-'}</span><span className={`ml-2 font-bold ${isAccountMatch ? 'text-green-600' : 'text-red-600'}`}>{isAccountMatch ? '✔' : '✘'}</span></div></div>
-                                                  <div className="flex items-center gap-2"><FaBuilding className="text-blue-500" /><div><p className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.bankName')}:</p><span className="text-gray-800">{slip?.bank_name || '-'}</span> / <span className="font-semibold">{ownerPayout?.bank_name || '-'}</span><span className={`ml-2 font-bold ${isAccountMatch ? 'text-green-600' : 'text-red-600'}`}>{isAccountMatch ? '✔' : '✘'}</span></div></div>
-                                                  <div className="flex items-center gap-2"><FaTag className="text-blue-500" /><div><p className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.accountNumber')}:</p><span className="text-gray-800">{slip?.account_number || '-'}</span> / <span className="font-semibold">{ownerPayout?.account_number || '-'}</span><span className={`ml-2 font-bold ${isAccountMatch ? 'text-green-600' : 'text-red-600'}`}>{isAccountMatch ? '✔' : '✘'}</span></div></div>
-                                                  <div className="flex items-center gap-2"><FaMoneyBillWave className="text-blue-500" /><div><p className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.amount')}:</p><span className="text-gray-800">฿{Number(slipAmount).toLocaleString()}</span> / <span className="font-semibold">฿{rentalTotalAmount.toLocaleString()}</span><span className={`ml-2 font-bold ${isAmountMatch ? 'text-green-600' : 'text-red-600'}`}>{isAmountMatch ? '✔' : '✘'}</span></div></div>
-                                                  <div className="flex items-center gap-2 col-span-full"><FaCalendarAlt className="text-blue-500" /><div><p className="font-medium text-gray-600">{t('ownerRentalDetailPage.labels.transferDate')}:</p><span className="text-gray-800">{slip?.date ? new Date(slip.date).toLocaleString() : '-'}</span> / <span className="font-semibold">{rental?.created_at ? new Date(rental.created_at).toLocaleString() : '-'}</span><span className={`ml-2 font-bold ${isDateMatch ? 'text-green-600' : 'text-red-600'}`}>{isDateMatch ? '✔' : '✘'}</span></div></div>
+                                                  <div className="flex items-center gap-2"><FaIdCard className="text-blue-500" /><div><p className="font-medium text-gray-600">{"ชื่อบัญชี"}:</p><span className="text-gray-800">{slip?.account_name || '-'}</span> / <span className="font-semibold">{ownerPayout?.account_name || '-'}</span><span className={`ml-2 font-bold ${isAccountMatch ? 'text-green-600' : 'text-red-600'}`}>{isAccountMatch ? '✔' : '✘'}</span></div></div>
+                                                  <div className="flex items-center gap-2"><FaBuilding className="text-blue-500" /><div><p className="font-medium text-gray-600">{"ชื่อธนาคาร"}:</p><span className="text-gray-800">{slip?.bank_name || '-'}</span> / <span className="font-semibold">{ownerPayout?.bank_name || '-'}</span><span className={`ml-2 font-bold ${isAccountMatch ? 'text-green-600' : 'text-red-600'}`}>{isAccountMatch ? '✔' : '✘'}</span></div></div>
+                                                  <div className="flex items-center gap-2"><FaTag className="text-blue-500" /><div><p className="font-medium text-gray-600">{"เลขที่บัญชี"}:</p><span className="text-gray-800">{slip?.account_number || '-'}</span> / <span className="font-semibold">{ownerPayout?.account_number || '-'}</span><span className={`ml-2 font-bold ${isAccountMatch ? 'text-green-600' : 'text-red-600'}`}>{isAccountMatch ? '✔' : '✘'}</span></div></div>
+                                                  <div className="flex items-center gap-2"><FaMoneyBillWave className="text-blue-500" /><div><p className="font-medium text-gray-600">{"จำนวนเงิน"}:</p><span className="text-gray-800">฿{Number(slipAmount).toLocaleString()}</span> / <span className="font-semibold">฿{rentalTotalAmount.toLocaleString()}</span><span className={`ml-2 font-bold ${isAmountMatch ? 'text-green-600' : 'text-red-600'}`}>{isAmountMatch ? '✔' : '✘'}</span></div></div>
+                                                  <div className="flex items-center gap-2 col-span-full"><FaCalendarAlt className="text-blue-500" /><div><p className="font-medium text-gray-600">{"วันที่โอน"}:</p><span className="text-gray-800">{slip?.date ? new Date(slip.date).toLocaleString('th-TH') : '-'}</span> / <span className="font-semibold">{rental?.created_at ? new Date(rental.created_at).toLocaleString('th-TH') : '-'}</span><span className={`ml-2 font-bold ${isDateMatch ? 'text-green-600' : 'text-red-600'}`}>{isDateMatch ? '✔' : '✘'}</span></div></div>
                                                 </div>
-                                                {(!isAccountMatch || !isAmountMatch || !isDateMatch) && (<div className="mt-3 p-2 bg-red-100 text-red-800 rounded-lg text-xs font-semibold flex items-center gap-2"><FaExclamationTriangle className="min-w-fit" /> {t('ownerRentalDetailPage.sidebar.slipMismatchWarning')}</div>)}
-                                                {isAccountMatch && isAmountMatch && isDateMatch && (<div className="mt-3 p-2 bg-green-100 text-green-800 rounded-lg text-xs font-semibold flex items-center gap-2"><FaCheckCircle className="min-w-fit" /> {t('ownerRentalDetailPage.sidebar.slipMatchSuccess')}</div>)}
+                                                {(!isAccountMatch || !isAmountMatch || !isDateMatch) && (<div className="mt-3 p-2 bg-red-100 text-red-800 rounded-lg text-xs font-semibold flex items-center gap-2"><FaExclamationTriangle className="min-w-fit" /> {"ข้อมูลสลิปไม่ตรงกัน! โปรดตรวจสอบด้วยตนเอง"}</div>)}
+                                                {isAccountMatch && isAmountMatch && isDateMatch && (<div className="mt-3 p-2 bg-green-100 text-green-800 rounded-lg text-xs font-semibold flex items-center gap-2"><FaCheckCircle className="min-w-fit" /> {"ข้อมูลสลิปตรงกันทั้งหมด"}</div>)}
                                             </div>
                                         )}
                                         {(rental.rental_status !== 'completed' && (rental.payment_status === 'pending_verification' || rental.payment_status === 'paid')) && (
-                                            <Button onClick={() => setInvalidSlipDialogOpen(true)} variant="danger" className="w-full">{t('ownerRentalDetailPage.sidebar.invalidSlip')}</Button>
+                                            <Button onClick={() => setInvalidSlipDialogOpen(true)} variant="danger" className="w-full">{"แจ้งเตือนสลิปไม่ถูกต้อง"}</Button>
                                         )}
                                     </div>
                                 )}
@@ -882,7 +927,7 @@ export const OwnerRentalDetailPage: React.FC = () => {
                      ) : (
                         <Card className="shadow-xl border border-gray-100 rounded-2xl">
                             <CardContent>
-                                <p className="text-gray-500 text-center py-8">{t('ownerRentalDetailPage.tabs.noPaymentSlip', 'ยังไม่มีการอัปโหลดสลิปการชำระเงิน')}</p>
+                                <p className="text-gray-500 text-center py-8">{"ผู้เช่ายังไม่ได้อัปโหลดสลิปการชำระเงิน"}</p>
                             </CardContent>
                         </Card>
                      )}
@@ -897,24 +942,24 @@ export const OwnerRentalDetailPage: React.FC = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
               <Card className="shadow-xl border border-gray-100 rounded-2xl">
                 <CardContent>
-                  <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-200">{t('ownerRentalDetailPage.sidebar.statusActions')}</h3>
+                  <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-200">{"สถานะและการดำเนินการ"}</h3>
                   <div className="space-y-4">
-                    <DetailItem icon={<FaClipboardCheck />} label={t('ownerRentalDetailPage.sidebar.rentalStatus')} value={<StatusBadge status={rental.rental_status} type="rental" />} />
-                    <DetailItem icon={<FaCreditCard />} label={t('ownerRentalDetailPage.sidebar.paymentStatus')} value={<StatusBadge status={rental.payment_status} type="payment" />} />
+                    <DetailItem icon={<FaClipboardCheck />} label={"สถานะการเช่า"} value={<StatusBadge status={rental.rental_status} type="rental" />} />
+                    <DetailItem icon={<FaCreditCard />} label={"สถานะการชำระเงิน"} value={<StatusBadge status={rental.payment_status} type="payment" />} />
                     {rental.delivery_status && rental.pickup_method === 'delivery' && (
-                      <DetailItem icon={<FaShippingFast />} label={t('ownerRentalDetailPage.sidebar.deliveryStatus')} value={<StatusBadge status={rental.delivery_status} type="delivery_status" />} />
+                      <DetailItem icon={<FaShippingFast />} label={"สถานะจัดส่ง"} value={<StatusBadge status={rental.delivery_status} type="delivery_status" />} />
                     )}
                   </div>
                   <div className="mt-6 pt-4 border-t border-gray-200 space-y-3">
                     {canApprove && (
                       <>
-                        <Button onClick={handleApprove} disabled={actionLoading} className="w-full bg-green-600 hover:bg-green-700">{actionLoading ? t('ownerRentalDetailPage.sidebar.approving') : t('ownerRentalDetailPage.sidebar.approveRequest')}</Button>
-                        <Button onClick={() => setShowRejectForm(true)} disabled={actionLoading} variant="outline" className="w-full">{t('ownerRentalDetailPage.sidebar.rejectRequest')}</Button>
+                        <Button onClick={handleApprove} disabled={actionLoading} className="w-full bg-green-600 hover:bg-green-700">{actionLoading ? "กำลังอนุมัติ..." : "อนุมัติคำขอ"}</Button>
+                        <Button onClick={() => setShowRejectForm(true)} disabled={actionLoading} variant="outline" className="w-full">{"ปฏิเสธคำขอ"}</Button>
                       </>
                     )}
-                    {showPaymentActions && (<Button onClick={handleConfirmPayment} disabled={actionLoading} className="w-full bg-blue-600 hover:bg-blue-700">{actionLoading ? t('ownerRentalDetailPage.sidebar.confirmingPayment') : t('ownerRentalDetailPage.sidebar.confirmPayment')}</Button>)}
-                    {showReturnActions && (<Button variant="primary" className="w-full bg-indigo-600 hover:bg-indigo-700" onClick={() => setShowReturnModal(true)}>{t('ownerRentalDetailPage.sidebar.confirmReturn')}</Button>)}
-                    {showDisputeResolveButton && (<Button onClick={handleResolveDispute} disabled={actionLoading} className="w-full bg-red-600 hover:bg-red-700">{actionLoading ? t('ownerRentalDetailPage.sidebar.resolvingDispute') : t('ownerRentalDetailPage.sidebar.resolveDispute')}</Button>)}
+                    {showPaymentActions && (<Button onClick={handleConfirmPayment} disabled={actionLoading} className="w-full bg-blue-600 hover:bg-blue-700">{actionLoading ? "กำลังยืนยันการชำระเงิน..." : "ยืนยันการชำระเงิน"}</Button>)}
+                    {showReturnActions && (<Button variant="primary" className="w-full bg-indigo-600 hover:bg-indigo-700" onClick={() => setShowReturnModal(true)}>{"ยืนยันการรับคืน"}</Button>)}
+                    {showDisputeResolveButton && (<Button onClick={handleResolveDispute} disabled={actionLoading} className="w-full bg-red-600 hover:bg-red-700">{actionLoading ? "กำลังแก้ไขข้อพิพาท..." : "แก้ไขข้อพิพาท/จบการเช่า"}</Button>)}
                     {showClaimButton && (
                       <Button variant="primary" className="w-full bg-purple-600 hover:bg-purple-700" disabled={actionLoading}
                         onClick={async () => {
@@ -923,25 +968,25 @@ export const OwnerRentalDetailPage: React.FC = () => {
                             const { data: conversations } = await getConversations({ page: 1, limit: 50 });
                             let convo = conversations.find(c => (c.participant1_id === rental.owner_id && c.participant2_id === rental.renter_id) || (c.participant2_id === rental.owner_id && c.participant1_id === rental.renter_id));
                             let conversationId = convo?.id;
-                            let messageContent = t('ownerRentalDetailPage.claimMessageTemplate', { rentalUid: rental.rental_uid || rental.id, productName: rental.product?.title || '-', renterName: `${rental.renter?.first_name || ''} ${rental.renter?.last_name || ''}`, rentalPeriod: `${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}`});
+                            let messageContent = `สวัสดีครับ/ค่ะ เจ้าของสินค้า ${rental.product?.title || '-'} ต้องการแจ้งปัญหาเกี่ยวกับสินค้า/การเช่า รหัส ${rental.rental_uid || rental.id} ของคุณ โปรดเข้าสู่ระบบเพื่อตรวจสอบและดำเนินการในส่วนข้อพิพาท`;
                             if (!conversationId) {
                               const newMessage = await sendMessage({ receiver_id: rental.renter_id, message_content: messageContent, message_type: 'text', related_product_id: rental.product_id, related_rental_id: rental.id });
                               conversationId = newMessage.conversation_id;
                             } else {
                               await sendMessage({ conversation_id: conversationId, message_content: messageContent, message_type: 'text', related_product_id: rental.product_id, related_rental_id: rental.id });
                             }
-                            showSuccess(t('ownerRentalDetailPage.claimChatSuccess'));
+                            showSuccess("เริ่มต้นการแจ้งปัญหาและเปิดห้องสนทนาเรียบร้อยแล้ว");
                             navigate(ROUTE_PATHS.CHAT_ROOM.replace(':conversationId', String(conversationId)));
                           } catch (err) {
-                            showError(t('ownerRentalDetailPage.error.claimChatFailed'));
+                            showError("ไม่สามารถเปิดห้องสนทนาสำหรับการแจ้งปัญหาได้");
                           } finally {
                             setActionLoading(false);
                           }
                         }}
-                      >{actionLoading ? t('ownerRentalDetailPage.sidebar.sendingToChat') : <><FaComments className="mr-2" />{t('ownerRentalDetailPage.sidebar.claim')}</>}</Button>
+                      >{actionLoading ? "กำลังส่งไปที่แชท..." : <><FaComments className="mr-2" />{"แจ้งปัญหา/เรียกร้องค่าเสียหาย"}</>}</Button>
                     )}
-                    {(rental.renter?.id || rental.renter_id) && (<Button onClick={handleChatWithRenter} disabled={contactingRenter} isLoading={contactingRenter} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"><FaComments className="mr-2" />{contactingRenter ? t('ownerRentalDetailPage.sidebar.contactingRenter') : t('ownerRentalDetailPage.sidebar.chatWithRenter')}</Button>)}
-                    {!canApprove && !showPaymentActions && !showReturnActions && !showClaimButton && (<p className="text-center text-sm text-gray-500 italic py-2">{t('ownerRentalDetailPage.sidebar.noActionForStatus')}</p>)}
+                    {(rental.renter?.id || rental.renter_id) && (<Button onClick={handleChatWithRenter} disabled={contactingRenter} isLoading={contactingRenter} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"><FaComments className="mr-2" />{contactingRenter ? "กำลังติดต่อผู้เช่า..." : "สนทนากับผู้เช่า"}</Button>)}
+                    {!canApprove && !showPaymentActions && !showReturnActions && !showClaimButton && (<p className="text-center text-sm text-gray-500 italic py-2">{"ไม่มีการดำเนินการที่จำเป็นสำหรับสถานะนี้"}</p>)}
                   </div>
                 </CardContent>
               </Card>
@@ -953,22 +998,22 @@ export const OwnerRentalDetailPage: React.FC = () => {
       <AnimatePresence>
         {showRejectForm && (
           <Modal onClose={() => setShowRejectForm(false)}>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">{t('ownerRentalDetailPage.sidebar.rejectReasonTitle')}</h3>
-            <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" rows={4} placeholder={t('ownerRentalDetailPage.placeholders.rejectReason')} />
+            <h3 className="text-xl font-bold text-gray-900 mb-4">{"เหตุผลในการปฏิเสธคำขอ"}</h3>
+            <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" rows={4} placeholder={"กรุณาระบุเหตุผลในการปฏิเสธ เช่น สินค้าไม่พร้อมใช้งาน หรือไม่ผ่านเงื่อนไข..."} />
             <div className="flex justify-end space-x-3 mt-6">
-              <Button onClick={() => setShowRejectForm(false)} variant="outline">{t('ownerRentalDetailPage.common.cancel')}</Button>
-              <Button onClick={handleReject} disabled={actionLoading || !rejectReason.trim()} variant="danger">{actionLoading ? t('ownerRentalDetailPage.sidebar.confirmingReject') : t('ownerRentalDetailPage.sidebar.confirmReject')}</Button>
+              <Button onClick={() => setShowRejectForm(false)} variant="outline">{"ยกเลิก"}</Button>
+              <Button onClick={handleReject} disabled={actionLoading || !rejectReason.trim()} variant="danger">{actionLoading ? "กำลังปฏิเสธ..." : "ยืนยันการปฏิเสธ"}</Button>
             </div>
           </Modal>
         )}
         {showReturnModal && rental && ( <ReturnConfirmModal rentalId={rental.id} onSuccess={() => { setShowReturnModal(false); fetchRental(); }} onClose={() => setShowReturnModal(false)} /> )}
         {invalidSlipDialogOpen && (
           <Modal onClose={() => setInvalidSlipDialogOpen(false)}>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">{t('ownerRentalDetailPage.invalidSlip.title')}</h3>
-            <textarea value={invalidSlipReason} onChange={e => setInvalidSlipReason(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" rows={4} placeholder={t('ownerRentalDetailPage.invalidSlip.reasonPlaceholder')} disabled={invalidSlipLoading} />
+            <h3 className="text-xl font-bold text-gray-900 mb-4">{"แจ้งเตือนสลิปการชำระเงินไม่ถูกต้อง"}</h3>
+            <textarea value={invalidSlipReason} onChange={e => setInvalidSlipReason(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" rows={4} placeholder={"กรุณาระบุเหตุผลที่สลิปไม่ถูกต้อง (เช่น ยอดเงินไม่ตรง, บัญชีไม่ตรง, วันที่โอนไม่ตรง)..."} disabled={invalidSlipLoading} />
             <div className="flex justify-end space-x-3 mt-6">
-              <Button onClick={() => setInvalidSlipDialogOpen(false)} variant="outline" disabled={invalidSlipLoading}>{t('ownerRentalDetailPage.common.cancel')}</Button>
-              <Button onClick={handleMarkSlipInvalid} disabled={invalidSlipLoading || !invalidSlipReason.trim()} variant="danger">{invalidSlipLoading ? t('ownerRentalDetailPage.invalidSlip.saving') : t('ownerRentalDetailPage.invalidSlip.confirm')}</Button>
+              <Button onClick={() => setInvalidSlipDialogOpen(false)} variant="outline" disabled={invalidSlipLoading}>{"ยกเลิก"}</Button>
+              <Button onClick={handleMarkSlipInvalid} disabled={invalidSlipLoading || !invalidSlipReason.trim()} variant="danger">{invalidSlipLoading ? "กำลังบันทึก..." : "ยืนยันและแจ้งผู้เช่า"}</Button>
             </div>
           </Modal>
         )}
@@ -989,10 +1034,11 @@ export const OwnerRentalDetailPage: React.FC = () => {
 
 // --- Generic Modal Component ---
 const Modal: React.FC<{ children: React.ReactNode; onClose: () => void }> = ({ children, onClose }) => {
+  
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]" onClick={onClose}>
       <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full mx-4 relative" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-3xl transition-colors" aria-label="Close modal">×</button>
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-3xl transition-colors" aria-label={"ปิด"}>&times;</button>
         {children}
       </motion.div>
     </motion.div>
@@ -1001,7 +1047,6 @@ const Modal: React.FC<{ children: React.ReactNode; onClose: () => void }> = ({ c
 
 // --- ReturnConfirmModal ---
 const ReturnConfirmModal = ({ rentalId, onSuccess, onClose }: { rentalId: number, onSuccess: () => void, onClose: () => void }) => {
-  const { t } = useTranslation();
   const [actualReturnTime, setActualReturnTime] = useState(() => new Date().toISOString().slice(0, 16));
   const [conditionStatus, setConditionStatus] = useState<RentalReturnConditionStatus>(RentalReturnConditionStatus.AS_RENTED);
   const [notes, setNotes] = useState('');
@@ -1022,7 +1067,7 @@ const ReturnConfirmModal = ({ rentalId, onSuccess, onClose }: { rentalId: number
     e.preventDefault();
     setError(null);
     if (images.length === 0) {
-      setError(t('ownerRentalDetailPage.returnForm.imagesRequired'));
+      setError("กรุณาอัปโหลดรูปภาพสภาพสินค้าตอนคืน");
       return;
     }
     setLoading(true);
@@ -1035,11 +1080,12 @@ const ReturnConfirmModal = ({ rentalId, onSuccess, onClose }: { rentalId: number
         "return_condition_images[]": images,
       };
       await processReturn(rentalId, payload);
-      showSuccess(t('ownerRentalDetailPage.returnForm.success'));
+      showSuccess("ยืนยันการรับคืนสินค้าสำเร็จ");
       onSuccess();
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || t('ownerRentalDetailPage.returnForm.error'));
-      showError(err?.response?.data?.message || err?.message || t('ownerRentalDetailPage.returnForm.error'));
+      const errorMessage = err?.response?.data?.message || err?.message || "ไม่สามารถยืนยันการรับคืนสินค้าได้";
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -1047,36 +1093,36 @@ const ReturnConfirmModal = ({ rentalId, onSuccess, onClose }: { rentalId: number
 
   return (
     <Modal onClose={onClose}>
-      <h2 className="text-xl font-bold text-gray-900 mb-4">{t('ownerRentalDetailPage.returnForm.title')}</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-4">{"ยืนยันการรับคืนสินค้า"}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="actualReturnTime" className="block font-medium text-gray-700 mb-1">{t('ownerRentalDetailPage.returnForm.actualReturnTime')} <span className="text-red-500">*</span></label>
+          <label htmlFor="actualReturnTime" className="block font-medium text-gray-700 mb-1">{"วันที่และเวลาคืนจริง"} <span className="text-red-500">*</span></label>
           <input id="actualReturnTime" type="datetime-local" value={actualReturnTime} onChange={e => setActualReturnTime(e.target.value)} className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" required />
         </div>
         <div>
-          <label htmlFor="conditionStatus" className="block font-medium text-gray-700 mb-1">{t('ownerRentalDetailPage.returnForm.conditionStatus')} <span className="text-red-500">*</span></label>
+          <label htmlFor="conditionStatus" className="block font-medium text-gray-700 mb-1">{"สภาพสินค้าตอนคืน"} <span className="text-red-500">*</span></label>
           <select id="conditionStatus" value={conditionStatus} onChange={e => setConditionStatus(e.target.value as RentalReturnConditionStatus)} className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-            {Object.values(RentalReturnConditionStatus).map(statusValue => (<option key={statusValue} value={statusValue}>{t(`ownerRentalDetailPage.returnForm.conditionStatusOptions.${statusValue}`)}</option>))}
+            {Object.values(RentalReturnConditionStatus).map(statusValue => (<option key={statusValue} value={statusValue}>{getStatusThaiText(statusValue, 'return_condition')}</option>))}
           </select>
         </div>
         <div>
-          <label htmlFor="notes" className="block font-medium text-gray-700 mb-1">{t('ownerRentalDetailPage.returnForm.notes')}</label>
-          <textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} rows={3} className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder={t('ownerRentalDetailPage.placeholders.returnNotes')} />
+          <label htmlFor="notes" className="block font-medium text-gray-700 mb-1">{"หมายเหตุ (ถ้ามี)"}</label>
+          <textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} rows={3} className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder={"กรอกหมายเหตุเกี่ยวกับสภาพสินค้าตอนคืน"} />
         </div>
         <div>
-          <label htmlFor="returnImages" className="block font-medium text-gray-700 mb-1">{t('ownerRentalDetailPage.returnForm.images')} <span className="text-red-500">*</span></label>
+          <label htmlFor="returnImages" className="block font-medium text-gray-700 mb-1">{"รูปภาพสภาพสินค้าตอนคืน"} <span className="text-red-500">*</span></label>
           <input id="returnImages" type="file" multiple accept="image/*" onChange={handleFileChange} required className="w-full block text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
           {images.length > 0 && (<div className="flex flex-wrap gap-2 mt-2">{images.map((f, i) => (<span key={i} className="bg-gray-100 px-3 py-1 rounded-full text-xs text-gray-700 flex items-center gap-1"><FaPaperPlane className="h-3 w-3 text-blue-500" />{f.name}</span>))}</div>)}
-          <p className="text-sm text-gray-600 mt-1">{t('ownerRentalDetailPage.returnForm.imagesHelpText')}</p>
+          <p className="text-sm text-gray-600 mt-1">{"ต้องถ่ายรูปเพื่อเป็นหลักฐานอย่างน้อย 1 รูป"}</p>
         </div>
         <div className="flex items-center gap-2">
           <input type="checkbox" id="initiate_claim" checked={initiateClaim} onChange={e => setInitiateClaim(e.target.checked)} className="h-5 w-5 text-blue-600 focus:ring-blue-500 rounded border-gray-300" />
-          <label htmlFor="initiate_claim" className="text-sm font-medium text-gray-700">{t('ownerRentalDetailPage.returnForm.initiateClaim')}</label>
+          <label htmlFor="initiate_claim" className="text-sm font-medium text-gray-700">{"ฉันต้องการแจ้งปัญหาสินค้าเสียหาย/สูญหาย"}</label>
         </div>
         {error && <div className="text-red-600 text-sm p-2 bg-red-50 rounded-lg border border-red-200">{error}</div>}
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" onClick={onClose} variant="outline" disabled={loading}>{t('ownerRentalDetailPage.common.cancel')}</Button>
-          <Button type="submit" isLoading={loading} variant="primary">{loading ? t('ownerRentalDetailPage.returnForm.saving') : t('ownerRentalDetailPage.returnForm.submit')}</Button>
+          <Button type="button" onClick={onClose} variant="outline" disabled={loading}>{"ยกเลิก"}</Button>
+          <Button type="submit" isLoading={loading} variant="primary">{loading ? "กำลังบันทึกการคืน..." : "ยืนยันการรับคืน"}</Button>
         </div>
       </form>
     </Modal>

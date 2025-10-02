@@ -7,7 +7,7 @@ import { Product, ApiError, PaginatedResponse, ProductAvailabilityStatus, } from
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Button } from '../../components/ui/Button';
 import { ROUTE_PATHS } from '../../constants';
-import { useTranslation } from 'react-i18next';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaSearch, 
@@ -145,7 +145,6 @@ const filterProductsBySearch = (products: Product[], searchTerm: string): Produc
 
 // Status Badge Component
 const StatusBadge: React.FC<{ status: string; type: 'availability' | 'admin' }> = ({ status, type }) => {
-  const { t } = useTranslation();
   
   const getStatusColor = () => {
     if (type === 'availability') {
@@ -185,9 +184,22 @@ const StatusBadge: React.FC<{ status: string; type: 'availability' | 'admin' }> 
 
   const getStatusText = () => {
     if (type === 'availability') {
-      return t(`myListingsPage.status.${status.toLowerCase()}`);
+      switch (status) {
+        case 'available': return 'พร้อมให้เช่า';
+        case 'unavailable': return 'ไม่พร้อมให้เช่า';
+        case 'hidden': return 'ซ่อนอยู่';
+        case 'draft': return 'ร่าง';
+        case 'pending_approval': return 'รอการอนุมัติ';
+        case 'rented_out': return 'ถูกเช่าหมดแล้ว';
+        default: return status;
+      }
     } else {
-      return t(`myListingsPage.adminStatus.${status.toLowerCase()}`);
+      switch (status) {
+        case 'approved': return 'อนุมัติแล้ว';
+        case 'rejected': return 'ถูกปฏิเสธ';
+        case 'pending': return 'รอการตรวจสอบ';
+        default: return status;
+      }
     }
   };
 
@@ -199,9 +211,42 @@ const StatusBadge: React.FC<{ status: string; type: 'availability' | 'admin' }> 
   );
 };
 
+// Helper function for labels
+const getLabelText = (key: string) => {
+  const labels: Record<string, string> = {
+    price: 'ราคา',
+    day: 'วัน',
+    category: 'หมวดหมู่',
+    views: 'การดู',
+    quantity: 'จำนวน',
+    singleRentalNote: 'เช่าหนึ่งรายการต่อครั้ง',
+    description: 'คำอธิบาย',
+    location: 'สถานที่',
+    created: 'สร้างเมื่อ',
+    unknown: 'ไม่ระบุ'
+  };
+  return labels[key] || key;
+};
+
+const getActionText = (key: string) => {
+  const actions: Record<string, string> = {
+    edit: 'แก้ไข',
+    delete: 'ลบ'
+  };
+  return actions[key] || key;
+};
+
+const getStatusText = (key: string) => {
+  const statuses: Record<string, string> = {
+    available: 'พร้อมให้เช่า',
+    unavailable: 'ไม่พร้อมให้เช่า',
+    hidden: 'ซ่อนอยู่'
+  };
+  return statuses[key] || key;
+};
+
 export const MyListingsPage: React.FC = () => {
   const { user } = useAuth();
-  const { t } = useTranslation();
   const { showSuccess, showError } = useAlert();
   
   // State management
@@ -255,11 +300,11 @@ export const MyListingsPage: React.FC = () => {
     } catch (err) {
       console.error('Error fetching listings:', err);
       const apiError = err as ApiError;
-      showError(apiError.message || t('myListingsPage.error.loadFailed'));
+      showError(apiError.message || 'ไม่สามารถโหลดรายการสินค้าได้');
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, debouncedSearchTerm, t, showError]);
+  }, [user?.id, debouncedSearchTerm, showError]);
 
   // Filter products when search term changes
   useEffect(() => {
@@ -347,7 +392,7 @@ export const MyListingsPage: React.FC = () => {
     if (!user?.id) return;
     
     const confirmed = window.confirm(
-      t('myListingsPage.deleteConfirmation.message', { title: productTitle })
+      `คุณต้องการลบสินค้า "${productTitle}" ใช่หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้`
     );
     
     if (!confirmed) return;
@@ -355,11 +400,11 @@ export const MyListingsPage: React.FC = () => {
     try {
       setIsLoading(true);
         await deleteProduct(productId, user.id);
-      showSuccess(t('myListingsPage.deleteSuccess'));
+      showSuccess('ลบสินค้าเรียบร้อยแล้ว');
       await fetchListings(currentPage);
     } catch (err) {
       const apiError = err as ApiError;
-      showError(apiError.message || t('myListingsPage.error.delete'));
+      showError(apiError.message || 'ไม่สามารถลบสินค้าได้');
     } finally {
         setIsLoading(false);
     }
@@ -372,11 +417,11 @@ export const MyListingsPage: React.FC = () => {
     try {
      setIsLoading(true);
         await updateProductStatus(productId, user.id, newStatus);
-      showSuccess(t('myListingsPage.statusUpdateSuccess'));
+      showSuccess('อัปเดตสถานะสินค้าเรียบร้อยแล้ว');
       await fetchListings(currentPage);
      } catch (err) {
       const apiError = err as ApiError;
-      showError(apiError.message || t('myListingsPage.error.statusUpdate'));
+      showError(apiError.message || 'ไม่สามารถอัปเดตสถานะสินค้าได้');
      } finally {
         setIsLoading(false);
      }
@@ -404,7 +449,7 @@ export const MyListingsPage: React.FC = () => {
   if (isLoading && !listingsResponse) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <LoadingSpinner message={t('myListingsPage.loadingListings')} />
+        <LoadingSpinner message="กำลังโหลดรายการสินค้า..." />
       </div>
     );
   }
@@ -430,9 +475,9 @@ export const MyListingsPage: React.FC = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
                 <FaBox className="h-8 w-8 text-white" />
               </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{t('myListingsPage.title')}</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">รายการสินค้าของฉัน</h1>
               <p className="text-blue-100 text-lg">
-                {t('myListingsPage.subtitle')}
+                จัดการและติดตามสินค้าทั้งหมดที่คุณต้องการให้เช่า
               </p>
             </div>
             <motion.div
@@ -442,7 +487,7 @@ export const MyListingsPage: React.FC = () => {
               <Link to={ROUTE_PATHS.CREATE_PRODUCT}>
                 <Button variant="primary" className="bg-white text-black hover:bg-blue-50 hover:text-blue-600 px-8 py-4 rounded-xl font-semibold shadow-lg">
                   <FaPlus className="h-5 w-5 mr-2" />
-                  {t('myListingsPage.addNewListing')}
+                  เพิ่มรายการใหม่
                 </Button>
               </Link>
             </motion.div>
@@ -467,7 +512,7 @@ export const MyListingsPage: React.FC = () => {
               </div>
               <input
                 type="text"
-                placeholder={t('myListingsPage.searchPlaceholder')}
+                placeholder="ค้นหาสินค้า..."
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className="block w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg"
@@ -483,13 +528,13 @@ export const MyListingsPage: React.FC = () => {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
               >
                 <FaFilter className="h-4 w-4" />
-                {t('myListingsPage.filterByStatus')}
+                กรองตามสถานะ
                 <FaArrowRight className={`h-4 w-4 transition-transform duration-200 ${showFilters ? 'rotate-90' : ''}`} />
               </motion.button>
 
               {/* View Mode Toggle */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700 font-medium">{t('myListingsPage.viewMode')}:</span>
+                <span className="text-sm text-gray-700 font-medium">โหมดการแสดงผล:</span>
                 <div className="flex border border-gray-300 rounded-lg overflow-hidden">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -524,34 +569,34 @@ export const MyListingsPage: React.FC = () => {
                   {/* Status Filter */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('myListingsPage.filterByStatus')}
+                      กรองตามสถานะ
                     </label>
                     <select
                       value={statusFilter}
                       onChange={handleStatusFilterChange}
                       className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     >
-                      <option value="">{t('myListingsPage.allStatuses')}</option>
-                      <option value="available">{t('myListingsPage.status.available')}</option>
-                      <option value="unavailable">{t('myListingsPage.status.unavailable')}</option>
-                      <option value="hidden">{t('myListingsPage.status.hidden')}</option>
-                      <option value="draft">{t('myListingsPage.status.draft')}</option>
-                      <option value="pending_approval">{t('myListingsPage.status.pending_approval')}</option>
-                      <option value="rented_out">{t('myListingsPage.status.rented_out')}</option>
+                      <option value="">ทุกสถานะ</option>
+                      <option value="available">พร้อมให้เช่า</option>
+                      <option value="unavailable">ไม่พร้อมให้เช่า</option>
+                      <option value="hidden">ซ่อนอยู่</option>
+                      <option value="draft">ร่าง</option>
+                      <option value="pending_approval">รอการอนุมัติ</option>
+                      <option value="rented_out">ถูกเช่าหมดแล้ว</option>
                     </select>
                   </div>
 
                   {/* Category Filter */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('myListingsPage.labels.category')}
+                      หมวดหมู่
                     </label>
                     <select
                       value={categoryFilter}
                       onChange={handleCategoryFilterChange}
                       className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     >
-                      <option value="">{t('myListingsPage.allCategories')}</option>
+                      <option value="">ทุกหมวดหมู่</option>
                       {getUniqueCategories().map(category => (
                         <option key={category} value={category}>{category}</option>
                       ))}
@@ -561,14 +606,14 @@ export const MyListingsPage: React.FC = () => {
                   {/* Province Filter */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('myListingsPage.labels.location')}
+                      สถานที่
                     </label>
                     <select
                       value={provinceFilter}
                       onChange={handleProvinceFilterChange}
                       className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     >
-                      <option value="">{t('myListingsPage.allProvinces')}</option>
+                      <option value="">ทุกจังหวัด</option>
                       {getUniqueProvinces().map(province => (
                         <option key={province} value={province}>{province}</option>
                       ))}
@@ -578,19 +623,19 @@ export const MyListingsPage: React.FC = () => {
                   {/* Price Range Filter */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('myListingsPage.labels.price')}
+                      ช่วงราคา
                     </label>
                     <select
                       value={priceRangeFilter}
                       onChange={handlePriceRangeFilterChange}
                       className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     >
-                      <option value="">{t('myListingsPage.allPrices')}</option>
+                      <option value="">ทุกช่วงราคา</option>
                       <option value="0-100">฿0 - ฿100</option>
                       <option value="100-500">฿100 - ฿500</option>
                       <option value="500-1000">฿500 - ฿1,000</option>
                       <option value="1000-5000">฿1,000 - ฿5,000</option>
-                      <option value="5000-">฿5,000+</option>
+                      <option value="5000-">มากกว่า ฿5,000</option>
                     </select>
                   </div>
                 </motion.div>
@@ -612,13 +657,11 @@ export const MyListingsPage: React.FC = () => {
                     className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
                   >
                     <FaTimes className="h-4 w-4" />
-                    {t('myListingsPage.clearFiltersButton')}
+                    ล้างตัวกรอง
                   </motion.button>
                   
                   <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                    {t('myListingsPage.activeFilters', { 
-                      count: [searchTerm, statusFilter, categoryFilter, provinceFilter, priceRangeFilter].filter(Boolean).length 
-                    })}
+                    ตัวกรองที่ใช้งานอยู่ ({[searchTerm, statusFilter, categoryFilter, provinceFilter, priceRangeFilter].filter(Boolean).length})
                   </span>
                 </div>
               </motion.div>
@@ -681,30 +724,30 @@ export const MyListingsPage: React.FC = () => {
                           <div className="flex items-center justify-between">
                             <span className="flex items-center gap-1">
                               <FaMoneyBillWave className="h-3 w-3 text-green-500" />
-                              {t('myListingsPage.labels.price')}:
+                              {getLabelText('price')}:
                             </span>
-                            <span className="font-bold text-green-600">฿{product.rental_price_per_day?.toLocaleString()}/{t('myListingsPage.labels.day')}</span>
+                            <span className="font-bold text-green-600">฿{product.rental_price_per_day?.toLocaleString()}/{getLabelText('day')}</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="flex items-center gap-1">
                               <FaTag className="h-3 w-3 text-blue-500" />
-                              {t('myListingsPage.labels.category')}:
+                              {getLabelText('category')}:
                             </span>
                             <span className="truncate">
-                              <HighlightText text={product.category?.name || t('myListingsPage.labels.unknown')} searchTerm={searchTerm} />
+                              <HighlightText text={product.category?.name || getLabelText('unknown')} searchTerm={searchTerm} />
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="flex items-center gap-1">
                               <FaViews className="h-3 w-3 text-purple-500" />
-                              {t('myListingsPage.labels.views')}:
+                              {getLabelText('views')}:
                             </span>
                             <span>{product.view_count || 0}</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="flex items-center gap-1">
                               <FaBox className="h-3 w-3 text-orange-500" />
-                              {t('myListingsPage.labels.quantity')}:
+                              {getLabelText('quantity')}:
                             </span>
                             <span className={`font-medium ${
                               (product.quantity_available || 0) > 0 ? 'text-green-600' : 'text-red-600'
@@ -712,7 +755,7 @@ export const MyListingsPage: React.FC = () => {
                               {product.quantity_available || 0}/{product.quantity || 1}
                             </span>
                             <span className="text-xs text-gray-500 mt-1">
-                              {t('myListingsPage.labels.singleRentalNote')}
+                              {getLabelText('singleRentalNote')}
                             </span>
                           </div>
                         </div>
@@ -726,17 +769,17 @@ export const MyListingsPage: React.FC = () => {
                               className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center justify-center gap-2"
                             >
                               <FaEdit className="h-4 w-4" />
-                              {t('myListingsPage.actions.edit')}
+                              {getActionText('edit')}
                             </motion.button>
                           </Link>
-                          <motion.button 
+                          <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => handleDelete(product.id, product.title)}
                             className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-2 px-4 rounded-lg font-medium hover:from-red-600 hover:to-pink-600 transition-all duration-200 flex items-center justify-center gap-2"
                           >
                             <FaTrash className="h-4 w-4" />
-                            {t('myListingsPage.actions.delete')}
+                            {getActionText('delete')}
                           </motion.button>
                         </div>
                       </div>
@@ -794,46 +837,46 @@ export const MyListingsPage: React.FC = () => {
                                 <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-1 font-medium">
                                     <FaMoneyBillWave className="h-3 w-3 text-green-500" />
-                                    {t('myListingsPage.labels.price')}:
+                                    {getLabelText('price')}:
                                   </span>
-                                  <span className="font-bold text-green-600">฿{product.rental_price_per_day?.toLocaleString()}/{t('myListingsPage.labels.day')}</span>
+                                  <span className="font-bold text-green-600">฿{product.rental_price_per_day?.toLocaleString()}/{getLabelText('day')}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-1 font-medium">
                                     <FaViews className="h-3 w-3 text-purple-500" />
-                                    {t('myListingsPage.labels.views')}:
+                                    {getLabelText('views')}:
                                   </span>
                                   <span>{product.view_count || 0}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-1 font-medium">
                                     <FaTag className="h-3 w-3 text-blue-500" />
-                                    {t('myListingsPage.labels.category')}:
+                                    {getLabelText('category')}:
                                   </span>
                                   <span className="truncate">
-                                    <HighlightText text={product.category?.name || t('myListingsPage.labels.unknown')} searchTerm={searchTerm} />
+                                    <HighlightText text={product.category?.name || getLabelText('unknown')} searchTerm={searchTerm} />
                                   </span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-1 font-medium">
                                     <FaMapMarkerAlt className="h-3 w-3 text-red-500" />
-                                    {t('myListingsPage.labels.location')}:
+                                    {getLabelText('location')}:
                                   </span>
                                   <span className="truncate">
-                                    <HighlightText text={product.province?.name_th || t('myListingsPage.labels.unknown')} searchTerm={searchTerm} />
+                                    <HighlightText text={product.province?.name_th || getLabelText('unknown')} searchTerm={searchTerm} />
                                   </span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-1 font-medium">
                                     <FaCalendarAlt className="h-3 w-3 text-gray-500" />
-                                    {t('myListingsPage.labels.created')}:
+                                    {getLabelText('created')}:
                                   </span>
-                                  <span>{product.created_at ? new Date(product.created_at).toLocaleDateString() : t('myListingsPage.labels.unknown')}</span>
+                                  <span>{product.created_at ? new Date(product.created_at).toLocaleDateString() : getLabelText('unknown')}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-1 font-medium">
                                     <FaBox className="h-3 w-3 text-orange-500" />
-                                    {t('myListingsPage.labels.quantity')}:
+                                    {getLabelText('quantity')}:
                                   </span>
                                   <span className={`font-medium ${
                                     (product.quantity_available || 0) > 0 ? 'text-green-600' : 'text-red-600'
@@ -843,21 +886,21 @@ export const MyListingsPage: React.FC = () => {
                                 </div>
                                 <div className="col-span-full">
                                   <span className="text-xs text-gray-500">
-                                    {t('myListingsPage.labels.singleRentalNote')}
+                                    {getLabelText('singleRentalNote')}
                                   </span>
                                 </div>
                               </div>
 
                               {/* Show description if it matches search */}
-                              {product.description && searchTerm.trim() && 
+                              {product.description && searchTerm.trim() &&
                                product.description.toLowerCase().includes(searchTerm.toLowerCase()) && (
-                                <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
-                                  <strong className="text-gray-700">{t('myListingsPage.labels.description')}:</strong>
-                                  <div className="mt-1 text-gray-600">
-                                    <HighlightText text={product.description} searchTerm={searchTerm} />
-                                  </div>
-                                </div>
-                              )}
+                               <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
+                                 <strong className="text-gray-700">{getLabelText('description')}:</strong>
+                                 <div className="mt-1 text-gray-600">
+                                   <HighlightText text={product.description} searchTerm={searchTerm} />
+                                 </div>
+                               </div>
+                             )}
                             </div>
 
                             {/* Actions */}
@@ -869,28 +912,28 @@ export const MyListingsPage: React.FC = () => {
                                   className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center justify-center gap-2"
                                 >
                                   <FaEdit className="h-4 w-4" />
-                                  {t('myListingsPage.actions.edit')}
+                                  {getActionText('edit')}
                                 </motion.button>
                               </Link>
-                              
-                              <select 
-                                value={product.availability_status || ''} 
+
+                              <select
+                                value={product.availability_status || ''}
                                 onChange={(e) => handleChangeStatus(product.id, e.target.value as ProductAvailabilityStatus)}
                                 className="px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all"
                               >
-                                <option value="available">{t('myListingsPage.status.available')}</option>
-                                <option value="unavailable">{t('myListingsPage.status.unavailable')}</option>
-                                <option value="hidden">{t('myListingsPage.status.hidden')}</option>
+                                <option value="available">{getStatusText('available')}</option>
+                                <option value="unavailable">{getStatusText('unavailable')}</option>
+                                <option value="hidden">{getStatusText('hidden')}</option>
                               </select>
-                              
-                              <motion.button 
+
+                              <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => handleDelete(product.id, product.title)}
                                 className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-4 rounded-lg font-medium hover:from-red-600 hover:to-pink-600 transition-all duration-200 flex items-center justify-center gap-2"
                               >
                                 <FaTrash className="h-4 w-4" />
-                                {t('myListingsPage.actions.delete')}
+                                {getActionText('delete')}
                               </motion.button>
                             </div>
                           </div>
@@ -918,7 +961,7 @@ export const MyListingsPage: React.FC = () => {
                       onClick={() => handlePageChange(listingsResponse.meta.current_page - 1)}
                       className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200"
                     >
-                      {t('myListingsPage.pagination.previous')}
+                      ก่อนหน้า
                     </motion.button>
                   )}
 
@@ -950,7 +993,7 @@ export const MyListingsPage: React.FC = () => {
                       onClick={() => handlePageChange(listingsResponse.meta.current_page + 1)}
                       className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200"
                     >
-                      {t('myListingsPage.pagination.next')}
+                      ถัดไป
                     </motion.button>
                   )}
                 </div>
@@ -970,15 +1013,15 @@ export const MyListingsPage: React.FC = () => {
                 <FaBox className="h-12 w-12 text-blue-500" />
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                {hasNoSearchResults 
-                  ? t('myListingsPage.noSearchResults', { term: searchTerm })
-                  : t('myListingsPage.noListingsFound')
+                {hasNoSearchResults
+                  ? `ไม่พบผลการค้นหาสำหรับ "${searchTerm}"`
+                  : 'ยังไม่มีรายการสินค้า'
                 }
               </h3>
               <p className="text-gray-500 leading-relaxed mb-6">
-                {hasNoSearchResults 
-                  ? t('myListingsPage.searchSuggestions')
-                  : t('myListingsPage.createFirstListing')
+                {hasNoSearchResults
+                  ? 'ลองเปลี่ยนคำค้นหาหรือปรับตัวกรอง'
+                  : 'สร้างรายการสินค้าชิ้นแรกของคุณ'
                 }
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -989,7 +1032,7 @@ export const MyListingsPage: React.FC = () => {
                     onClick={clearFilters}
                     className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 font-medium"
                   >
-                    {t('searchPage.clearFiltersButton')}
+                    ล้างตัวกรอง
                   </motion.button>
                 )}
                 <Link to={ROUTE_PATHS.CREATE_PRODUCT}>
@@ -999,7 +1042,7 @@ export const MyListingsPage: React.FC = () => {
                     className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center gap-2"
                   >
                     <FaPlus className="h-4 w-4" />
-                    {t('myListingsPage.addNewListing')}
+                    เพิ่มรายการใหม่
                   </motion.button>
                 </Link>
               </div>

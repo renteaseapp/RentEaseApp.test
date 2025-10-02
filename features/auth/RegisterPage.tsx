@@ -7,7 +7,7 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { ApiError } from '../../types';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { useTranslation } from 'react-i18next';
+
 import { motion } from 'framer-motion';
 import { GoogleLoginButton } from '../../components/common/GoogleLoginButton';
 import googleAuthService from '../../services/googleAuthService';
@@ -21,13 +21,10 @@ import {
   FaShieldAlt,
   FaUsers,
   FaRocket,
-  FaArrowRight,
-  FaMapMarkerAlt
+  FaArrowRight
 } from 'react-icons/fa';
-import { OpenStreetMapPicker } from '../../components/common/OpenStreetMapPicker';
 
 export const RegisterPage: React.FC = () => {
-  const { t } = useTranslation();
   const [credentials, setCredentials] = useState<RegisterCredentials>({
     username: '', email: '', password: '', password_confirmation: '',
     first_name: '', last_name: '', phone_number: ''
@@ -39,9 +36,87 @@ export const RegisterPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<number>(0); // 0-4 scale
 
   const auth = useAuth();
   const navigate = useNavigate();
+
+  // Format phone number as user types
+  const formatPhoneNumber = (value: string): string => {
+    // Remove all non-digit characters
+    const phoneNumber = value.replace(/\D/g, '');
+    
+    // Format as XXX-XXX-XXXX
+    if (phoneNumber.length <= 3) {
+      return phoneNumber;
+    } else if (phoneNumber.length <= 6) {
+      return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
+    } else if (phoneNumber.length <= 10) {
+      return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6)}`;
+    } else {
+      return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+    }
+  };
+
+  // Calculate password strength
+  const calculatePasswordStrength = (password: string): number => {
+    let strength = 0;
+    
+    // Length check
+    if (password.length >= 8) strength++;
+    
+    // Contains lowercase
+    if (/[a-z]/.test(password)) strength++;
+    
+    // Contains uppercase
+    if (/[A-Z]/.test(password)) strength++;
+    
+    // Contains number
+    if (/\d/.test(password)) strength++;
+    
+    // Contains special character
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    
+    // Cap at 4
+    return Math.min(strength, 4);
+  };
+
+  // Get password strength label
+  const getPasswordStrengthLabel = (strength: number): string => {
+    switch (strength) {
+      case 0: return 'Very Weak';
+      case 1: return 'Weak';
+      case 2: return 'Fair';
+      case 3: return 'Good';
+      case 4: return 'Strong';
+      default: return '';
+    }
+  };
+
+  // Get password strength color
+  const getPasswordStrengthColor = (strength: number): string => {
+    switch (strength) {
+      case 0: return 'bg-red-500';
+      case 1: return 'bg-red-400';
+      case 2: return 'bg-yellow-500';
+      case 3: return 'bg-green-400';
+      case 4: return 'bg-green-500';
+      default: return 'bg-gray-200';
+    }
+  };
+
+  // Validate email format
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Validate username format
+  const isValidUsername = (username: string): boolean => {
+    // Username should be 3-20 characters, alphanumeric and underscores only
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(username);
+  };
 
   useEffect(() => {
     if (auth.user) {
@@ -50,9 +125,50 @@ export const RegisterPage: React.FC = () => {
   }, [auth.user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCredentials({ ...credentials, [e.target.name]: e.target.value });
-    if (fieldErrors[e.target.name]) {
-      setFieldErrors(prev => ({...prev, [e.target.name]: []}));
+    const { name, value } = e.target;
+    let formattedValue = value;
+
+    // Format phone number
+    if (name === 'phone_number') {
+      formattedValue = formatPhoneNumber(value);
+    }
+
+    // Update password strength if password field changes
+    if (name === 'password') {
+      setPasswordStrength(calculatePasswordStrength(value));
+    }
+
+    setCredentials({ ...credentials, [name]: formattedValue });
+    
+    // Clear field errors when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({...prev, [name]: []}));
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const errors: string[] = [];
+
+    // Validate email on blur
+    if (name === 'email' && value && !isValidEmail(value)) {
+      errors.push('กรุณากรอกอีเมลให้ถูกต้อง');
+    }
+
+    // Validate username on blur
+    if (name === 'username' && value && !isValidUsername(value)) {
+      errors.push('ชื่อผู้ใช้ต้องมีความยาว 3-20 ตัวอักษร และประกอบด้วยตัวอักษร ตัวเลข หรือขีดล่างเท่านั้น');
+    }
+
+    // Validate password confirmation
+    if (name === 'password_confirmation' && value && value !== credentials.password) {
+      errors.push('รหัสผ่านไม่ตรงกัน');
+    }
+
+    if (errors.length > 0) {
+      setFieldErrors(prev => ({...prev, [name]: errors}));
+    } else if (fieldErrors[name]) {
+      setFieldErrors(prev => ({...prev, [name]: []}));
     }
   };
 
@@ -63,23 +179,60 @@ export const RegisterPage: React.FC = () => {
     setFieldErrors({});
     setSuccessMessage(null);
 
+    // Final validation before submission
+    const errors: Record<string, string[]> = {};
+
+    // Validate required fields
+    if (!credentials.username) {
+      errors.username = ['กรุณากรอกชื่อผู้ใช้'];
+    } else if (!isValidUsername(credentials.username)) {
+      errors.username = ['ชื่อผู้ใช้ต้องมีความยาว 3-20 ตัวอักษร และประกอบด้วยตัวอักษร ตัวเลข หรือขีดล่างเท่านั้น'];
+    }
+
+    if (!credentials.email) {
+      errors.email = ['กรุณากรอกอีเมล'];
+    } else if (!isValidEmail(credentials.email)) {
+      errors.email = ['กรุณากรอกอีเมลให้ถูกต้อง'];
+    }
+
+    if (!credentials.password) {
+      errors.password = ['กรุณากรอกรหัสผ่าน'];
+    } else if (passwordStrength < 3) {
+      errors.password = ['รหัสผ่านต้องมีความแข็งแรงระดับดีขึ้นไป'];
+    }
+
+    if (!credentials.password_confirmation) {
+      errors.password_confirmation = ['กรุณายืนยันรหัสผ่าน'];
+    } else if (credentials.password !== credentials.password_confirmation) {
+      errors.password_confirmation = ['รหัสผ่านไม่ตรงกัน'];
+    }
+
+    if (!credentials.first_name) {
+      errors.first_name = ['กรุณากรอกชื่อ'];
+    }
+
+    if (!credentials.last_name) {
+      errors.last_name = ['กรุณากรอกนามสกุล'];
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await register(credentials);
       if (response.user && response.access_token) { // Auto-login
         auth.login(response.access_token, response.user, false);
-        setSuccessMessage(t('registerPage.successMessageAutoLogin'));
+        setSuccessMessage('ลงทะเบียนสำเร็จ! กำลังเข้าสู่ระบบ...');
         navigate(ROUTE_PATHS.HOME);
       } else if (response.message) { // Email verification needed
-        setSuccessMessage(t('registerPage.successMessage'));
+        setSuccessMessage('ลงทะเบียนสำเร็จ! โปรดตรวจสอบอีเมลของคุณเพื่อยืนยันบัญชี');
       }
     } catch (err) {
       const apiError = err as ApiError;
-      const errorMessageKey = `apiErrors.${apiError.message}`; // Example mapping
-      if (t(errorMessageKey) !== errorMessageKey) {
-        setError(t(errorMessageKey));
-      } else {
-        setError(apiError.message || t('registerPage.registrationFailedError'));
-      }
+      setError(apiError.message || 'ลงทะเบียนล้มเหลว');
       if (apiError.errors) {
         setFieldErrors(apiError.errors);
       }
@@ -103,16 +256,11 @@ export const RegisterPage: React.FC = () => {
       
       // Login เข้าระบบ
       auth.login(authResponse.access_token, authResponse.user, authResponse.is_admin);
-      setSuccessMessage(t('registerPage.googleSuccessMessage'));
+      setSuccessMessage('ลงทะเบียนด้วย Google สำเร็จ!');
       navigate(ROUTE_PATHS.HOME);
     } catch (err) {
       const apiError = err as ApiError;
-      const errorMessageKey = `apiErrors.${apiError.message}`;
-      if (t(errorMessageKey) !== errorMessageKey) {
-        setError(t(errorMessageKey));
-      } else {
-        setError(apiError.message || t('registerPage.googleRegistrationFailedError'));
-      }
+      setError(apiError.message || 'ลงทะเบียนด้วย Google ล้มเหลว');
       if (apiError.errors) {
         setFieldErrors(apiError.errors);
       }
@@ -123,7 +271,7 @@ export const RegisterPage: React.FC = () => {
 
   const handleGoogleError = (error: any) => {
     console.error('Google registration error:', error);
-    setError(t('registerPage.googleRegistrationFailedError'));
+    setError('ลงทะเบียนด้วย Google ล้มเหลว');
   };
 
   return (
@@ -149,10 +297,10 @@ export const RegisterPage: React.FC = () => {
               <h1 className="text-3xl font-bold">RentEase</h1>
             </div>
             <h2 className="text-4xl font-bold mb-4">
-              {t('registerPage.welcomeMessage')}
+              ยินดีต้อนรับสู่ RentEase
             </h2>
             <p className="text-blue-100 text-lg mb-8">
-              {t('registerPage.subtitle')}
+              แพลตฟอร์มเช่าสินค้าที่สะดวกและปลอดภัย
             </p>
           </motion.div>
 
@@ -167,8 +315,8 @@ export const RegisterPage: React.FC = () => {
                 <FaUsers className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">{t('registerPage.features.community')}</h3>
-                <p className="text-blue-100">{t('registerPage.features.communityDesc')}</p>
+                <h3 className="font-semibold text-lg mb-1">ชุมชนที่เป็นมิตร</h3>
+                <p className="text-blue-100">เชื่อมต่อกับผู้เช่าและเจ้าของสินค้าทั่วประเทศ</p>
               </div>
             </div>
 
@@ -177,8 +325,8 @@ export const RegisterPage: React.FC = () => {
                 <FaShieldAlt className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">{t('registerPage.features.secure')}</h3>
-                <p className="text-blue-100">{t('registerPage.features.secureDesc')}</p>
+                <h3 className="font-semibold text-lg mb-1">ปลอดภัย</h3>
+                <p className="text-blue-100">ระบบการชำระเงินและการยืนยันตัวตนที่ปลอดภัย</p>
               </div>
             </div>
 
@@ -187,8 +335,8 @@ export const RegisterPage: React.FC = () => {
                 <FaRocket className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">{t('registerPage.features.fast')}</h3>
-                <p className="text-blue-100">{t('registerPage.features.fastDesc')}</p>
+                <h3 className="font-semibold text-lg mb-1">รวดเร็ว</h3>
+                <p className="text-blue-100">กระบวนการเช่าที่ง่ายและรวดเร็ว</p>
               </div>
             </div>
           </motion.div>
@@ -199,8 +347,8 @@ export const RegisterPage: React.FC = () => {
             transition={{ delay: 0.6 }}
             className="mt-12 p-6 rounded-xl bg-white/10 backdrop-blur-sm"
           >
-            <h3 className="font-semibold text-lg mb-2">{t('registerPage.joinCommunity')}</h3>
-            <p className="text-blue-100">{t('registerPage.communityDescription')}</p>
+            <h3 className="font-semibold text-lg mb-2">เข้าร่วมชุมชนของเรา</h3>
+            <p className="text-blue-100">เชื่อมต่อกับผู้เช่าและเจ้าของสินค้าทั่วประเทศ</p>
           </motion.div>
         </div>
       </motion.div>
@@ -220,10 +368,10 @@ export const RegisterPage: React.FC = () => {
             className="text-center mb-8"
           >
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {t('registerPage.title')}
+              สร้างบัญชีใหม่
             </h2>
             <p className="text-gray-600">
-              {t('registerPage.subtitle')}
+              สร้างบัญชีใหม่เพื่อเริ่มใช้งานแพลตฟอร์ม
             </p>
           </motion.div>
 
@@ -240,7 +388,7 @@ export const RegisterPage: React.FC = () => {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                     >
-                      <ErrorMessage message={error} onDismiss={() => setError(null)} title={t('general.error')} />
+                      <ErrorMessage message={error} onDismiss={() => setError(null)} title="ข้อผิดพลาด" />
                     </motion.div>
                   )}
                   
@@ -252,7 +400,7 @@ export const RegisterPage: React.FC = () => {
                     >
                       <FaCheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                       <div>
-                        <p className="font-medium text-green-800">{t('general.success')}</p>
+                        <p className="font-medium text-green-800">สำเร็จ</p>
                         <p className="text-green-700 text-sm">{successMessage}</p>
                       </div>
                     </motion.div>
@@ -262,7 +410,7 @@ export const RegisterPage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">
-                        {t('registerPage.firstNameLabel')}
+                        ชื่อ
                       </label>
                       <div className="relative">
                         <input
@@ -270,7 +418,7 @@ export const RegisterPage: React.FC = () => {
                           name="first_name"
                           value={credentials.first_name}
                           onChange={handleChange}
-                          placeholder={t('registerPage.firstNamePlaceholder')}
+                          placeholder="ป้อนชื่อของคุณ"
                           required
                           className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
                             fieldErrors.first_name ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
@@ -285,7 +433,7 @@ export const RegisterPage: React.FC = () => {
 
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">
-                        {t('registerPage.lastNameLabel')}
+                        นามสกุล
                       </label>
                       <div className="relative">
                         <input
@@ -293,7 +441,7 @@ export const RegisterPage: React.FC = () => {
                           name="last_name"
                           value={credentials.last_name}
                           onChange={handleChange}
-                          placeholder={t('registerPage.lastNamePlaceholder')}
+                          placeholder="ป้อนนามสกุลของคุณ"
                           required
                           className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
                             fieldErrors.last_name ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
@@ -310,7 +458,7 @@ export const RegisterPage: React.FC = () => {
                   {/* Username */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      {t('registerPage.usernameLabel')}
+                      ชื่อผู้ใช้
                     </label>
                     <div className="relative">
                       <input
@@ -318,7 +466,7 @@ export const RegisterPage: React.FC = () => {
                         name="username"
                         value={credentials.username}
                         onChange={handleChange}
-                        placeholder={t('registerPage.usernamePlaceholder')}
+                        placeholder="ป้อนชื่อผู้ใช้ของคุณ"
                         required
                         className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
                           fieldErrors.username ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
@@ -334,7 +482,7 @@ export const RegisterPage: React.FC = () => {
                   {/* Email */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      {t('registerPage.emailLabel')}
+                      อีเมล
                     </label>
                     <div className="relative">
                       <input
@@ -342,7 +490,7 @@ export const RegisterPage: React.FC = () => {
                         name="email"
                         value={credentials.email}
                         onChange={handleChange}
-                        placeholder={t('registerPage.emailPlaceholder')}
+                        placeholder="ป้อนอีเมลของคุณ"
                         required
                         className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
                           fieldErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
@@ -358,7 +506,7 @@ export const RegisterPage: React.FC = () => {
                   {/* Password */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      {t('registerPage.passwordLabel')}
+                      รหัสผ่าน
                     </label>
                     <div className="relative">
                       <input
@@ -366,7 +514,8 @@ export const RegisterPage: React.FC = () => {
                         name="password"
                         value={credentials.password}
                         onChange={handleChange}
-                        placeholder={t('registerPage.passwordPlaceholder')}
+                        onBlur={handleBlur}
+                        placeholder="ป้อนรหัสผ่านของคุณ"
                         required
                         className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
                           fieldErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
@@ -380,6 +529,32 @@ export const RegisterPage: React.FC = () => {
                         {showPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
                       </button>
                     </div>
+                    {/* Password Strength Indicator */}
+                    {credentials.password && (
+                      <div className="mt-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-gray-500">ความแข็งแรงของรหัสผ่าน</span>
+                          <span className="text-xs font-medium text-gray-700">
+                            {getPasswordStrengthLabel(passwordStrength)}
+                          </span>
+                        </div>
+                        <div className="flex space-x-1">
+                          {[0, 1, 2, 3].map((index) => (
+                            <div
+                              key={index}
+                              className={`h-2 flex-1 rounded-full ${
+                                index < passwordStrength
+                                  ? getPasswordStrengthColor(passwordStrength)
+                                  : 'bg-gray-200'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          ต้องมีอักษรอย่างน้อย 8 ตัวอักษร รวมทั้งตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ ตัวเลข และอักขระพิเศษ
+                        </p>
+                      </div>
+                    )}
                     {fieldErrors.password && (
                       <p className="text-red-500 text-sm">{fieldErrors.password.join(', ')}</p>
                     )}
@@ -388,7 +563,7 @@ export const RegisterPage: React.FC = () => {
                   {/* Confirm Password */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      {t('registerPage.confirmPasswordLabel')}
+                      ยืนยันรหัสผ่าน
                     </label>
                     <div className="relative">
                       <input
@@ -396,7 +571,8 @@ export const RegisterPage: React.FC = () => {
                         name="password_confirmation"
                         value={credentials.password_confirmation}
                         onChange={handleChange}
-                        placeholder={t('registerPage.passwordPlaceholder')}
+                        onBlur={handleBlur}
+                        placeholder="ป้อนรหัสผ่านของคุณอีกครั้ง"
                         required
                         className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
                           fieldErrors.password_confirmation ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
@@ -418,7 +594,7 @@ export const RegisterPage: React.FC = () => {
                   {/* Phone */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      {t('registerPage.phoneLabel')}
+                      หมายเลขโทรศัพท์
                     </label>
                     <div className="relative">
                       <input
@@ -426,23 +602,28 @@ export const RegisterPage: React.FC = () => {
                         name="phone_number"
                         value={credentials.phone_number}
                         onChange={handleChange}
-                        placeholder={t('registerPage.phonePlaceholder')}
+                        placeholder="ป้อนหมายเลขโทรศัพท์ของคุณ"
                         className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
                           fieldErrors.phone_number ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                         }`}
                       />
                       <FaPhone className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     </div>
+                    <p className="text-xs text-gray-500">
+                      รูปแบบ: XXX-XXX-XXXX
+                    </p>
                     {fieldErrors.phone_number && (
                       <p className="text-red-500 text-sm">{fieldErrors.phone_number.join(', ')}</p>
                     )}
                   </div>
 
                   {/* Google Maps Location Picker */}
+                  {/* Removed as per requirement - ไม่ต้องให้กรอกที่อยู่ */}
+                  {/* 
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
                       <FaMapMarkerAlt className="h-4 w-4 text-blue-600" />
-                      {t('googleMaps.selectLocation')}
+                      เลือกตำแหน่งของคุณ
                     </label>
                     <OpenStreetMapPicker
                       onLocationSelect={(location) => {
@@ -452,9 +633,10 @@ export const RegisterPage: React.FC = () => {
                       height="250px"
                     />
                     <p className="text-xs text-gray-500">
-                      {t('googleMaps.locationOptional')}
+                      ตำแหน่งเป็นข้อมูลทางเลือก (สามารถเลือกภายหลังได้)
                     </p>
                   </div>
+                  */}
 
                   {/* Submit Button */}
                   <motion.button
@@ -468,7 +650,7 @@ export const RegisterPage: React.FC = () => {
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                     ) : (
                       <>
-                        {t('registerPage.createAccountButton')}
+                        สร้างบัญชี
                         <FaArrowRight className="h-4 w-4" />
                       </>
                     )}
@@ -485,7 +667,7 @@ export const RegisterPage: React.FC = () => {
                       <div className="w-full border-t border-gray-300" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">{t('registerPage.orContinueWith')}</span>
+                      <span className="px-2 bg-white text-gray-500">หรือดำเนินการต่อด้วย</span>
                     </div>
                   </motion.div>
 
@@ -513,12 +695,12 @@ export const RegisterPage: React.FC = () => {
                   className="mt-8 text-center"
                 >
                   <p className="text-gray-600">
-                    {t('registerPage.alreadyMember')}{' '}
+                    เป็นสมาชิกอยู่แล้ว?{' '}
                     <Link 
                       to={ROUTE_PATHS.LOGIN} 
                       className="font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200"
                     >
-                      {t('registerPage.signInLink')}
+                      เข้าสู่ระบบ
                     </Link>
                   </p>
                 </motion.div>

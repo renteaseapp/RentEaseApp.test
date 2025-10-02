@@ -1,5 +1,6 @@
 import { User, LoginResponse, RegisterResponse, ApiError, ForgotPasswordResponse, ResetPasswordPayload as ResetPasswordPayloadType, ResetPasswordResponse, ApiResponse } from '../types';
 import axios from 'axios';
+import { API_BASE_URL } from '../constants';
 
 export interface LoginCredentials {
   email_or_username: string;
@@ -21,7 +22,8 @@ export type ResetPasswordPayload = ResetPasswordPayloadType;
 
 export const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
   try {
-    const response = await axios.post<ApiResponse<LoginResponse>>('http://localhost:3001/api/auth/login', credentials, {
+
+  const response = await axios.post<ApiResponse<LoginResponse>>(`${API_BASE_URL}/auth/login`, credentials, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -57,7 +59,7 @@ export const login = async (credentials: LoginCredentials): Promise<LoginRespons
 
 export const register = async (credentials: RegisterCredentials): Promise<RegisterResponse> => {
   try {
-    const response = await axios.post<ApiResponse<{ user: User; access_token: string }>>('http://localhost:3001/api/users/register', credentials);
+    const response = await axios.post<ApiResponse<{ user: User; access_token: string }>>(`${API_BASE_URL}/users/register`, credentials);
     const { data } = response.data;
     return {
       user: data.user,
@@ -81,7 +83,7 @@ export const register = async (credentials: RegisterCredentials): Promise<Regist
 
 export const forgotPassword = async (email: string): Promise<ForgotPasswordResponse> => {
   try {
-    const response = await axios.post('http://localhost:3001/api/auth/request-password-reset', { email });
+    const response = await axios.post(`${API_BASE_URL}/auth/request-password-reset`, { email });
     return response.data;
   } catch (error: any) {
     if (error.response) {
@@ -99,7 +101,7 @@ export const forgotPassword = async (email: string): Promise<ForgotPasswordRespo
 
 export const resetPassword = async (payload: ResetPasswordPayloadType): Promise<ResetPasswordResponse> => {
   try {
-    const response = await axios.post('http://localhost:3001/api/auth/reset-password-with-otp', payload, {
+    const response = await axios.post(`${API_BASE_URL}/auth/reset-password-with-otp`, payload, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -124,6 +126,46 @@ export const resetPassword = async (payload: ResetPasswordPayloadType): Promise<
     }
     throw {
       message: 'Network error occurred',
+      status: 500
+    } as ApiError;
+  }
+};
+
+// Refresh token function (assumes backend has /auth/refresh endpoint)
+export const refreshToken = async (currentToken: string): Promise<{ access_token: string; user: User }> => {
+  try {
+    const response = await axios.post<ApiResponse<{ access_token: string; user: User }>>(`${API_BASE_URL}/auth/refresh`, {}, {
+      headers: {
+        'Authorization': `Bearer ${currentToken}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    if (response.data.success && response.data.data) {
+      // Update localStorage with new token
+      localStorage.setItem('authToken', response.data.data.access_token);
+      localStorage.setItem('userData', JSON.stringify(response.data.data.user));
+      return response.data.data;
+    } else {
+      throw {
+        message: response.data.message || 'Token refresh failed',
+        status: 401
+      } as ApiError;
+    }
+  } catch (error: any) {
+    if (error.response && error.response.status === 401) {
+      // Clear invalid session on refresh failure
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('isAdmin');
+      throw {
+        message: 'Token refresh failed - session expired',
+        status: 401
+      } as ApiError;
+    }
+    throw {
+      message: 'Network error during token refresh',
       status: 500
     } as ApiError;
   }

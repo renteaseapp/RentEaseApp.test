@@ -7,7 +7,7 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { ApiError } from '../../types';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { useTranslation } from 'react-i18next';
+
 import { motion } from 'framer-motion';
 import { 
   FaShieldAlt, 
@@ -23,7 +23,6 @@ import {
 } from 'react-icons/fa';
 
 export const AdminLoginPage: React.FC = () => {
-  const { t } = useTranslation();
   const [credentials, setCredentials] = useState({ email_or_username: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,17 +46,17 @@ export const AdminLoginPage: React.FC = () => {
       navigate(ROUTE_PATHS.ADMIN_DASHBOARD);
     } catch (err) {
       const apiError = err as ApiError;
-      setError(apiError.message || t('adminLoginPage.loginFailedError'));
+      setError(apiError.message || 'เข้าสู่ระบบผู้ดูแลล้มเหลว');
     } finally {
       setIsLoading(false);
     }
   };
 
   const adminFeatures = [
-    { icon: <FaUsers className="h-6 w-6" />, title: 'User Management', description: 'Manage user accounts and permissions' },
-    { icon: <FaBox className="h-6 w-6" />, title: 'Product Oversight', description: 'Monitor and approve product listings' },
-    { icon: <FaChartBar className="h-6 w-6" />, title: 'Analytics', description: 'View detailed reports and insights' },
-    { icon: <FaCog className="h-6 w-6" />, title: 'System Control', description: 'Configure platform settings' },
+    { icon: <FaUsers className="h-6 w-6" />, title: 'การจัดการผู้ใช้', description: 'จัดการบัญชีผู้ใช้และสิทธิ์การเข้าถึง' },
+    { icon: <FaBox className="h-6 w-6" />, title: 'การดูแลสินค้า', description: 'ตรวจสอบและอนุมัติรายการสินค้า' },
+    { icon: <FaChartBar className="h-6 w-6" />, title: 'การวิเคราะห์ข้อมูล', description: 'ดูรายงานและข้อมูลเชิงลึก' },
+    { icon: <FaCog className="h-6 w-6" />, title: 'การควบคุมระบบ', description: 'กำหนดค่าการตั้งค่าแพลตฟอร์ม' },
   ];
 
   return (
@@ -83,10 +82,10 @@ export const AdminLoginPage: React.FC = () => {
                   <FaShieldAlt className="h-8 w-8 text-white" />
                 </div>
                 <h1 className="text-3xl font-bold text-white mb-2">
-                  {t('adminLoginPage.title')}
+                  เข้าสู่ระบบผู้ดูแลระบบ
                 </h1>
                 <p className="text-blue-200 text-sm">
-                  {t('adminLoginPage.subtitle')}
+                  เข้าถึงแผงควบคุมการจัดการแพลตฟอร์ม
                 </p>
               </motion.div>
 
@@ -106,7 +105,7 @@ export const AdminLoginPage: React.FC = () => {
                     <ErrorMessage 
                       message={error} 
                       onDismiss={() => setError(null)} 
-                      title={t('adminLoginPage.errorTitle')} 
+                      title="ข้อผิดพลาด" 
                     />
                   </motion.div>
                 )}
@@ -114,7 +113,7 @@ export const AdminLoginPage: React.FC = () => {
                 {/* Username/Email Field */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-blue-200">
-                    {t('adminLoginPage.emailOrUsernameLabel')}
+                    อีเมลหรือชื่อผู้ใช้
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -126,7 +125,7 @@ export const AdminLoginPage: React.FC = () => {
                       value={credentials.email_or_username}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      placeholder={t('adminLoginPage.emailOrUsernamePlaceholder')}
+                      placeholder="ป้อนอีเมลหรือชื่อผู้ใช้ของคุณ"
                       required
                     />
                   </div>
@@ -135,7 +134,7 @@ export const AdminLoginPage: React.FC = () => {
                 {/* Password Field */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-blue-200">
-                    {t('adminLoginPage.passwordLabel')}
+                    รหัสผ่าน
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -147,7 +146,7 @@ export const AdminLoginPage: React.FC = () => {
                       value={credentials.password}
                       onChange={handleChange}
                       className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      placeholder={t('adminLoginPage.passwordPlaceholder')}
+                      placeholder="ป้อนรหัสผ่านของคุณ"
                       required
                     />
                     <button
@@ -180,7 +179,7 @@ export const AdminLoginPage: React.FC = () => {
                       ) : (
                         <FaArrowRight className="h-5 w-5" />
                       )}
-                      {t('adminLoginPage.signInButton')}
+                      เข้าสู่ระบบ
                     </span>
                   </Button>
                 </motion.div>
@@ -200,10 +199,10 @@ export const AdminLoginPage: React.FC = () => {
         >
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold text-white mb-4">
-              Admin Dashboard
+              แผงควบคุมผู้ดูแลระบบ
             </h2>
             <p className="text-blue-200 text-lg">
-              Powerful tools to manage your platform
+              เครื่องมือที่ทรงพลังในการจัดการแพลตฟอร์มของคุณ
             </p>
           </div>
 

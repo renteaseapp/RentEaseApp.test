@@ -7,7 +7,7 @@ import { RenterDashboardData, ApiError, } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { ROUTE_PATHS } from '../../constants';
-import { useTranslation } from 'react-i18next';
+
 import { motion } from 'framer-motion';
 import { 
   FaTachometerAlt, 
@@ -28,11 +28,11 @@ import {
   FaArrowRight,
   FaCreditCard,
   FaShieldAlt,
+  FaBox,
   
 } from 'react-icons/fa';
 
 export const RenterDashboardPage: React.FC = () => {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const { showError } = useAlert();
   const [dashboardData, setDashboardData] = useState<RenterDashboardData | null>(null);
@@ -42,7 +42,7 @@ export const RenterDashboardPage: React.FC = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!user?.id) {
-        const errorMessage = t('renterDashboard.error.userNotFound');
+        const errorMessage = "ไม่พบข้อมูลผู้ใช้";
         setError(errorMessage);
         setIsLoading(false);
         return;
@@ -55,7 +55,7 @@ export const RenterDashboardPage: React.FC = () => {
         setDashboardData(data);
       } catch (err) {
         const apiError = err as ApiError;
-        const errorMessage = apiError.message || t('renterDashboard.error.loadFailed');
+        const errorMessage = apiError.message || "ไม่สามารถโหลดข้อมูลแดชบอร์ดได้";
         setError(errorMessage);
         showError(errorMessage);
       } finally {
@@ -64,33 +64,45 @@ export const RenterDashboardPage: React.FC = () => {
     };
 
     fetchDashboardData();
-  }, [user, t, showError]);
+  }, [user, showError]);
 
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case 'active':
         return { 
-          text: t('renterDashboard.status.active'), 
+          text: "กำลังใช้งาน", 
           color: 'bg-green-100 text-green-800 border-green-200',
           icon: <FaCheckCircle className="h-4 w-4" />
         };
       case 'pending_payment':
         return { 
-          text: t('renterDashboard.status.pendingPayment'), 
+          text: "รอชำระเงิน", 
           color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
           icon: <FaCreditCard className="h-4 w-4" />
         };
       case 'pending_owner_approval':
         return { 
-          text: t('renterDashboard.status.pendingApproval'), 
+          text: "รออนุมัติจากเจ้าของ", 
           color: 'bg-blue-100 text-blue-800 border-blue-200',
           icon: <FaClock className="h-4 w-4" />
         };
       case 'completed':
         return { 
-          text: t('renterDashboard.status.completed'), 
+          text: "เสร็จสมบูรณ์", 
           color: 'bg-gray-100 text-gray-800 border-gray-200',
           icon: <FaCheck className="h-4 w-4" />
+        };
+      case 'return_pending':
+        return { 
+          text: "รอคืนสินค้า", 
+          color: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+          icon: <FaBox className="h-4 w-4" />
+        };
+      case 'late_return':
+        return { 
+          text: "คืนล่าช้า", 
+          color: 'bg-red-100 text-red-800 border-red-200',
+          icon: <FaExclamationTriangle className="h-4 w-4" />
         };
       default:
         return { 
@@ -102,16 +114,16 @@ export const RenterDashboardPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(t('common.locale'), {
+    return new Date(dateString).toLocaleDateString('th-TH', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
   };
 
-  if (isLoading) return <LoadingSpinner message={t('renterDashboard.loading')} />;
+  if (isLoading) return <LoadingSpinner message={"กำลังโหลดข้อมูลแดชบอร์ด..."} />;
   if (error) return <ErrorMessage message={error} />;
-  if (!dashboardData) return <div className="p-4">{t('renterDashboard.noData')}</div>;
+  if (!dashboardData) return <div className="p-4">{"ไม่พบข้อมูล"}</div>;
   
   const {
     current_active_rentals,
@@ -139,8 +151,8 @@ export const RenterDashboardPage: React.FC = () => {
               <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl mb-3">
                 <FaUser className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-lg font-bold text-gray-800">Renter Dashboard</h3>
-              <p className="text-sm text-gray-600">Manage your rentals</p>
+              <h3 className="text-lg font-bold text-gray-800">แดชบอร์ดผู้เช่า</h3>
+              <p className="text-sm text-gray-600">จัดการรายการเช่าของคุณ</p>
             </div>
             
             <nav className="space-y-2">
@@ -156,7 +168,7 @@ export const RenterDashboardPage: React.FC = () => {
                 end
               >
                 <FaTachometerAlt className="h-5 w-5" />
-                <span>{t('renterDashboard.sidebar.dashboard')}</span>
+                <span>{"หน้าหลัก"}</span>
               </NavLink>
               <NavLink 
                 to={ROUTE_PATHS.MY_RENTALS_RENTER} 
@@ -169,7 +181,7 @@ export const RenterDashboardPage: React.FC = () => {
                 }
               >
                 <FaShoppingBag className="h-5 w-5" />
-                <span>{t('renterDashboard.sidebar.myRentals')}</span>
+                <span>{"รายการเช่าของฉัน"}</span>
               </NavLink>
               <NavLink 
                 to={ROUTE_PATHS.WISHLIST} 
@@ -182,7 +194,7 @@ export const RenterDashboardPage: React.FC = () => {
                 }
               >
                 <FaHeart className="h-5 w-5" />
-                <span>{t('renterDashboard.sidebar.wishlist')}</span>
+                <span>{"รายการโปรด"}</span>
               </NavLink>
             </nav>
           </motion.aside>
@@ -201,10 +213,10 @@ export const RenterDashboardPage: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                    {t('renterDashboard.title')}
+                    {"ภาพรวมการเช่า"}
                   </h1>
                   <p className="text-gray-600 text-lg">
-                    {t('renterDashboard.welcome', { name: user?.first_name || t('renterDashboard.user') })}
+                    {"ยินดีต้อนรับ"} {user?.first_name || "ผู้ใช้"} {"คุณสามารถจัดการรายการเช่าของคุณได้ที่นี่"}
                   </p>
                 </div>
               </div>
@@ -230,8 +242,8 @@ export const RenterDashboardPage: React.FC = () => {
                         <FaCheckCircle className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.activeRentals')}</h2>
-                        <p className="text-green-100 text-sm">Currently active rentals</p>
+                        <h2 className="text-xl font-bold text-white">{"กำลังใช้งาน"}</h2>
+                        <p className="text-green-100 text-sm">รายการเช่าที่กำลังใช้งานอยู่</p>
                       </div>
                     </div>
                     <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
@@ -274,7 +286,7 @@ export const RenterDashboardPage: React.FC = () => {
                                     </div>
                                     <div className="flex items-center gap-1">
                                       <FaCalendarAlt className="h-3 w-3" />
-                                      {formatDate(rental.end_date!)}
+                                      {"สิ้นสุด"} {formatDate(rental.end_date!)}
                                     </div>
                                   </div>
                                 </Link>
@@ -304,8 +316,8 @@ export const RenterDashboardPage: React.FC = () => {
                       <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
                         <FaCheckCircle className="h-10 w-10 text-green-500" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noActiveRentals')}</h3>
-                      <p className="text-gray-500 mb-4">No active rentals at the moment</p>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{"ไม่มีรายการที่กำลังใช้งาน"}</h3>
+                      <p className="text-gray-500 mb-4">คุณไม่มีรายการเช่าที่กำลังใช้งานอยู่ในขณะนี้</p>
                       <Link to={ROUTE_PATHS.HOME}>
                         <motion.button
                           whileHover={{ scale: 1.05 }}
@@ -313,7 +325,7 @@ export const RenterDashboardPage: React.FC = () => {
                           className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                         >
                           <FaSearch className="h-4 w-4" />
-                          {t('renterDashboard.browseItems')}
+                          {"ค้นหาสินค้า"}
                           <FaArrowRight className="h-4 w-4" />
                         </motion.button>
                       </Link>
@@ -336,8 +348,8 @@ export const RenterDashboardPage: React.FC = () => {
                         <FaClock className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.confirmedRentals', 'ชำระเงินแล้ว รอเริ่มเช่า/รอเจ้าของยืนยัน')}</h2>
-                        <p className="text-indigo-100 text-sm">Payment confirmed, waiting to start</p>
+                        <h2 className="text-xl font-bold text-white">{"ยืนยันแล้ว (รอเริ่มเช่า)"}</h2>
+                        <p className="text-indigo-100 text-sm">ชำระเงินแล้ว รอวันเริ่มต้นการเช่า</p>
                       </div>
                     </div>
                     <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
@@ -406,8 +418,8 @@ export const RenterDashboardPage: React.FC = () => {
                       <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-100 rounded-full mb-4">
                         <FaClock className="h-10 w-10 text-indigo-500" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noConfirmedRentals', 'ยังไม่มีรายการที่ชำระเงินแล้ว รอเริ่มเช่า')}</h3>
-                      <p className="text-gray-500 mb-4">No confirmed rentals waiting to start</p>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{"ยังไม่มีรายการที่ยืนยันแล้ว"}</h3>
+                      <p className="text-gray-500 mb-4">ไม่มีรายการเช่าที่ชำระเงินแล้วกำลังรอเริ่มใช้งาน</p>
                     </motion.div>
                   )}
                 </div>
@@ -427,8 +439,8 @@ export const RenterDashboardPage: React.FC = () => {
                         <FaCreditCard className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.pendingActions')}</h2>
-                        <p className="text-yellow-100 text-sm">Action required from you</p>
+                        <h2 className="text-xl font-bold text-white">{"รอการดำเนินการจากคุณ"}</h2>
+                        <p className="text-yellow-100 text-sm">รายการที่ต้องดำเนินการต่อ</p>
                       </div>
                     </div>
                     <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
@@ -485,7 +497,7 @@ export const RenterDashboardPage: React.FC = () => {
                                       className="mt-2 inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                                     >
                                       <FaCreditCard className="h-4 w-4" />
-                                      {t('renterDashboard.proceedToPayment')}
+                                      {"ชำระเงิน"}
                                     </motion.button>
                                   </Link>
                                 )}
@@ -509,8 +521,8 @@ export const RenterDashboardPage: React.FC = () => {
                       <div className="inline-flex items-center justify-center w-20 h-20 bg-yellow-100 rounded-full mb-4">
                         <FaCreditCard className="h-10 w-10 text-yellow-500" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noPendingActions', 'No pending payments')}</h3>
-                      <p className="text-gray-500 mb-4">No pending actions required</p>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{"ไม่มีรายการที่ต้องดำเนินการ"}</h3>
+                      <p className="text-gray-500 mb-4">ไม่มีรายการรอการชำระเงินหรือการคืนสินค้า</p>
                       <Link to={ROUTE_PATHS.HOME}>
                         <motion.button
                           whileHover={{ scale: 1.05 }}
@@ -518,7 +530,7 @@ export const RenterDashboardPage: React.FC = () => {
                           className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                         >
                           <FaSearch className="h-4 w-4" />
-                          {t('renterDashboard.browseItems')}
+                          {"ค้นหาสินค้า"}
                           <FaArrowRight className="h-4 w-4" />
                         </motion.button>
                       </Link>
@@ -541,8 +553,8 @@ export const RenterDashboardPage: React.FC = () => {
                         <FaClock className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.pendingApproval')}</h2>
-                        <p className="text-blue-100 text-sm">Waiting for owner approval</p>
+                        <h2 className="text-xl font-bold text-white">{"รอการอนุมัติ"}</h2>
+                        <p className="text-blue-100 text-sm">รายการที่ส่งคำขอและกำลังรอเจ้าของอนุมัติ</p>
                       </div>
                     </div>
                     <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
@@ -611,8 +623,8 @@ export const RenterDashboardPage: React.FC = () => {
                       <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-4">
                         <FaClock className="h-10 w-10 text-blue-500" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noPendingApproval', 'No pending approvals')}</h3>
-                      <p className="text-gray-500 mb-4">No rentals waiting for approval</p>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{"ไม่มีรายการรอการอนุมัติ"}</h3>
+                      <p className="text-gray-500 mb-4">คุณไม่มีคำขอเช่าที่รอการอนุมัติจากเจ้าของ</p>
                     </motion.div>
                   )}
                 </div>
@@ -632,8 +644,8 @@ export const RenterDashboardPage: React.FC = () => {
                         <FaCheck className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.completedRentals')}</h2>
-                        <p className="text-gray-100 text-sm">Successfully completed rentals</p>
+                        <h2 className="text-xl font-bold text-white">{"เสร็จสมบูรณ์"}</h2>
+                        <p className="text-gray-100 text-sm">รายการเช่าที่เสร็จสมบูรณ์แล้ว</p>
                       </div>
                     </div>
                     <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
@@ -702,8 +714,8 @@ export const RenterDashboardPage: React.FC = () => {
                       <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
                         <FaCheck className="h-10 w-10 text-gray-500" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noCompletedRentals', 'No completed rentals')}</h3>
-                      <p className="text-gray-500 mb-4">No completed rentals yet</p>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{"ยังไม่มีรายการที่เสร็จสมบูรณ์"}</h3>
+                      <p className="text-gray-500 mb-4">คุณยังไม่มีรายการเช่าที่เสร็จสมบูรณ์</p>
                     </motion.div>
                   )}
                 </div>
@@ -723,8 +735,8 @@ export const RenterDashboardPage: React.FC = () => {
                         <FaTimes className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.cancelledRentals')}</h2>
-                        <p className="text-red-100 text-sm">Cancelled rental requests</p>
+                        <h2 className="text-xl font-bold text-white">{"ยกเลิก"}</h2>
+                        <p className="text-red-100 text-sm">คำขอเช่าที่ถูกยกเลิก</p>
                       </div>
                     </div>
                     <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
@@ -793,8 +805,8 @@ export const RenterDashboardPage: React.FC = () => {
                       <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-4">
                         <FaTimes className="h-10 w-10 text-red-500" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noCancelledRentals', 'No cancelled rentals')}</h3>
-                      <p className="text-gray-500 mb-4">No cancelled rentals</p>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{"ไม่มีรายการถูกยกเลิก"}</h3>
+                      <p className="text-gray-500 mb-4">คุณไม่มีคำขอเช่าที่ถูกยกเลิก</p>
                     </motion.div>
                   )}
                 </div>
@@ -814,8 +826,8 @@ export const RenterDashboardPage: React.FC = () => {
                         <FaExclamationTriangle className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-white">{t('renterDashboard.lateReturnRentals')}</h2>
-                        <p className="text-orange-100 text-sm">Overdue return rentals</p>
+                        <h2 className="text-xl font-bold text-white">{"คืนล่าช้า"}</h2>
+                        <p className="text-orange-100 text-sm">รายการที่เกินกำหนดคืน</p>
                       </div>
                     </div>
                     <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
@@ -884,8 +896,8 @@ export const RenterDashboardPage: React.FC = () => {
                       <div className="inline-flex items-center justify-center w-20 h-20 bg-orange-100 rounded-full mb-4">
                         <FaExclamationTriangle className="h-10 w-10 text-orange-500" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('renterDashboard.noLateReturnRentals', 'No late return rentals')}</h3>
-                      <p className="text-gray-500 mb-4">No overdue rentals</p>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{"ไม่มีรายการคืนล่าช้า"}</h3>
+                      <p className="text-gray-500 mb-4">คุณไม่มีรายการที่เกินกำหนดคืน</p>
                     </motion.div>
                   )}
                 </div>
@@ -903,7 +915,7 @@ export const RenterDashboardPage: React.FC = () => {
                 <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl">
                   <FaShieldAlt className="h-6 w-6 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800">{t('renterDashboard.quickLinks')}</h2>
+                <h2 className="text-2xl font-bold text-gray-800">{"ลิงก์ด่วน"}</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <motion.div
@@ -915,8 +927,8 @@ export const RenterDashboardPage: React.FC = () => {
                       <FaSearch className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <span className="text-blue-600 font-semibold text-lg">{t('renterDashboard.browseItems')}</span>
-                      <p className="text-sm text-gray-600 mt-1">ค้นหาสินค้าใหม่</p>
+                      <span className="text-blue-600 font-semibold text-lg">{"ค้นหาสินค้า"}</span>
+                      <p className="text-sm text-gray-600 mt-1">{"ค้นหาสินค้าใหม่"}</p>
                     </div>
                     <FaArrowRight className="h-4 w-4 text-blue-400 ml-auto group-hover:text-blue-600 transition-colors" />
                   </Link>
@@ -931,8 +943,8 @@ export const RenterDashboardPage: React.FC = () => {
                       <FaHistory className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <span className="text-green-600 font-semibold text-lg">{t('renterDashboard.rentalHistory')}</span>
-                      <p className="text-sm text-gray-600 mt-1">ดูประวัติการเช่าทั้งหมด</p>
+                      <span className="text-green-600 font-semibold text-lg">{"ประวัติการเช่า"}</span>
+                      <p className="text-sm text-gray-600 mt-1">{"ดูประวัติการเช่าทั้งหมด"}</p>
                     </div>
                     <FaArrowRight className="h-4 w-4 text-green-400 ml-auto group-hover:text-green-600 transition-colors" />
                   </Link>
@@ -947,8 +959,8 @@ export const RenterDashboardPage: React.FC = () => {
                       <FaComments className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <span className="text-purple-600 font-semibold text-lg">{t('renterDashboard.messages')}</span>
-                      <p className="text-sm text-gray-600 mt-1">ข้อความและการสนทนา</p>
+                      <span className="text-purple-600 font-semibold text-lg">{"ข้อความ"}</span>
+                      <p className="text-sm text-gray-600 mt-1">{"ข้อความและการสนทนา"}</p>
                     </div>
                     <FaArrowRight className="h-4 w-4 text-purple-400 ml-auto group-hover:text-purple-600 transition-colors" />
                   </Link>
@@ -963,8 +975,8 @@ export const RenterDashboardPage: React.FC = () => {
                       <FaUserCircle className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <span className="text-orange-600 font-semibold text-lg">{t('navbar.profile')}</span>
-                      <p className="text-sm text-gray-600 mt-1">จัดการโปรไฟล์</p>
+                      <span className="text-orange-600 font-semibold text-lg">{"โปรไฟล์"}</span>
+                      <p className="text-sm text-gray-600 mt-1">{"จัดการโปรไฟล์"}</p>
                     </div>
                     <FaArrowRight className="h-4 w-4 text-orange-400 ml-auto group-hover:text-orange-600 transition-colors" />
                   </Link>

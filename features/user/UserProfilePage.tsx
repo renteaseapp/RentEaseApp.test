@@ -7,7 +7,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
-import { useTranslation } from 'react-i18next';
+
 import { getProvinces } from '../../services/productService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -93,7 +93,6 @@ const compressImage = (file: File): Promise<File> => {
 };
 
 export const UserProfilePage: React.FC = () => {
-  const { t } = useTranslation();
   const { updateUserContext } = useAuth();
   const [profileData, setProfileData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -209,12 +208,12 @@ export const UserProfilePage: React.FC = () => {
       const updatedUser = await updateProfile(formData);
       setProfileData(updatedUser);
       updateUserContext(updatedUser);
-      setSuccessMessage(t('userProfilePage.profileUpdatedSuccess'));
+      setSuccessMessage('อัปเดตข้อมูลส่วนตัวสำเร็จ');
       setIsEditingProfile(false);
       await refreshProfile();
     } catch (err) {
       const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to update profile.');
+      setError(apiError.message || 'ไม่สามารถอัปเดตข้อมูลส่วนตัวได้');
     } finally {
       setIsLoading(false);
     }
@@ -227,7 +226,7 @@ export const UserProfilePage: React.FC = () => {
     setSuccessMessage(null);
     try {
       await updatePassword(passwordFormData);
-      setSuccessMessage(t('userProfilePage.passwordUpdateSuccess'));
+      setSuccessMessage('เปลี่ยนรหัสผ่านสำเร็จ');
       setIsChangingPassword(false);
       setPasswordFormData({
         current_password: '',
@@ -237,7 +236,7 @@ export const UserProfilePage: React.FC = () => {
       await refreshProfile();
     } catch (err) {
       const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to change password.');
+      setError(apiError.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้');
     } finally {
       setIsLoading(false);
     }
@@ -265,11 +264,11 @@ export const UserProfilePage: React.FC = () => {
         setProfileData(updatedUser);
         updateUserContext(updatedUser);
       }
-      setSuccessMessage(t('userProfilePage.avatarUpdatedSuccess'));
+      setSuccessMessage('อัปเดตรูปโปรไฟล์สำเร็จ');
       await refreshProfile();
     } catch (err) {
       const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to update avatar.');
+      setError(apiError.message || 'ไม่สามารถอัปเดตรูปโปรไฟล์ได้');
     } finally {
       setIsUploadingAvatar(false);
       if (fileInputRef.current) {
@@ -279,15 +278,15 @@ export const UserProfilePage: React.FC = () => {
   };
 
   if (isLoading && !profileData) {
-    return <LoadingSpinner message={t('userProfilePage.title')} />;
+    return <LoadingSpinner message="โปรไฟล์ของฉัน" />;
   }
 
   if (error && !profileData) {
-    return <ErrorMessage message={error} title={t('general.error')} />;
+    return <ErrorMessage message={error} title="ข้อผิดพลาด" />;
   }
 
   if (!profileData) {
-    return <div className="container mx-auto p-4 text-center">Could not load profile data. Please try logging in again.</div>;
+    return <div className="container mx-auto p-4 text-center">ไม่สามารถโหลดข้อมูลโปรไฟล์ได้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง</div>;
   }
 
   return (
@@ -299,10 +298,10 @@ export const UserProfilePage: React.FC = () => {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-4xl font-bold text-gray-900 mb-2 text-center">
-            {t('userProfilePage.title')}
+            โปรไฟล์ของฉัน
           </h1>
           <p className="text-gray-600 text-center mb-8">
-            {t('userProfilePage.subtitle')}
+            จัดการข้อมูลส่วนตัวและตั้งค่าบัญชีของคุณ
           </p>
         </motion.div>
         
@@ -314,7 +313,7 @@ export const UserProfilePage: React.FC = () => {
               exit={{ opacity: 0, scale: 0.95 }}
               className="mb-6"
             >
-              <ErrorMessage message={error} onDismiss={() => setError(null)} title={t('general.error')} />
+              <ErrorMessage message={error} onDismiss={() => setError(null)} title="ข้อผิดพลาด" />
             </motion.div>
           )}
           {successMessage && (
@@ -325,7 +324,7 @@ export const UserProfilePage: React.FC = () => {
             >
               <FaCheck className="h-5 w-5 text-green-500 flex-shrink-0" />
               <div>
-                <p className="font-medium text-green-800">{t('general.success')}</p>
+                <p className="font-medium text-green-800">สำเร็จ</p>
                 <p className="text-green-700 text-sm">{successMessage}</p>
               </div>
             </motion.div>
@@ -399,10 +398,6 @@ export const UserProfilePage: React.FC = () => {
                   <div className="flex items-center justify-center gap-2 text-gray-600">
                     <FaEnvelope className="h-4 w-4" />
                     <span>{profileData.email}</span>
-                    {profileData.email_verified_at ? 
-                      <FaCheck className="h-4 w-4 text-green-500" title="Email verified" /> : 
-                      <FaTimes className="h-4 w-4 text-red-500" title="Email not verified" />
-                    }
                   </div>
                   
                   {profileData.phone_number && (
@@ -415,7 +410,7 @@ export const UserProfilePage: React.FC = () => {
                   {profileData.created_at && (
                     <div className="flex items-center justify-center gap-2 text-gray-500">
                       <FaCalendarAlt className="h-4 w-4" />
-                      <span>{t('productDetailPage.memberSince', {date: new Date(profileData.created_at).toLocaleDateString()})}</span>
+                      <span>เป็นสมาชิกตั้งแต่ {new Date(profileData.created_at).toLocaleDateString('th-TH')}</span>
                     </div>
                   )}
                 </motion.div>
@@ -438,7 +433,7 @@ export const UserProfilePage: React.FC = () => {
                     <div className="p-2 rounded-lg bg-blue-100">
                       <FaUser className="h-5 w-5 text-blue-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">{t('userProfilePage.personalInfoTitle')}</h3>
+                    <h3 className="text-xl font-bold text-gray-900">ข้อมูลส่วนตัว</h3>
                   </div>
                   <div className="flex space-x-2">
                     {!isEditingProfile && (
@@ -450,7 +445,7 @@ export const UserProfilePage: React.FC = () => {
                           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200"
                         >
                           <FaEdit className="h-4 w-4" />
-                          {t('userProfilePage.editProfileButton')}
+                          แก้ไขข้อมูล
                         </motion.button>
                         <Link to={ROUTE_PATHS.ID_VERIFICATION}>
                           <motion.button
@@ -459,7 +454,7 @@ export const UserProfilePage: React.FC = () => {
                             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200"
                           >
                             <FaShieldAlt className="h-4 w-4" />
-                            {t('userProfilePage.verifyIdButton')}
+                            ยืนยันตัวตน
                           </motion.button>
                         </Link>
                       </>
@@ -479,12 +474,12 @@ export const UserProfilePage: React.FC = () => {
                     >
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-gray-50 rounded-xl p-4">
-                          <p className="text-sm font-medium text-gray-500 mb-1">{t('userProfilePage.fullNameLabel')}</p>
+                          <p className="text-sm font-medium text-gray-500 mb-1">ชื่อ-นามสกุล</p>
                           <p className="text-lg font-semibold text-gray-900">{profileData.first_name} {profileData.last_name}</p>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-4">
-                          <p className="text-sm font-medium text-gray-500 mb-1">{t('userProfilePage.phoneLabel')}</p>
-                          <p className="text-lg font-semibold text-gray-900">{profileData.phone_number || t('userProfilePage.notApplicable')}</p>
+                          <p className="text-sm font-medium text-gray-500 mb-1">เบอร์โทรศัพท์</p>
+                          <p className="text-lg font-semibold text-gray-900">{profileData.phone_number || 'ไม่ระบุ'}</p>
                         </div>
                       </div>
                     </motion.div>
@@ -501,7 +496,7 @@ export const UserProfilePage: React.FC = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <label className="block text-sm font-medium text-gray-700">
-                            {t('registerPage.firstNameLabel')}
+                            ชื่อ
                           </label>
                           <input
                             type="text"
@@ -513,7 +508,7 @@ export const UserProfilePage: React.FC = () => {
                         </div>
                         <div className="space-y-2">
                           <label className="block text-sm font-medium text-gray-700">
-                            {t('registerPage.lastNameLabel')}
+                            นามสกุล
                           </label>
                           <input
                             type="text"
@@ -526,7 +521,7 @@ export const UserProfilePage: React.FC = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('registerPage.phoneLabel')}
+                          เบอร์โทรศัพท์
                         </label>
                         <input
                           type="tel"
@@ -549,7 +544,7 @@ export const UserProfilePage: React.FC = () => {
                           ) : (
                             <>
                               <FaCheck className="h-4 w-4" />
-                              {t('userProfilePage.saveChangesButton')}
+                              บันทึกการเปลี่ยนแปลง
                             </>
                           )}
                         </motion.button>
@@ -565,7 +560,7 @@ export const UserProfilePage: React.FC = () => {
                           className="flex-1 bg-gray-200 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-2"
                         >
                           <FaTimes className="h-4 w-4" />
-                          {t('userProfilePage.cancelButton')}
+                          ยกเลิก
                         </motion.button>
                       </div>
                     </motion.form>
@@ -582,7 +577,7 @@ export const UserProfilePage: React.FC = () => {
                     <div className="p-2 rounded-lg bg-red-100">
                       <FaLock className="h-5 w-5 text-red-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">{t('userProfilePage.changePasswordTitle')}</h3>
+                    <h3 className="text-xl font-bold text-gray-900">เปลี่ยนรหัสผ่าน</h3>
                   </div>
                   {!isChangingPassword && (
                     <motion.button
@@ -596,7 +591,7 @@ export const UserProfilePage: React.FC = () => {
                       className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200"
                     >
                       <FaEdit className="h-4 w-4" />
-                      {t('userProfilePage.changePasswordButton')}
+                      เปลี่ยนรหัสผ่าน
                     </motion.button>
                   )}
                 </div>
@@ -613,7 +608,7 @@ export const UserProfilePage: React.FC = () => {
                     >
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('userProfilePage.currentPasswordLabel')}
+                          รหัสผ่านปัจจุบัน
                         </label>
                         <input
                           type="password"
@@ -627,7 +622,7 @@ export const UserProfilePage: React.FC = () => {
                       
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('userProfilePage.newPasswordLabel')}
+                          รหัสผ่านใหม่
                         </label>
                         <div className="relative">
                           <input
@@ -650,7 +645,7 @@ export const UserProfilePage: React.FC = () => {
                       
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('userProfilePage.confirmNewPasswordLabel')}
+                          ยืนยันรหัสผ่านใหม่
                         </label>
                         <div className="relative">
                           <input
@@ -684,7 +679,7 @@ export const UserProfilePage: React.FC = () => {
                           ) : (
                             <>
                               <FaLock className="h-4 w-4" />
-                              {t('userProfilePage.updatePasswordButton')}
+                              อัปเดตรหัสผ่าน
                             </>
                           )}
                         </motion.button>
@@ -705,7 +700,7 @@ export const UserProfilePage: React.FC = () => {
                           className="flex-1 bg-gray-200 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-2"
                         >
                           <FaTimes className="h-4 w-4" />
-                          {t('userProfilePage.cancelButton')}
+                          ยกเลิก
                         </motion.button>
                       </div>
                     </motion.form>
@@ -722,7 +717,7 @@ export const UserProfilePage: React.FC = () => {
                     <div className="p-2 rounded-lg bg-purple-100">
                       <FaGlobe className="h-5 w-5 text-purple-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">{t('userProfilePage.timezoneSettingsTitle', 'Timezone Settings')}</h3>
+                    <h3 className="text-xl font-bold text-gray-900">การตั้งค่าเขตเวลา</h3>
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -731,18 +726,18 @@ export const UserProfilePage: React.FC = () => {
                     className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-200"
                   >
                     <FaGlobe className="h-4 w-4" />
-                    {t('userProfilePage.configureTimezoneButton', 'Configure')}
+                    กำหนดค่า
                   </motion.button>
                 </div>
                 
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-600 mb-3">
-                    {t('userProfilePage.timezoneDescription', 'Configure your local timezone and language preferences to ensure all dates and times are displayed correctly for your location.')}
+                    กำหนดค่าเขตเวลาและค่ากำหนดภาษาของคุณเพื่อให้แน่ใจว่าวันที่และเวลาจะแสดงผลอย่างถูกต้องสำหรับตำแหน่งของคุณ
                   </p>
                   <div className="flex items-center gap-2 text-sm text-gray-700">
                     <FaGlobe className="h-4 w-4 text-purple-500" />
                     <span>
-                      {t('userProfilePage.timezoneHelp', 'Click "Configure" to set your timezone and language preferences.')}
+                      คลิก "กำหนดค่า" เพื่อตั้งค่าเขตเวลาและค่ากำหนดภาษาของคุณ
                     </span>
                   </div>
                 </div>
@@ -757,7 +752,7 @@ export const UserProfilePage: React.FC = () => {
                     <div className="p-2 rounded-lg bg-green-100">
                       <FaMapMarkerAlt className="h-5 w-5 text-green-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">{t('userProfilePage.addressSectionTitle', 'ที่อยู่สำหรับจัดส่ง/ออกบิล')}</h3>
+                    <h3 className="text-xl font-bold text-gray-900">ที่อยู่สำหรับจัดส่ง/ออกบิล</h3>
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1039,7 +1034,7 @@ export const UserProfilePage: React.FC = () => {
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
                       <FaMapMarkerAlt className="h-4 w-4 text-green-600" />
-                      {t('googleMaps.selectLocation')}
+                      เลือกตำแหน่ง
                     </label>
                     <OpenStreetMapPicker
                       onLocationSelect={(location) => {
@@ -1331,7 +1326,7 @@ export const UserProfilePage: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <FaGlobe className="h-6 w-6 text-purple-600" />
                       <h3 className="text-xl font-bold text-gray-900">
-                        {t('userProfilePage.timezoneSettingsTitle', 'Timezone Settings')}
+                        การตั้งค่าเขตเวลา
                       </h3>
                     </div>
                     <button

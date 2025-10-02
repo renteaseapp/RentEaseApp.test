@@ -33,7 +33,7 @@ export const ChatInboxPage: React.FC = () => {
     setIsLoading(true);
     getConversations({ page, limit })
       .then(setConversationsResponse)
-      .catch(err => setError((err as ApiError).message || "Failed to load conversations."))
+      .catch(err => setError((err as ApiError).message || "ไม่สามารถโหลดการสนทนาได้"))
       .finally(() => setIsLoading(false));
   }, [page, limit]);
 
@@ -85,7 +85,7 @@ export const ChatInboxPage: React.FC = () => {
     );
   }, [conversationsResponse, debouncedSearch]);
 
-  if (isLoading) return <LoadingSpinner message="Loading conversations..." />;
+  if (isLoading) return <LoadingSpinner message="กำลังโหลดการสนทนา..." />;
   if (error) return <ErrorMessage message={error} />;
 
   return (
@@ -102,10 +102,10 @@ export const ChatInboxPage: React.FC = () => {
             <FaComments className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
-            My Conversations
+            การสนทนาของฉัน
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Stay connected with your rental partners and manage all your conversations in one place
+            เชื่อมต่อกับคู่ค้าผู้เช่าของคุณและจัดการการสนทนาทั้งหมดในที่เดียว
           </p>
         </motion.div>
 
@@ -124,7 +124,7 @@ export const ChatInboxPage: React.FC = () => {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search conversations..."
+              placeholder="ค้นหาการสนทนา..."
               className="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
             />
             {search && (
@@ -275,12 +275,12 @@ export const ChatInboxPage: React.FC = () => {
                   <FaInbox className="h-12 w-12 text-gray-400" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                  {search ? 'No conversations found' : 'No conversations yet'}
+                  {search ? 'ไม่พบการสนทนา' : 'ยังไม่มีสนทนา'}
                 </h3>
                 <p className="text-gray-500 mb-8 leading-relaxed">
                   {search
-                    ? 'Try searching with a different keyword or browse our products to start a conversation.'
-                    : 'Start exploring our products and connect with other users to begin your first conversation.'
+                    ? 'ลองค้นหาด้วยคำค้นที่แตกต่างหรือเรียกดูสินค้าของเราเพื่อเริ่มการสนทนา'
+                    : 'เริ่มสำรวจสินค้าของเราและเชื่อมต่อกับผู้ใช้อื่นเพื่อเริ่มการสนทนาครั้งแรก'
                   }
                 </p>
                 <motion.div
@@ -290,7 +290,7 @@ export const ChatInboxPage: React.FC = () => {
                   <Link to={ROUTE_PATHS.SEARCH_PRODUCTS}>
                     <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8 py-4 rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl">
                       <FaSearch className="h-5 w-5" />
-                      Browse Products
+                      เรียกดูสินค้า
                       <FaArrowRight className="h-4 w-4" />
                     </div>
                   </Link>

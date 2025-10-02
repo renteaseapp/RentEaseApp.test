@@ -4,7 +4,7 @@ import { getWishlist, removeFromWishlist } from '../../services/userService';
 import { Product, ApiError } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { useTranslation } from 'react-i18next';
+
 import { ROUTE_PATHS } from '../../constants';
 import { useAlert } from '../../contexts/AlertContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,7 +22,6 @@ import {
 } from 'react-icons/fa';
 
 export const WishlistPage: React.FC = () => {
-  const { t } = useTranslation();
   const { showSuccess, showError } = useAlert();
   const [items, setItems] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,7 +54,7 @@ export const WishlistPage: React.FC = () => {
         setItems(products);
       })
       .catch(err => {
-        setError((err as ApiError).message || t('wishlistPage.errors.loadFailed'));
+        setError((err as ApiError).message || 'ไม่สามารถโหลดรายการโปรดได้');
       })
       .finally(() => setIsLoading(false));
   };
@@ -69,16 +68,16 @@ export const WishlistPage: React.FC = () => {
     try {
       await removeFromWishlist(productId);
       setItems(prevItems => prevItems.filter(item => item.id !== productId));
-      showSuccess(t('wishlistPage.alerts.removedSuccess'));
+      showSuccess('ลบสินค้าจากรายการโปรดเรียบร้อยแล้ว');
     } catch (err) {
-      showError((err as ApiError).message || t('wishlistPage.errors.removeFailed'));
+      showError((err as ApiError).message || 'ไม่สามารถลบสินค้าจากรายการโปรดได้');
     } finally {
       setRemovingItem(null);
     }
   };
 
   if (isLoading) {
-    return <LoadingSpinner message={t('wishlistPage.loading')} />;
+    return <LoadingSpinner message="กำลังโหลดรายการโปรด..." />;
   }
 
   if (error) {
@@ -99,10 +98,10 @@ export const WishlistPage: React.FC = () => {
             <FaHeart className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
-            {t('wishlistPage.title', 'My Wishlist')}
+            รายการโปรดของฉัน
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            {t('wishlistPage.subtitle', 'All your favorite items in one place.')}
+            สินค้าทั้งหมดที่คุณชื่นชอบไว้ในที่เดียว
           </p>
           
           {items.length > 0 && (
@@ -113,7 +112,7 @@ export const WishlistPage: React.FC = () => {
               className="mt-4 inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200"
             >
               <FaHeart className="h-4 w-4 text-pink-500" />
-              <span className="text-gray-700 font-medium">{items.length} items</span>
+              <span className="text-gray-700 font-medium">{items.length} รายการ</span>
             </motion.div>
           )}
         </motion.div>
@@ -130,10 +129,10 @@ export const WishlistPage: React.FC = () => {
                 <FaHeart className="h-12 w-12 text-pink-500" />
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                {t('wishlistPage.empty.title', 'Your wishlist is empty')}
+                รายการโปรดของคุณว่างเปล่า
               </h3>
               <p className="text-gray-500 mb-8 leading-relaxed">
-                {t('wishlistPage.empty.subtitle', 'Looks like you haven\'t added anything yet. Let\'s find something you\'ll love!')}
+                ดูเหมือนว่าคุณยังไม่ได้เพิ่มอะไรเลย มาค้นหาสิ่งที่คุณจะชอบกันเถอะ!
               </p>
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -142,7 +141,7 @@ export const WishlistPage: React.FC = () => {
                 <Link to={ROUTE_PATHS.SEARCH_PRODUCTS}>
                   <div className="inline-flex items-center gap-3 bg-gradient-to-r from-pink-500 to-red-500 text-white px-8 py-4 rounded-xl font-semibold hover:from-pink-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl">
                     <FaSearch className="h-5 w-5" />
-                    {t('wishlistPage.empty.browseButton', 'Browse Items')}
+                    ค้นหาสินค้า
                     <FaArrowRight className="h-4 w-4" />
                   </div>
                 </Link>
@@ -180,7 +179,7 @@ export const WishlistPage: React.FC = () => {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       disabled={removingItem === product.id}
-                      aria-label={t('wishlistPage.removeButton', 'Remove')}
+                      aria-label="ลบ"
                     >
                       {removingItem === product.id ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
@@ -243,7 +242,7 @@ export const WishlistPage: React.FC = () => {
                           </p>
                           <p className="text-sm text-gray-500 flex items-center gap-1">
                             <FaClock className="h-3 w-3" />
-                            {t('productCard.pricePerDay')}
+                            ต่อวัน
                           </p>
                         </div>
                         
@@ -253,7 +252,7 @@ export const WishlistPage: React.FC = () => {
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             className="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors duration-200"
-                            title="Quick View"
+                            title="ดูอย่างรวดเร็ว"
                           >
                             <FaEye className="h-4 w-4" />
                           </motion.button>
@@ -261,7 +260,7 @@ export const WishlistPage: React.FC = () => {
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             className="p-2 bg-green-50 text-green-600 rounded-full hover:bg-green-100 transition-colors duration-200"
-                            title="Add to Cart"
+                            title="เพิ่มลงตะกร้า"
                           >
                             <FaShoppingCart className="h-4 w-4" />
                           </motion.button>
@@ -287,10 +286,10 @@ export const WishlistPage: React.FC = () => {
           >
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
               <h3 className="text-xl font-bold text-gray-800 mb-3">
-                Ready to rent something?
+                พร้อมจะเช่าอะไรสักอย่างแล้วใช่ไหม?
               </h3>
               <p className="text-gray-600 mb-6">
-                Discover more amazing items in our collection
+                ค้นพบสินค้าที่น่าทึ่งเพิ่มเติมในคอลเลกชันของเรา
               </p>
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -299,7 +298,7 @@ export const WishlistPage: React.FC = () => {
                 <Link to={ROUTE_PATHS.SEARCH_PRODUCTS}>
                   <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8 py-4 rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl">
                     <FaSearch className="h-5 w-5" />
-                    Browse More Items
+                    ค้นหาสินค้าเพิ่มเติม
                     <FaArrowRight className="h-4 w-4" />
                   </div>
                 </Link>
@@ -310,4 +309,4 @@ export const WishlistPage: React.FC = () => {
       </div>
     </div>
   );
-}; 
+};

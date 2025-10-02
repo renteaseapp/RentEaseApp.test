@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 import { InitiateReturnPayload } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OpenStreetMapPicker } from '../../components/common/OpenStreetMapPicker';
@@ -32,7 +32,6 @@ interface Location {
 }
 
 export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId, onSubmit, onCancel, isLoading }) => {
-  const { t } = useTranslation();
   const [returnMethod, setReturnMethod] = useState<'shipping' | 'in_person'>('shipping');
   const [carrier, setCarrier] = useState('');
   const [trackingNumber, setTrackingNumber] = useState('');
@@ -57,22 +56,22 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
     if (returnMethod === 'shipping') {
       // Validate required fields for shipping
       if (!carrier) {
-        setError(t('renterRentalDetailPage.initiateReturnForm.errorCarrierRequired'));
+        setError("กรุณากรอกชื่อผู้ให้บริการขนส่ง");
         return;
       }
       if (!trackingNumber) {
-        setError(t('renterRentalDetailPage.initiateReturnForm.errorTrackingNumberRequired'));
+        setError("กรุณากรอกหมายเลขติดตามการจัดส่ง");
         return;
       }
       if (!proposedDateTime) {
-        setError(t('renterRentalDetailPage.initiateReturnForm.errorInvalidDate'));
+        setError("กรุณาเลือกวันที่และเวลาที่จัดส่งสินค้า");
         return;
       }
       
       // Check if the date is valid
       const dateObj = new Date(proposedDateTime);
       if (isNaN(dateObj.getTime())) {
-        setError(t('renterRentalDetailPage.initiateReturnForm.errorInvalidDate'));
+        setError("รูปแบบวันที่และเวลาไม่ถูกต้อง");
         return;
       }
 
@@ -89,19 +88,19 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
     } else { // in_person
       // Validate required fields for in-person
       if (!proposedDateTime) {
-        setError(t('renterRentalDetailPage.initiateReturnForm.errorInPersonDetailsRequired'));
+        setError("กรุณาเลือกวันที่และเวลานัดหมาย");
         return;
       }
       
       // Check if the date is valid
       const dateObj = new Date(proposedDateTime);
       if (isNaN(dateObj.getTime())) {
-        setError(t('renterRentalDetailPage.initiateReturnForm.errorInvalidDate'));
+        setError("รูปแบบวันที่และเวลาไม่ถูกต้อง");
         return;
       }
       
       if (!locationDetails && !selectedLocation) {
-        setError(t('renterRentalDetailPage.initiateReturnForm.errorInPersonDetailsRequired'));
+        setError("กรุณาระบุสถานที่นัดหมายรับคืน");
         return;
       }
       
@@ -140,7 +139,7 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
             <div className="p-2 bg-blue-100 rounded-xl">
               <FaBox className="h-6 w-6 text-blue-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">{t('renterRentalDetailPage.initiateReturnForm.title')}</h2>
+            <h2 className="text-2xl font-bold text-gray-800">{"แจ้งเริ่มการคืนสินค้า"}</h2>
           </div>
           <motion.button
             whileHover={{ scale: 1.1 }}
@@ -159,7 +158,7 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
             transition={{ duration: 0.4, delay: 0.1 }}
             className="space-y-4"
           >
-            <label className="block text-sm font-semibold text-gray-700 mb-3">{t('renterRentalDetailPage.initiateReturnForm.returnMethodLabel')}</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">{"วิธีการคืนสินค้า"}</label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <motion.label
                 whileHover={{ scale: 1.02 }}
@@ -185,7 +184,7 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
                 </div>
                 <div className="flex items-center gap-2">
                   <FaTruck className="h-5 w-5 text-blue-500" />
-                  <span className="font-medium">{t('renterRentalDetailPage.initiateReturnForm.methodShipping')}</span>
+                  <span className="font-medium">{"จัดส่ง"}</span>
                 </div>
               </motion.label>
               
@@ -213,7 +212,7 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
                 </div>
                 <div className="flex items-center gap-2">
                   <FaHandshake className="h-5 w-5 text-green-500" />
-                  <span className="font-medium">{t('renterRentalDetailPage.initiateReturnForm.methodInPerson')}</span>
+                  <span className="font-medium">{"นัดรับด้วยตนเอง"}</span>
                 </div>
               </motion.label>
             </div>
@@ -229,20 +228,20 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
             >
               <div className="flex items-center gap-2 mb-4">
                 <FaTruck className="h-5 w-5 text-blue-600" />
-                <h3 className="font-semibold text-blue-800">{t('renterRentalDetailPage.initiateReturnForm.shippingDetailsTitle')}</h3>
+                <h3 className="font-semibold text-blue-800">{"รายละเอียดการจัดส่ง"}</h3>
               </div>
               
               <div className="space-y-3">
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <FaTruck className="h-4 w-4 text-blue-500" />
-                    {t('renterRentalDetailPage.initiateReturnForm.carrierLabel')}
+                    {"ชื่อผู้ให้บริการขนส่ง"} <span className='text-red-500'>*</span>
                   </label>
                   <input
                     id="carrier"
                     value={carrier}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCarrier(e.target.value)}
-                    placeholder={t('renterRentalDetailPage.initiateReturnForm.carrierPlaceholder')}
+                    placeholder={"เช่น ไปรษณีย์ไทย, Kerry, Flash"}
                     required
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   />
@@ -251,12 +250,13 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <FaFileAlt className="h-4 w-4 text-green-500" />
-                    {t('renterRentalDetailPage.initiateReturnForm.trackingNumberLabel')}
+                    {"หมายเลขติดตามการจัดส่ง"} <span className='text-red-500'>*</span>
                   </label>
                   <input
                     id="trackingNumber"
                     value={trackingNumber}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTrackingNumber(e.target.value)}
+                    placeholder={"กรุณากรอกหมายเลขติดตาม"}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   />
                 </div>
@@ -264,7 +264,7 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <FaCalendarAlt className="h-4 w-4 text-blue-500" />
-                    {t('renterRentalDetailPage.initiateReturnForm.proposedDateTimeLabel')}
+                    {"วันที่และเวลาที่จัดส่งสินค้า"} <span className='text-red-500'>*</span>
                   </label>
                   <input
                     id="proposedDateTimeShipping"
@@ -279,7 +279,7 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <FaUpload className="h-4 w-4 text-purple-500" />
-                    {t('renterRentalDetailPage.initiateReturnForm.proofImageLabel')}
+                    {"รูปภาพใบเสร็จ/หลักฐานการจัดส่ง"} (ถ้ามี)
                   </label>
                   <input
                     type="file"
@@ -287,6 +287,9 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReturnProofImage(e.target.files ? e.target.files[0] : null)}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
+                  {returnProofImage && (
+                    <p className="text-xs text-gray-500">ไฟล์ที่เลือก: {returnProofImage.name}</p>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -302,14 +305,14 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
             >
               <div className="flex items-center gap-2 mb-4">
                 <FaHandshake className="h-5 w-5 text-green-600" />
-                <h3 className="font-semibold text-green-800">{t('renterRentalDetailPage.initiateReturnForm.inPersonDetailsTitle')}</h3>
+                <h3 className="font-semibold text-green-800">{"รายละเอียดการนัดรับคืน"}</h3>
               </div>
               
               <div className="space-y-3">
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <FaCalendarAlt className="h-4 w-4 text-green-500" />
-                    {t('renterRentalDetailPage.initiateReturnForm.proposedDateTimeLabel')}
+                    {"วันที่และเวลานัดหมาย"} <span className='text-red-500'>*</span>
                   </label>
                   <input
                     id="proposedDateTime"
@@ -324,15 +327,15 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <FaMapMarkerAlt className="h-4 w-4 text-green-500" />
-                    {t('renterRentalDetailPage.initiateReturnForm.locationDetailsLabel')}
+                    {"สถานที่นัดหมายรับคืน"} <span className='text-red-500'>*</span>
                   </label>
                   
                   {/* Map Picker */}
-                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="border border-gray-200 rounded-xl">
                     <OpenStreetMapPicker
                       onLocationSelect={handleLocationSelect}
                       height="300px"
-                      placeholder={t('renterRentalDetailPage.initiateReturnForm.locationDetailsPlaceholder')}
+                      placeholder={"ค้นหาที่อยู่หรือคลิกบนแผนที่"}
                       showSearch={true}
                       showCurrentLocation={true}
                       zoom={15}
@@ -345,11 +348,11 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
                     id="locationDetails"
                     value={locationDetails}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocationDetails(e.target.value)}
-                    placeholder={t('renterRentalDetailPage.initiateReturnForm.locationDetailsPlaceholder')}
+                    placeholder={"เช่น ชื่ออาคาร หรือจุดสังเกต"}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                   />
                   <p className="text-xs text-gray-500">
-                    {t('renterRentalDetailPage.initiateReturnForm.locationHelpText', 'เลือกตำแหน่งบนแผนที่หรือกรอกรายละเอียดสถานที่เพิ่มเติม')}
+                    {"เลือกตำแหน่งบนแผนที่หรือกรอกรายละเอียดสถานที่เพิ่มเติม"}
                   </p>
                 </div>
               </div>
@@ -364,7 +367,7 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
           >
             <label htmlFor="notes" className="flex items-center gap-2 text-sm font-semibold text-gray-700">
               <FaInfoCircle className="h-4 w-4 text-gray-500" />
-              {t('renterRentalDetailPage.initiateReturnForm.notesLabel')}
+              {"หมายเหตุเพิ่มเติม (ถ้ามี)"}
             </label>
             <textarea
               id="notes"
@@ -372,7 +375,7 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
               rows={3}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
-              placeholder="Add any additional notes about the return..."
+              placeholder="กรอกหมายเหตุเพิ่มเติมเกี่ยวกับการคืนสินค้า"
             />
           </motion.div>
 
@@ -403,7 +406,7 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
               whileTap={{ scale: 0.98 }}
               className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('common.cancel')}
+              {"ยกเลิก"}
             </motion.button>
             <motion.button
               type="submit"
@@ -419,12 +422,12 @@ export const InitiateReturnForm: React.FC<InitiateReturnFormProps> = ({ rentalId
               {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Processing...
+                  {"กำลังดำเนินการ..."}
                 </>
               ) : (
                 <>
                   <FaCheckCircle className="h-4 w-4" />
-                  {t('renterRentalDetailPage.initiateReturnForm.submitButton')}
+                  {"ยืนยันการคืน"}
                   <FaArrowRight className="h-4 w-4" />
                 </>
               )}

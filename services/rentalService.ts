@@ -1,7 +1,9 @@
 import { Rental, CreateRentalPayload, PaymentProofPayload, ReviewPayload, ApiError, PaginatedResponse, RentalStatus, PaymentStatus, Review, RentalPickupMethod, RentalReturnConditionStatus, ApiResponse, InitiateReturnPayload } from '../types';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from '../constants';
+
+const API_URL = API_BASE_URL;
 
 // Create axios instance with base URL
 const api = axios.create({

@@ -9,7 +9,9 @@ import {
   ProductAdminApprovalStatus
 } from '../types';
 
-const API_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from '../constants';
+
+const API_URL = API_BASE_URL;
 
 const api = axios.create({ baseURL: API_URL });
 api.interceptors.request.use((config) => {
@@ -126,6 +128,34 @@ export const adminGetSystemSettings = async (): Promise<{ settings: any[] }> => 
 };
 export const adminUpdateSystemSettings = async (payload: any): Promise<any> => {
   const res = await api.put('/admin/settings', payload);
+  return res.data;
+};
+
+// --- 6. Rental Management ---
+export const adminGetAllRentals = async (params: { 
+  page?: number; 
+  limit?: number; 
+  status?: string | string[]; 
+  search?: string; 
+  date_from?: string; 
+  date_to?: string; 
+  sort_by?: string; 
+  sort_order?: 'asc' | 'desc' 
+} = {}): Promise<PaginatedResponse<any>> => {
+  const res = await api.get('/admin/rentals', { params });
+  return res.data;
+};
+
+export const adminGetRentalById = async (id: number): Promise<any> => {
+  const res = await api.get(`/admin/rentals/${id}`);
+  return res.data;
+};
+
+export const adminUpdateRentalStatus = async (
+  id: number, 
+  payload: { status: string; notes?: string }
+): Promise<any> => {
+  const res = await api.put(`/admin/rentals/${id}/status`, payload);
   return res.data;
 };
 

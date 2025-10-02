@@ -9,7 +9,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Button } from '../../components/ui/Button';
 import { InputField } from '../../components/ui/InputField';
 import { ROUTE_PATHS } from '../../constants';
-import { useTranslation } from 'react-i18next';
+
 import { motion, } from 'framer-motion';
 import { OpenStreetMapPicker } from "../../components/common/OpenStreetMapPicker";
 import { 
@@ -37,11 +37,22 @@ type ProductFormData = Partial<Omit<Product, 'id'|'owner'|'slug'|'created_at'|'u
     removeImageIds?: number[];
 };
 
+// Helper function for Thai status options
+const getProductStatusThai = (status: ProductAvailabilityStatus): string => {
+  switch (status) {
+    case ProductAvailabilityStatus.AVAILABLE: return 'พร้อมให้เช่า';
+    case ProductAvailabilityStatus.UNAVAILABLE: return 'ไม่พร้อมให้เช่า';
+    case ProductAvailabilityStatus.DRAFT: return 'ฉบับร่าง';
+    case ProductAvailabilityStatus.RENTED_OUT: return 'ถูกเช่าออกไป'; // นี้ไม่ควรปรากฏใน dropdown แต่มีไว้เพื่อความสมบูรณ์
+    case ProductAvailabilityStatus.PENDING_APPROVAL: return 'รอการอนุมัติ'; // นี้ไม่ควรปรากฏใน dropdown แต่มีไว้เพื่อความสมบูรณ์
+    default: return status;
+  }
+};
+
 export const ProductFormPage: React.FC = () => {
   const { productId } = useParams<{ productId?: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const { showError, showSuccess } = useAlert();
 
   const [formData, setFormData] = useState<ProductFormData>({
@@ -58,7 +69,7 @@ export const ProductFormPage: React.FC = () => {
   const [specifications, setSpecifications] = useState<Specification[]>([{ key: '', value: '' }]);
   const [existingImages, setExistingImages] = useState<ProductImage[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [, setRemovedImageIds] = useState<number[]>([]);
+  const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
@@ -75,7 +86,7 @@ export const ProductFormPage: React.FC = () => {
             setCategories(catsRes.data);
             setProvinces(provRes.data);
         } catch (err) {
-            showError(t('productFormPage.generalErrors.failedToLoadCategories'));
+            showError("ไม่สามารถโหลดหมวดหมู่สินค้าได้");
         }
     };
     fetchDropdownData();
@@ -111,10 +122,10 @@ export const ProductFormPage: React.FC = () => {
           setExistingImages(product.images || (product.primary_image ? [product.primary_image] : []));
           setRemovedImageIds([]); // Reset removed image IDs
         })
-        .catch(err => showError((err as ApiError).message || t('productFormPage.generalErrors.failedToLoadProduct')))
+        .catch(err => showError((err as ApiError).message || "ไม่สามารถโหลดรายละเอียดสินค้าได้"))
         .finally(() => setIsFetchingDetails(false));
     }
-  }, [productId, user, isEditMode, showError, t]);
+  }, [productId, user, isEditMode, showError]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -138,7 +149,7 @@ export const ProductFormPage: React.FC = () => {
 
   const removeSpecification = (index: number) => {
     const newSpecifications = specifications.filter((_, i) => i !== index);
-    setSpecifications(newSpecifications);
+    setSpecifications(newSpecifications.length > 0 ? newSpecifications : [{ key: '', value: '' }]);
   };
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,13 +159,13 @@ export const ProductFormPage: React.FC = () => {
       
       // Check file size (5MB = 5 * 1024 * 1024 bytes)
       if (file.size > 5 * 1024 * 1024) {
-        showError(t('productFormPage.validationErrors.imageFileTooLarge'));
+        showError("ไฟล์รูปภาพมีขนาดใหญ่เกินกว่า 5MB");
         return;
       }
       
       // Check if we haven't reached the limit
       if ((formData.imagesInput?.length || 0) + existingImages.length >= 10) {
-        showError(t('productFormPage.validationErrors.maxImagesExceeded'));
+        showError("อัปโหลดรูปภาพได้สูงสุด 10 รูป");
         return;
       }
       
@@ -181,95 +192,101 @@ export const ProductFormPage: React.FC = () => {
         setRemovedImageIds(prev => [...prev, imageToRemove.id!]);
       }
       setExistingImages(prev => prev.filter((_, i) => i !== index));
+    } else {
+        // Remove from new images and their previews
+        setFormData(prev => ({
+            ...prev,
+            imagesInput: prev.imagesInput?.filter((_, i) => i !== index)
+        }));
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
     }
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user?.id) {
-      showError(t('productFormPage.generalErrors.userNotAuthenticated'));
+      showError("ผู้ใช้ไม่ได้เข้าสู่ระบบ");
       return;
     }
     if(!formData.title || !formData.category_id || !formData.province_id || !formData.rental_price_per_day) {
-        showError(t('productFormPage.generalErrors.requiredFieldsMissing'));
+        showError("กรุณากรอกข้อมูลในช่องที่มีเครื่องหมายดอกจัน (*) ให้ครบถ้วน");
         return;
     }
 
     // Validate required fields
     if (!formData.title || formData.title.trim().length === 0) {
-        showError(t('productFormPage.validationErrors.titleRequired'));
+        showError("กรุณากรอกชื่อสินค้า");
         return;
     }
     if (formData.title.length > 255) {
-        showError(t('productFormPage.validationErrors.titleTooLong'));
+        showError("ชื่อสินค้าต้องมีความยาวไม่เกิน 255 ตัวอักษร");
         return;
     }
     if (!formData.category_id) {
-        showError(t('productFormPage.validationErrors.categoryRequired'));
+        showError("กรุณาเลือกหมวดหมู่สินค้า");
         return;
     }
     if (!formData.province_id) {
-        showError(t('productFormPage.validationErrors.provinceRequired'));
+        showError("กรุณาเลือกจังหวัด");
         return;
     }
     if (!formData.description || formData.description.trim().length === 0) {
-        showError(t('productFormPage.validationErrors.descriptionRequired'));
+        showError("กรุณากรอกคำอธิบายสินค้า");
         return;
     }
     if (!formData.rental_price_per_day || formData.rental_price_per_day <= 0) {
-        showError(t('productFormPage.validationErrors.priceRequired'));
+        showError("กรุณากรอกราคาเช่าต่อวัน (ต้องมากกว่า 0)");
         return;
     }
     if (formData.rental_price_per_day > 999999.99) {
-        showError(t('productFormPage.validationErrors.priceTooHigh'));
+        showError("ราคาเช่าต่อวันต้องไม่เกิน 999,999.99 บาท");
         return;
     }
     if (!formData.quantity_available || formData.quantity_available < 1) {
-        showError(t('productFormPage.validationErrors.quantityInvalid'));
+        showError("จำนวนสินค้าที่มีให้เช่าต้องมีอย่างน้อย 1 ชิ้น");
         return;
     }
     if (!formData.min_rental_duration_days || formData.min_rental_duration_days < 1) {
-        showError(t('productFormPage.validationErrors.minRentalDurationInvalid'));
+        showError("ระยะเวลาเช่าขั้นต่ำต้องมีอย่างน้อย 1 วัน");
         return;
     }
     if (formData.max_rental_duration_days && formData.max_rental_duration_days < formData.min_rental_duration_days) {
-        showError(t('productFormPage.validationErrors.maxRentalDurationInvalid'));
+        showError("ระยะเวลาเช่าสูงสุดต้องมากกว่าหรือเท่ากับระยะเวลาเช่าขั้นต่ำ");
         return;
     }
     if (formData.address_details && formData.address_details.length > 255) {
-        showError(t('productFormPage.validationErrors.addressTooLong'));
+        showError("รายละเอียดที่อยู่ต้องมีความยาวไม่เกิน 255 ตัวอักษร");
         return;
     }
     if (formData.latitude && (formData.latitude < -90 || formData.latitude > 90)) {
-        showError(t('productFormPage.validationErrors.latitudeInvalid'));
+        showError("ค่าละติจูดไม่ถูกต้อง (ต้องอยู่ระหว่าง -90 ถึง 90)");
         return;
     }
     if (formData.longitude && (formData.longitude < -180 || formData.longitude > 180)) {
-        showError(t('productFormPage.validationErrors.longitudeInvalid'));
+        showError("ค่าลองจิจูดไม่ถูกต้อง (ต้องอยู่ระหว่าง -180 ถึง 180)");
         return;
     }
     if (formData.rental_price_per_week && formData.rental_price_per_week > 999999.99) {
-        showError(t('productFormPage.validationErrors.weeklyPriceTooHigh'));
+        showError("ราคาเช่าต่อสัปดาห์ต้องไม่เกิน 999,999.99 บาท");
         return;
     }
     if (formData.rental_price_per_month && formData.rental_price_per_month > 999999.99) {
-        showError(t('productFormPage.validationErrors.monthlyPriceTooHigh'));
+        showError("ราคาเช่าต่อเดือนต้องไม่เกิน 999,999.99 บาท");
         return;
     }
     if (formData.security_deposit && formData.security_deposit > 999999.99) {
-        showError(t('productFormPage.validationErrors.securityDepositTooHigh'));
+        showError("เงินประกันต้องไม่เกิน 999,999.99 บาท");
         return;
     }
 
     // Validate images (minimum 3 images required)
-    const remainingExistingImages = existingImages.length;
-    const totalImages = (formData.imagesInput?.length || 0) + remainingExistingImages;
+    const totalImages = (formData.imagesInput?.length || 0) + existingImages.length;
     if (totalImages < 3) {
-        showError(t('productFormPage.validationErrors.minImagesRequired'));
+        showError(`ต้องมีรูปภาพสินค้าอย่างน้อย 3 รูป (มีอยู่ ${totalImages} รูป)`);
         return;
     }
     if (totalImages > 10) {
-        showError(t('productFormPage.validationErrors.maxImagesExceeded'));
+        showError("อัปโหลดรูปภาพได้สูงสุด 10 รูป");
         return;
     }
 
@@ -283,8 +300,14 @@ export const ProductFormPage: React.FC = () => {
       return acc;
     }, {} as Record<string, any>);
     
-    // Ensure formData reflects the validated specifications
-    const currentFormData = { ...formData, specifications: finalSpecifications };
+    // Create the data payload for submission
+    const currentFormData: ProductFormData = { 
+        ...formData, 
+        specifications: finalSpecifications,
+        removeImageIds: removedImageIds,
+        // quantity is set to be the same as quantity_available for simplicity in this logic
+        quantity: formData.quantity_available 
+    };
 
     // Debug: Log the data being sent
     console.log('Submitting form data:', currentFormData);
@@ -294,21 +317,21 @@ export const ProductFormPage: React.FC = () => {
     try {
       if (isEditMode && productId) {
         await updateProduct(Number(productId), user.id, currentFormData);
-        showSuccess(t('productFormPage.productUpdatedSuccess'));
+        showSuccess("อัปเดตสินค้าสำเร็จ");
       } else {
         await createProduct(user.id, currentFormData as any);
-        showSuccess(t('productFormPage.productCreatedSuccess'));
+        showSuccess("สร้างสินค้าใหม่สำเร็จ");
       }
       setTimeout(() => navigate(ROUTE_PATHS.MY_LISTINGS), 1500);
     } catch (err) {
       const apiError = err as ApiError;
-      showError(apiError.message || (isEditMode ? t('productFormPage.generalErrors.failedToUpdate') : t('productFormPage.generalErrors.failedToCreate')));
+      showError(apiError.message || (isEditMode ? "ไม่สามารถอัปเดตสินค้าได้" : "ไม่สามารถสร้างสินค้าได้"));
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (isFetchingDetails) return <LoadingSpinner message={t('productFormPage.loadingProductDetails')} />;
+  if (isFetchingDetails) return <LoadingSpinner message={"กำลังโหลดรายละเอียดสินค้า..."} />;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-16">
@@ -326,10 +349,10 @@ export const ProductFormPage: React.FC = () => {
                 {isEditMode ? <FaEdit className="h-8 w-8 text-white" /> : <FaPlus className="h-8 w-8 text-white" />}
               </div>
               <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
-                {isEditMode ? t('productFormPage.editTitle') : t('productFormPage.title')}
+                {isEditMode ? "แก้ไขสินค้า" : "สร้างสินค้าใหม่"}
               </h1>
               <p className="text-blue-100 text-lg">
-                {isEditMode ? 'แก้ไขข้อมูลสินค้าของคุณ' : 'เพิ่มสินค้าใหม่สำหรับการเช่า'}
+                {isEditMode ? "ปรับปรุงข้อมูลสินค้าของคุณ" : "กรอกรายละเอียดสินค้าให้ครบถ้วนเพื่อลงประกาศ"}
               </p>
             </div>
             <motion.div
@@ -339,7 +362,7 @@ export const ProductFormPage: React.FC = () => {
               <Link to={ROUTE_PATHS.MY_LISTINGS}>
                 <Button variant="primary" className="bg-white text-black hover:bg-blue-50 hover:text-blue-600 px-6 py-3 rounded-xl font-semibold shadow-lg">
                   <FaArrowLeft className="h-4 w-4 mr-2" />
-                  {t('productFormPage.backToListings')}
+                  {"กลับไปหน้ารายการสินค้า"}
                 </Button>
               </Link>
             </motion.div>
@@ -368,8 +391,8 @@ export const ProductFormPage: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-blue-800 font-medium">
-                <span>{t('productFormPage.requiredFieldsInfo')}</span>
-                <span className="text-red-500 ml-1">*</span> {t('productFormPage.requiredFieldsNote')}
+                <span>{"กรุณากรอกข้อมูลในช่องที่มีเครื่องหมายดอกจัน"}</span>
+                <span className="text-red-500 ml-1">*</span> {"ให้ครบถ้วน"}
               </p>
             </div>
           </div>
@@ -382,7 +405,7 @@ export const ProductFormPage: React.FC = () => {
         >
           <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
             <FaBox className="h-4 w-4 text-blue-500" />
-            {t('productFormPage.titleLabel')} <span className="text-red-500">*</span>
+            {"ชื่อสินค้า"} <span className="text-red-500">*</span>
           </label>
           <input
             id="title"
@@ -391,7 +414,7 @@ export const ProductFormPage: React.FC = () => {
             value={formData.title || ''}
             onChange={handleChange}
             required
-            placeholder={t('productFormPage.titlePlaceholder')}
+            placeholder={"ชื่อสินค้าที่ชัดเจนและน่าสนใจ"}
             maxLength={255}
             className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg"
           />
@@ -404,7 +427,7 @@ export const ProductFormPage: React.FC = () => {
         >
           <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
             <FaFileAlt className="h-4 w-4 text-blue-500" />
-            {t('productFormPage.descriptionLabel')} <span className="text-red-500">*</span>
+            {"คำอธิบายสินค้า"} <span className="text-red-500">*</span>
           </label>
           <textarea 
             name="description" 
@@ -413,7 +436,7 @@ export const ProductFormPage: React.FC = () => {
             onChange={handleChange} 
             rows={4} 
             className="block w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none" 
-            placeholder={t('productFormPage.descriptionPlaceholder')}
+            placeholder={"อธิบายคุณสมบัติและสภาพสินค้าอย่างละเอียด"}
             required
           ></textarea>
         </motion.div>
@@ -427,20 +450,20 @@ export const ProductFormPage: React.FC = () => {
             <div>
                 <label htmlFor="category_id" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   <FaTag className="h-4 w-4 text-blue-500" />
-                  {t('productFormPage.categoryLabel')} <span className="text-red-500">*</span>
+                  {"หมวดหมู่"} <span className="text-red-500">*</span>
                 </label>
                 <select name="category_id" id="category_id" value={formData.category_id || ''} onChange={handleChange} required className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                    <option value="">{t('productFormPage.selectCategory')}</option>
+                    <option value="">{"เลือกหมวดหมู่"}</option>
                     {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                 </select>
             </div>
             <div>
                 <label htmlFor="province_id" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   <FaMapMarkerAlt className="h-4 w-4 text-blue-500" />
-                  {t('productFormPage.provinceLabel')} <span className="text-red-500">*</span>
+                  {"จังหวัดที่ตั้งสินค้า"} <span className="text-red-500">*</span>
                 </label>
                 <select name="province_id" id="province_id" value={formData.province_id || ''} onChange={handleChange} required className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                    <option value="">{t('productFormPage.selectProvince')}</option>
+                    <option value="">{"เลือกจังหวัด"}</option>
                     {provinces.map(prov => <option key={prov.id} value={prov.id}>{prov.name_th}</option>)}
                 </select>
             </div>
@@ -455,7 +478,7 @@ export const ProductFormPage: React.FC = () => {
             <div>
               <label htmlFor="rental_price_per_day" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <FaMoneyBillWave className="h-4 w-4 text-green-500" />
-                {t('productFormPage.pricePerDayLabel')} <span className="text-red-500">*</span>
+                {"ราคาเช่าต่อวัน"} (฿) <span className="text-red-500">*</span>
               </label>
               <input
                 id="rental_price_per_day"
@@ -465,13 +488,14 @@ export const ProductFormPage: React.FC = () => {
                 onChange={handleChange}
                 required
                 min="0"
+                step="0.01"
                 className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
               />
             </div>
             <div>
               <label htmlFor="rental_price_per_week" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <FaCalendarAlt className="h-4 w-4 text-blue-500" />
-                {t('productFormPage.pricePerWeekLabel')}
+                {"ราคาเช่าต่อสัปดาห์"} (฿)
               </label>
               <input
                 id="rental_price_per_week"
@@ -480,13 +504,14 @@ export const ProductFormPage: React.FC = () => {
                 value={formData.rental_price_per_week || ''}
                 onChange={handleChange}
                 min="0"
+                step="0.01"
                 className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
             <div>
               <label htmlFor="rental_price_per_month" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <FaCalendarAlt className="h-4 w-4 text-purple-500" />
-                {t('productFormPage.pricePerMonthLabel')}
+                {"ราคาเช่าต่อเดือน"} (฿)
               </label>
               <input
                 id="rental_price_per_month"
@@ -495,16 +520,17 @@ export const ProductFormPage: React.FC = () => {
                 value={formData.rental_price_per_month || ''}
                 onChange={handleChange}
                 min="0"
+                step="0.01"
                 className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
               />
             </div>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField label={t('productFormPage.securityDepositLabel')} name="security_deposit" type="number" value={formData.security_deposit || ''} onChange={handleChange} min="0" />
+            <InputField label={"เงินประกัน (฿)"} name="security_deposit" type="number" value={formData.security_deposit || ''} onChange={handleChange} min="0" step="0.01" />
             <div>
-              <label htmlFor="quantity_available" className="block text-sm font-medium text-gray-700 mb-1">
-                {t('productFormPage.quantityLabel')} <span className="text-red-500">*</span>
+              <label htmlFor="quantity_available" className="block text-sm font-semibold text-gray-700 mb-1">
+                {"จำนวนสินค้าที่มีให้เช่า"} <span className="text-red-500">*</span>
               </label>
               <input
                 id="quantity_available"
@@ -522,18 +548,18 @@ export const ProductFormPage: React.FC = () => {
                 }}
                 required
                 min="1"
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
               <p className="mt-1 text-sm text-gray-500">
-                {t('productFormPage.quantityNote')}
+                {"จำนวนสินค้าที่คุณมีให้เช่าจริง (จะถูกใช้เป็นจำนวนคงคลัง)"}
               </p>
               {isEditMode && (
                 <div className="mt-2 p-2 bg-blue-50 rounded-md">
                   <p className="text-sm text-blue-700">
-                    <span className="font-medium">จำนวนปัจจุบัน:</span> {formData.quantity || 1} ชิ้น
+                    <span className="font-semibold">{"จำนวนสินค้าทั้งหมด"} (ไม่สามารถแก้ไขได้):</span> {formData.quantity || 1} {"ชิ้น"}
                   </p>
                   <p className="text-xs text-blue-600 mt-1">
-                    ระบบเช่าทีละ 1 ชิ้นเท่านั้น
+                    {"ระบบจะใช้ 'จำนวนสินค้าที่มีให้เช่า' เป็นจำนวนคงคลังที่สามารถจองได้"}
                   </p>
                 </div>
               )}
@@ -541,25 +567,25 @@ export const ProductFormPage: React.FC = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField label={t('productFormPage.minRentalDurationLabel')} name="min_rental_duration_days" type="number" value={formData.min_rental_duration_days || ''} onChange={handleChange} min="1" />
-            <InputField label={t('productFormPage.maxRentalDurationLabel')} name="max_rental_duration_days" type="number" value={formData.max_rental_duration_days || ''} onChange={handleChange} min="1" />
+            <InputField label={"ระยะเวลาเช่าขั้นต่ำ (วัน)"} name="min_rental_duration_days" type="number" value={formData.min_rental_duration_days || ''} onChange={handleChange} min="1" />
+            <InputField label={"ระยะเวลาเช่าสูงสุด (วัน)"} name="max_rental_duration_days" type="number" value={formData.max_rental_duration_days || ''} onChange={handleChange} min="1" />
         </div>
         
         <div>
-            <InputField label={t('productFormPage.addressDetailsLabel')} name="address_details" value={formData.address_details || ''} onChange={handleChange} placeholder={t('productFormPage.addressDetailsPlaceholder')} maxLength={255} />
+            <InputField label={"รายละเอียดที่อยู่รับ-ส่งสินค้า"} name="address_details" value={formData.address_details || ''} onChange={handleChange} placeholder={"เช่น บ้านเลขที่, ถนน, ซอย"} maxLength={255} />
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField label={t('productFormPage.latitudeLabel')} name="latitude" type="number" value={formData.latitude || ''} onChange={handleChange} step="any" min="-90" max="90" placeholder={t('productFormPage.latitudePlaceholder')} />
-            <InputField label={t('productFormPage.longitudeLabel')} name="longitude" type="number" value={formData.longitude || ''} onChange={handleChange} step="any" min="-180" max="180" placeholder={t('productFormPage.longitudePlaceholder')} />
+            <InputField label={"ละติจูด (Latitude)"} name="latitude" type="number" value={formData.latitude || ''} onChange={handleChange} step="any" min="-90" max="90" placeholder={"เช่น 13.7563"} />
+            <InputField label={"ลองจิจูด (Longitude)"} name="longitude" type="number" value={formData.longitude || ''} onChange={handleChange} step="any" min="-180" max="180" placeholder={"เช่น 100.5018"} />
         </div>
-        <p className="text-xs text-gray-500 -mt-4">{t('productFormPage.coordinatesHelp')}</p>
+        <p className="text-xs text-gray-500 -mt-4">{"กรอกพิกัดเพื่อแสดงตำแหน่งสินค้าบนแผนที่ หรือใช้ตัวเลือกแผนที่ด้านล่าง"}</p>
         
-        {/* Google Maps Location Picker */}
+        {/* Google Maps Location Picker (OpenStreetMapPicker in this case) */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
             <FaMapMarkerAlt className="h-4 w-4 text-blue-500" />
-            {t('googleMaps.selectLocation')}
+            {"เลือกตำแหน่งบนแผนที่"}
           </label>
           <OpenStreetMapPicker
             onLocationSelect={(location) => {
@@ -578,12 +604,12 @@ export const ProductFormPage: React.FC = () => {
           />
         </div>
         
-        <InputField label={t('productFormPage.conditionNotesLabel')} name="condition_notes" value={formData.condition_notes || ''} onChange={handleChange} placeholder={t('productFormPage.conditionNotesPlaceholder')} />
+        <InputField label={"หมายเหตุ/สภาพสินค้าปัจจุบัน"} name="condition_notes" value={formData.condition_notes || ''} onChange={handleChange} placeholder={"ระบุสภาพสินค้า เช่น มีรอยขีดข่วนเล็กน้อย, ใช้งานได้ 100%"} />
         
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
             <FaInfoCircle className="h-4 w-4 text-blue-500" />
-            {t('productFormPage.specificationsLabel')}
+            {"รายละเอียดเฉพาะ (Specifications)"}
           </label>
           <div className="space-y-4">
             {specifications.map((spec, index) => (
@@ -598,14 +624,14 @@ export const ProductFormPage: React.FC = () => {
                   type="text"
                   value={spec.key}
                   onChange={(e) => handleSpecificationChange(index, 'key', e.target.value)}
-                  placeholder={t('productFormPage.specifications.keyPlaceholder')}
+                  placeholder={"ชื่อรายละเอียด เช่น รุ่น, สี"}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
                 <input
                   type="text"
                   value={spec.value}
                   onChange={(e) => handleSpecificationChange(index, 'value', e.target.value)}
-                  placeholder={t('productFormPage.specifications.valuePlaceholder')}
+                  placeholder={"ค่าของรายละเอียด เช่น A90, สีดำ"}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
                 <motion.button
@@ -614,7 +640,7 @@ export const ProductFormPage: React.FC = () => {
                   whileHover={{ scale: 1.1, color: '#EF4444' }}
                   whileTap={{ scale: 0.9 }}
                   className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                  title={t('productFormPage.specifications.remove')}
+                  title={"ลบรายการ"}
                 >
                   <FaTrash className="h-4 w-4" />
                 </motion.button>
@@ -629,15 +655,15 @@ export const ProductFormPage: React.FC = () => {
             className="mt-4 flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors py-2 px-4 rounded-lg bg-blue-50 hover:bg-blue-100"
           >
             <FaPlus className="h-3 w-3" />
-            {t('productFormPage.specifications.add')}
+            {"เพิ่มรายละเอียด"}
           </motion.button>
         </div>
 
         <div>
-            <label htmlFor="imagesInput" className="block text-sm font-medium text-gray-700 mb-1">
-                {t('productFormPage.imagesLabel')} <span className="text-red-500">*</span>
+            <label htmlFor="imagesInput" className="block text-sm font-semibold text-gray-700 mb-1">
+                {"รูปภาพสินค้า"} <span className="text-red-500">*</span>
                 <span className="text-xs text-gray-500 ml-2">
-                    {((formData.imagesInput?.length || 0) + existingImages.length)}/{t('productFormPage.maxImagesCount')}
+                    {((formData.imagesInput?.length || 0) + existingImages.length)}/{"10 รูป"}
                 </span>
             </label>
             <input 
@@ -649,9 +675,9 @@ export const ProductFormPage: React.FC = () => {
                 disabled={((formData.imagesInput?.length || 0) + existingImages.length) >= 10}
                 className={`block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 ${((formData.imagesInput?.length || 0) + existingImages.length) >= 10 ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
-            <p className="text-xs text-gray-500 mt-1">{t('productFormPage.imagesHelp')}</p>
+            <p className="text-xs text-gray-500 mt-1">{"อัปโหลดรูปภาพสินค้าอย่างน้อย 3 รูป (ขนาดสูงสุด 5MB ต่อรูป)"}</p>
             {((formData.imagesInput?.length || 0) + existingImages.length) >= 10 && (
-                <p className="text-xs text-blue-500 mt-1">{t('productFormPage.maxImagesReached')}</p>
+                <p className="text-xs text-blue-500 mt-1">{"อัปโหลดรูปภาพครบตามจำนวนสูงสุดแล้ว"}</p>
             )}
             <div className="mt-2 flex flex-wrap gap-2">
                 {existingImages.map((img, index) => (
@@ -661,7 +687,7 @@ export const ProductFormPage: React.FC = () => {
                             type="button"
                             onClick={() => removeImage(index, true)}
                             className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                            title={t('productFormPage.removeImage')}
+                            title={"ลบรูปภาพ"}
                         >
                             ×
                         </button>
@@ -674,7 +700,7 @@ export const ProductFormPage: React.FC = () => {
                             type="button"
                             onClick={() => removeImage(index)}
                             className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                            title={t('productFormPage.removeImage')}
+                            title={"ลบรูปภาพ"}
                         >
                             ×
                         </button>
@@ -683,18 +709,18 @@ export const ProductFormPage: React.FC = () => {
             </div>
             {((formData.imagesInput?.length || 0) + existingImages.length) < 3 && (
                 <p className="text-xs text-red-500 mt-1">
-                    {t('productFormPage.moreImagesRequired', { count: 3 - ((formData.imagesInput?.length || 0) + existingImages.length) })}
+                    {`ต้องเพิ่มรูปภาพอีก ${3 - ((formData.imagesInput?.length || 0) + existingImages.length)} รูปเป็นอย่างน้อย`}
                 </p>
             )}
         </div>
 
         <div>
-            <label htmlFor="availability_status" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('productFormPage.availabilityStatusLabel')} <span className="text-red-500">*</span>
+            <label htmlFor="availability_status" className="block text-sm font-semibold text-gray-700 mb-1">
+              {"สถานะการใช้งานสินค้า"} <span className="text-red-500">*</span>
             </label>
-            <select name="availability_status" id="availability_status" value={formData.availability_status || ''} onChange={handleChange} required className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            <select name="availability_status" id="availability_status" value={formData.availability_status || ''} onChange={handleChange} required className="block w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 {Object.values(ProductAvailabilityStatus).filter(s => s !== ProductAvailabilityStatus.RENTED_OUT && s !== ProductAvailabilityStatus.PENDING_APPROVAL).map(status => (
-                    <option key={status} value={status}>{status.replace('_', ' ').toUpperCase()}</option>
+                    <option key={status} value={status}>{getProductStatusThai(status)}</option>
                 ))}
             </select>
         </div>
@@ -710,12 +736,12 @@ export const ProductFormPage: React.FC = () => {
             {isLoading ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                {isEditMode ? 'กำลังบันทึก...' : 'กำลังสร้าง...'}
+                {isEditMode ? "กำลังบันทึก..." : "กำลังสร้างสินค้า..."}
               </>
             ) : (
               <>
                 {isEditMode ? <FaSave className="h-5 w-5" /> : <FaPlus className="h-5 w-5" />}
-                {isEditMode ? t('productFormPage.saveChangesButton') : t('productFormPage.createButton')}
+                {isEditMode ? "บันทึกการเปลี่ยนแปลง" : "สร้างสินค้า"}
               </>
             )}
           </motion.button>

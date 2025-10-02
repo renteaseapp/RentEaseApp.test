@@ -1,15 +1,13 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
-  message?: string; // Can be a translation key or a direct string
-  tMessageKey?: string; // Optional key for translation
+  message?: string;
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', message, tMessageKey }) => {
-  const { t } = useTranslation();
-  const displayMessage = tMessageKey ? t(tMessageKey) : (message || t('general.loading'));
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', message }) => {
+  const displayMessage = message || 'กำลังโหลด...';
 
   const sizeClasses = {
     sm: 'h-6 w-6',

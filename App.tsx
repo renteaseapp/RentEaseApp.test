@@ -3,10 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './contexts/AuthContext';
 import { AlertProvider } from './contexts/AlertContext';
-import { AIChatProvider } from './contexts/AIChatContext';
+import { AIAgentProvider } from './contexts/AIAgentContext';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
-import AIChatWidget from './components/common/AIChatWidget';
+import AIAgentWidget from './components/AIAgentWidget';
+import { SuspendedUserPopup } from './components/common/SuspendedUserPopup';
 import { LoginPage } from './features/auth/LoginPage';
 import { RegisterPage } from './features/auth/RegisterPage';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage';
@@ -56,6 +57,7 @@ import { AdminUserDetailPage } from './features/admin/AdminUserDetailPage';
 import { AdminManageProductsPage } from './features/admin/AdminManageProductsPage';
 import { AdminProductDetailPage } from './features/admin/AdminProductDetailPage';
 import { AdminManageCategoriesPage } from './features/admin/AdminManageCategoriesPage';
+import { AdminRentalManagementPage } from './features/admin/AdminRentalManagementPage';
 import { AdminReportsPage } from './features/admin/AdminReportsPage';
 import { AdminLoginPage } from './features/admin/AdminLoginPage';
 import AdminComplaintsPage from './features/admin/AdminComplaintsPage';
@@ -82,7 +84,8 @@ const AppContent: React.FC = () => {
   return (
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <AIChatWidget />
+            <SuspendedUserPopup />
+            <AIAgentWidget />
             <RealtimeNotification />
             <main className="flex-grow bg-gray-100">
               <Routes>
@@ -139,6 +142,7 @@ const AppContent: React.FC = () => {
                   <Route path={ROUTE_PATHS.ADMIN_MANAGE_PRODUCTS} element={<AdminManageProductsPage />} />
                   <Route path={ROUTE_PATHS.ADMIN_PRODUCT_DETAIL} element={<AdminProductDetailPage />} />
                   <Route path={ROUTE_PATHS.ADMIN_MANAGE_CATEGORIES} element={<AdminManageCategoriesPage />} />
+                  <Route path={ROUTE_PATHS.ADMIN_MANAGE_RENTALS} element={<AdminRentalManagementPage />} />
                   <Route path="/admin/complaints" element={<AdminComplaintsPage />} />
                   <Route path={ROUTE_PATHS.ADMIN_REPORTS} element={<AdminReportsPage />} />
                   <Route path={ROUTE_PATHS.ADMIN_LOGS} element={<AdminLogsPage />} />
@@ -159,11 +163,11 @@ const App: React.FC = () => {
     <GoogleOAuthProvider clientId={googleClientId || ''}>
       <AuthProvider>
         <AlertProvider>
-          <AIChatProvider>
+          <AIAgentProvider>
             <BrowserRouter>
               <AppContent />
             </BrowserRouter>
-          </AIChatProvider>
+          </AIAgentProvider>
         </AlertProvider>
       </AuthProvider>
     </GoogleOAuthProvider>

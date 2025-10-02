@@ -4,7 +4,7 @@ import { getCurrentUser, getIdVerificationStatus, submitIdVerification } from '.
 import { UserIdDocumentType, ApiError } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { useTranslation } from 'react-i18next';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaIdCard, 
@@ -22,7 +22,6 @@ import {
 } from 'react-icons/fa';
 
 const UserIdVerificationPage: React.FC = () => {
-  const { t } = useTranslation();
   const { user: authUser, updateUserContext } = useAuth();
   const [verificationData, setVerificationData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,12 +46,12 @@ const UserIdVerificationPage: React.FC = () => {
           setVerificationData(response.data);
         } catch (err) {
           const apiError = err as ApiError;
-          setError(apiError.message || 'Failed to load ID verification status.');
+          setError(apiError.message || 'ไม่สามารถโหลดสถานะการยืนยันตัวตนได้');
         } finally {
           setIsLoading(false);
         }
       } else {
-        setError("User not authenticated.");
+        setError("ผู้ใช้ไม่ได้เข้าสู่ระบบ");
         setIsLoading(false);
       }
     };
@@ -66,7 +65,7 @@ const UserIdVerificationPage: React.FC = () => {
       
       // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setError(t('idVerificationPage.fileTooLarge'));
+        setError('ไฟล์มีขนาดใหญ่เกิน 5MB');
         e.target.value = ''; // Clear the file input
         return;
       }
@@ -74,7 +73,7 @@ const UserIdVerificationPage: React.FC = () => {
       // Validate file type
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
-        setError(t('idVerificationPage.invalidFileType'));
+        setError('ประเภทไฟล์ไม่รองรับ รองรับเฉพาะ JPG, JPEG, PNG');
         e.target.value = ''; // Clear the file input
         return;
       }
@@ -96,7 +95,7 @@ const UserIdVerificationPage: React.FC = () => {
     // Validate document type
     const selectedDocType = formData.id_document_type;
     if (!Object.values(UserIdDocumentType).includes(selectedDocType)) {
-      setError('Invalid document type selected');
+      setError('ประเภทเอกสารไม่ถูกต้อง');
       return;
     }
 
@@ -114,7 +113,7 @@ const UserIdVerificationPage: React.FC = () => {
 
     // Validate required files
     if (!idDocument) {
-      setError(t('idVerificationPage.docFrontRequired'));
+      setError('กรุณาอัปโหลดด้านหน้าของเอกสาร');
       return;
     }
 
@@ -124,14 +123,14 @@ const UserIdVerificationPage: React.FC = () => {
       
       // Check file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setError(`${fieldName}: ${t('idVerificationPage.fileTooLarge')}`);
+        setError(`${fieldName}: ไฟล์มีขนาดใหญ่เกิน 5MB`);
         return false;
       }
 
       // Check file type
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
-        setError(`${fieldName}: ${t('idVerificationPage.invalidFileType')}`);
+        setError(`${fieldName}: ประเภทไฟล์ไม่รองรับ รองรับเฉพาะ JPG, JPEG, PNG`);
         return false;
       }
 
@@ -139,9 +138,9 @@ const UserIdVerificationPage: React.FC = () => {
     };
 
     // Validate all files
-    if (!validateFile(idDocument, 'ID Front') || 
-        !validateFile(idDocumentBack, 'ID Back') || 
-        !validateFile(idSelfie, 'Selfie')) {
+    if (!validateFile(idDocument, 'ด้านหน้าของบัตร') || 
+        !validateFile(idDocumentBack, 'ด้านหลังของบัตร') || 
+        !validateFile(idSelfie, 'รูปเซลฟี่')) {
       return;
     }
 
@@ -169,7 +168,7 @@ const UserIdVerificationPage: React.FC = () => {
 
     try {
       await submitIdVerification(formDataObj);
-      setSuccessMessage(t('idVerificationPage.submitSuccess'));
+      setSuccessMessage('ส่งข้อมูลยืนยันตัวตนสำเร็จ');
       const updatedStatus = await getIdVerificationStatus();
       setVerificationData(updatedStatus.data);
       // ดึง user profile ล่าสุดแล้วอัปเดต context
@@ -181,7 +180,7 @@ const UserIdVerificationPage: React.FC = () => {
       }
     } catch (err) {
       const apiError = err as ApiError;
-      setError(apiError.message || t('idVerificationPage.submitError'));
+      setError(apiError.message || 'ไม่สามารถส่งข้อมูลยืนยันตัวตนได้');
     } finally {
       setIsSubmitting(false);
     }
@@ -191,28 +190,35 @@ const UserIdVerificationPage: React.FC = () => {
     let bgColor = 'bg-gray-100';
     let textColor = 'text-gray-800';
     let icon = <FaClock className="h-4 w-4" />;
+    let text = '';
     
     switch (status) {
       case 'verified':
         bgColor = 'bg-gradient-to-r from-green-100 to-emerald-100';
         textColor = 'text-green-700';
         icon = <FaCheckCircle className="h-4 w-4" />;
+        text = 'ยืนยันแล้ว';
         break;
       case 'pending':
         bgColor = 'bg-gradient-to-r from-yellow-100 to-orange-100';
         textColor = 'text-yellow-700';
         icon = <FaClock className="h-4 w-4" />;
+        text = 'รอการตรวจสอบ';
         break;
       case 'rejected':
         bgColor = 'bg-gradient-to-r from-red-100 to-pink-100';
         textColor = 'text-red-700';
         icon = <FaExclamationTriangle className="h-4 w-4" />;
+        text = 'ถูกปฏิเสธ';
         break;
       case 'not_submitted':
         bgColor = 'bg-gradient-to-r from-blue-100 to-indigo-100';
         textColor = 'text-blue-700';
         icon = <FaUserCheck className="h-4 w-4" />;
+        text = 'ยังไม่ได้ส่งเอกสาร';
         break;
+      default:
+        text = 'ไม่ทราบสถานะ';
     }
     
     return (
@@ -222,14 +228,14 @@ const UserIdVerificationPage: React.FC = () => {
         className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full ${bgColor} ${textColor} shadow-sm`}
       >
         {icon}
-        {status.replace('_', ' ').toUpperCase()}
+        {text}
       </motion.span>
     );
   };
 
 
   if (isLoading) {
-    return <LoadingSpinner message={t('idVerificationPage.loadingStatus')} />;
+    return <LoadingSpinner message="กำลังโหลดสถานะการยืนยันตัวตน..." />;
   }
 
   return (
@@ -246,7 +252,7 @@ const UserIdVerificationPage: React.FC = () => {
             <FaShieldAlt className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
-            {t('idVerificationPage.title')}
+            ยืนยันตัวตน
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             ยืนยันตัวตนของคุณเพื่อความปลอดภัยและความน่าเชื่อถือในการใช้งาน
@@ -262,7 +268,7 @@ const UserIdVerificationPage: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               className="mb-6"
             >
-              <ErrorMessage message={error} onDismiss={() => setError(null)} title={t('general.error')} />
+              <ErrorMessage message={error} onDismiss={() => setError(null)} title="ข้อผิดพลาด" />
             </motion.div>
           )}
           {successMessage && (
@@ -292,7 +298,7 @@ const UserIdVerificationPage: React.FC = () => {
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
             <div className="flex items-center gap-3 mb-2">
               <FaUserCheck className="h-6 w-6" />
-              <h2 className="text-xl font-bold">{t('idVerificationPage.currentStatusTitle')}</h2>
+              <h2 className="text-xl font-bold">สถานะปัจจุบัน</h2>
             </div>
             <p className="text-blue-100">ตรวจสอบสถานะการยืนยันตัวตนของคุณ</p>
           </div>
@@ -301,20 +307,20 @@ const UserIdVerificationPage: React.FC = () => {
             {verificationData ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600 font-medium">{t('idVerificationPage.statusLabel')}</span>
+                  <span className="text-gray-600 font-medium">สถานะ</span>
                   {renderStatusBadge(verificationData.status)}
                 </div>
                 
                 {verificationData.document_type && (
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600">{t('idVerificationPage.docTypeLabel')}</span>
+                    <span className="text-gray-600">ประเภทเอกสาร</span>
                     <span className="font-medium text-gray-900">{verificationData.document_type_th}</span>
                   </div>
                 )}
                 
                 {verificationData.document_number && (
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600">{t('idVerificationPage.docNumberLabel')}</span>
+                    <span className="text-gray-600">เลขที่เอกสาร</span>
                     <span className="font-mono font-medium text-gray-900">***{verificationData.document_number.slice(-4)}</span>
                   </div>
                 )}
@@ -323,7 +329,7 @@ const UserIdVerificationPage: React.FC = () => {
                   <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                     <div className="flex items-center gap-2">
                       <FaExclamationTriangle className="h-4 w-4 text-red-500" />
-                      <span className="text-red-700 font-medium">{t('idVerificationPage.notesLabel')}</span>
+                      <span className="text-red-700 font-medium">หมายเหตุ</span>
                     </div>
                     <p className="text-red-600 mt-1">{verificationData.notes}</p>
                   </div>
@@ -332,7 +338,7 @@ const UserIdVerificationPage: React.FC = () => {
             ) : (
               <div className="text-center py-8">
                 <FaExclamationTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Could not load verification status.</p>
+                <p className="text-gray-500">ไม่สามารถโหลดสถานะการยืนยันตัวตนได้</p>
               </div>
             )}
           </div>
@@ -349,7 +355,7 @@ const UserIdVerificationPage: React.FC = () => {
             <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6 text-white">
               <div className="flex items-center gap-3 mb-2">
                 <FaUpload className="h-6 w-6" />
-                <h2 className="text-xl font-bold">{t('idVerificationPage.submitDocsTitle')}</h2>
+                <h2 className="text-xl font-bold">ส่งเอกสาร</h2>
               </div>
               <p className="text-green-100">อัปโหลดเอกสารเพื่อยืนยันตัวตน</p>
             </div>
@@ -359,7 +365,7 @@ const UserIdVerificationPage: React.FC = () => {
                 {/* Document Type Selection */}
                 <div>
                   <label htmlFor="id_document_type" className="block text-sm font-semibold text-gray-700 mb-3">
-                    {t('idVerificationPage.docTypeSelectLabel')}
+                    เลือกประเภทเอกสาร
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[
@@ -420,7 +426,7 @@ const UserIdVerificationPage: React.FC = () => {
                 {/* Document Number */}
                 <div>
                   <label htmlFor="id_document_number" className="block text-sm font-semibold text-gray-700 mb-3">
-                    {t('idVerificationPage.docNumberInputLabel')}
+                    เลขที่เอกสาร
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -443,7 +449,7 @@ const UserIdVerificationPage: React.FC = () => {
                   {/* ID Document Front */}
                   <div>
                     <label htmlFor="id_document" className="block text-sm font-semibold text-gray-700 mb-3">
-                      {t('idVerificationPage.docFrontInputLabel')} <span className="text-red-500">*</span>
+                      ด้านหน้าของเอกสาร <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <input 
@@ -465,7 +471,7 @@ const UserIdVerificationPage: React.FC = () => {
                   {/* Selfie */}
                   <div>
                     <label htmlFor="id_selfie" className="block text-sm font-semibold text-gray-700 mb-3">
-                      {t('idVerificationPage.selfieInputLabel')}
+                      รูปเซลฟี่
                     </label>
                     <div className="relative">
                       <input 
@@ -500,7 +506,7 @@ const UserIdVerificationPage: React.FC = () => {
                   ) : (
                     <>
                       <FaUpload className="h-5 w-5" />
-                      {t('idVerificationPage.submitDocsButton')}
+                      ส่งเอกสาร
                       <FaArrowRight className="h-4 w-4" />
                     </>
                   )}

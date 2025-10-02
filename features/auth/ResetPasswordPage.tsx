@@ -5,7 +5,7 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { ApiError } from '../../types';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { useTranslation } from 'react-i18next';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaEnvelope, 
@@ -24,7 +24,6 @@ import {
 } from 'react-icons/fa';
 
 export const ResetPasswordPage: React.FC = () => {
-  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<ResetPasswordPayload>({
@@ -41,9 +40,9 @@ export const ResetPasswordPage: React.FC = () => {
 
   useEffect(() => {
     if (!token) {
-      setError(t('resetPasswordPage.invalidTokenError'));
+      setError('ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้องหรือหมดอายุ');
     }
-  }, [token, t]);
+  }, [token]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -52,7 +51,7 @@ export const ResetPasswordPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) {
-      setError(t('resetPasswordPage.invalidTokenError'));
+      setError('ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้องหรือหมดอายุ');
       return;
     }
     setIsLoading(true);
@@ -60,13 +59,13 @@ export const ResetPasswordPage: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      setSuccessMessage(t('resetPasswordPage.successMessage'));
+      setSuccessMessage('รีเซ็ตรหัสผ่านสำเร็จ! กำลังเปลี่ยนเส้นทางไปยังหน้าเข้าสู่ระบบ...');
       setTimeout(() => {
         navigate(ROUTE_PATHS.LOGIN);
       }, 3000);
     } catch (err) {
       const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to reset password. Please try again.');
+      setError(apiError.message || 'ไม่สามารถรีเซ็ตรหัสผ่านได้ โปรดลองอีกครั้ง');
     } finally {
       setIsLoading(false);
     }
@@ -95,10 +94,10 @@ export const ResetPasswordPage: React.FC = () => {
               <h1 className="text-3xl font-bold">RentEase</h1>
             </div>
             <h2 className="text-4xl font-bold mb-4">
-              {t('resetPasswordPage.welcomeMessage')}
+              รีเซ็ตรหัสผ่านของคุณ
             </h2>
             <p className="text-green-100 text-lg mb-8">
-              {t('resetPasswordPage.subtitle')}
+              รีเซ็ตรหัสผ่านของคุณได้อย่างปลอดภัย
             </p>
           </motion.div>
 
@@ -113,8 +112,8 @@ export const ResetPasswordPage: React.FC = () => {
                 <FaKey className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">{t('resetPasswordPage.features.secure')}</h3>
-                <p className="text-green-100">{t('resetPasswordPage.features.secureDesc')}</p>
+                <h3 className="font-semibold text-lg mb-1">ปลอดภัย</h3>
+                <p className="text-green-100">ระบบการรักษาความปลอดภัยระดับสูง</p>
               </div>
             </div>
 
@@ -123,8 +122,8 @@ export const ResetPasswordPage: React.FC = () => {
                 <FaClock className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">{t('resetPasswordPage.features.temporary')}</h3>
-                <p className="text-green-100">{t('resetPasswordPage.features.temporaryDesc')}</p>
+                <h3 className="font-semibold text-lg mb-1">ชั่วคราว</h3>
+                <p className="text-green-100">ลิงก์รีเซ็ตรหัสผ่านมีอายุการใช้งานจำกัด</p>
               </div>
             </div>
 
@@ -133,8 +132,8 @@ export const ResetPasswordPage: React.FC = () => {
                 <FaCheckDouble className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">{t('resetPasswordPage.features.verified')}</h3>
-                <p className="text-green-100">{t('resetPasswordPage.features.verifiedDesc')}</p>
+                <h3 className="font-semibold text-lg mb-1">ได้รับการยืนยัน</h3>
+                <p className="text-green-100">กระบวนการยืนยันตัวตนที่เข้มงวด</p>
               </div>
             </div>
           </motion.div>
@@ -145,8 +144,8 @@ export const ResetPasswordPage: React.FC = () => {
             transition={{ delay: 0.6 }}
             className="mt-12 p-6 rounded-xl bg-white/10 backdrop-blur-sm"
           >
-            <h3 className="font-semibold text-lg mb-2">{t('resetPasswordPage.securityNote')}</h3>
-            <p className="text-green-100">{t('resetPasswordPage.securityDescription')}</p>
+            <h3 className="font-semibold text-lg mb-2">หมายเหตุด้านความปลอดภัย</h3>
+            <p className="text-green-100">โปรดตรวจสอบให้แน่ใจว่าคุณใช้อุปกรณ์ที่ปลอดภัยเมื่อรีเซ็ตรหัสผ่าน</p>
           </motion.div>
         </div>
       </motion.div>
@@ -166,10 +165,10 @@ export const ResetPasswordPage: React.FC = () => {
             className="text-center mb-8"
           >
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {t('resetPasswordPage.title')}
+              รีเซ็ตรหัสผ่าน
             </h2>
             <p className="text-gray-600">
-              {t('resetPasswordPage.instruction')}
+              ป้อนข้อมูลของคุณเพื่อรีเซ็ตรหัสผ่านใหม่
             </p>
           </motion.div>
 
@@ -187,7 +186,7 @@ export const ResetPasswordPage: React.FC = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                     >
-                      <ErrorMessage message={error} onDismiss={() => setError(null)} title={t('general.error')} />
+                      <ErrorMessage message={error} onDismiss={() => setError(null)} title="ข้อผิดพลาด" />
                     </motion.div>
                   )}
                   
@@ -199,7 +198,7 @@ export const ResetPasswordPage: React.FC = () => {
                     >
                       <FaCheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                       <div>
-                        <p className="font-medium text-green-800">{t('general.success')}</p>
+                        <p className="font-medium text-green-800">สำเร็จ</p>
                         <p className="text-green-700 text-sm">{successMessage}</p>
                       </div>
                     </motion.div>
@@ -219,7 +218,7 @@ export const ResetPasswordPage: React.FC = () => {
                     >
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('resetPasswordPage.emailLabel')}
+                          อีเมล
                         </label>
                         <div className="relative">
                           <input
@@ -227,7 +226,7 @@ export const ResetPasswordPage: React.FC = () => {
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder={t('resetPasswordPage.emailPlaceholder')}
+                            placeholder="ป้อนอีเมลของคุณ"
                             required
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                           />
@@ -237,7 +236,7 @@ export const ResetPasswordPage: React.FC = () => {
 
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('resetPasswordPage.otpLabel')}
+                          รหัส OTP
                         </label>
                         <div className="relative">
                           <input
@@ -245,7 +244,7 @@ export const ResetPasswordPage: React.FC = () => {
                             name="otp"
                             value={formData.otp}
                             onChange={handleChange}
-                            placeholder={t('resetPasswordPage.otpPlaceholder')}
+                            placeholder="ป้อนรหัส OTP ที่ได้รับทางอีเมล"
                             required
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                           />
@@ -255,7 +254,7 @@ export const ResetPasswordPage: React.FC = () => {
 
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('resetPasswordPage.newPasswordLabel')}
+                          รหัสผ่านใหม่
                         </label>
                         <div className="relative">
                           <input
@@ -263,7 +262,7 @@ export const ResetPasswordPage: React.FC = () => {
                             name="new_password"
                             value={formData.new_password}
                             onChange={handleChange}
-                            placeholder={t('resetPasswordPage.newPasswordPlaceholder')}
+                            placeholder="ป้อนรหัสผ่านใหม่ของคุณ"
                             required
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                           />
@@ -280,13 +279,13 @@ export const ResetPasswordPage: React.FC = () => {
                           <div className="flex items-start gap-2">
                             <FaInfoCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                             <div className="text-sm text-green-700">
-                              <p className="font-medium mb-1">{t('resetPasswordPage.passwordRequirements.title')}</p>
+                              <p className="font-medium mb-1">ข้อกำหนดรหัสผ่าน</p>
                               <ul className="space-y-1 text-xs">
-                                <li>• {t('resetPasswordPage.passwordRequirements.minLength')}</li>
-                                <li>• {t('resetPasswordPage.passwordRequirements.uppercase')}</li>
-                                <li>• {t('resetPasswordPage.passwordRequirements.lowercase')}</li>
-                                <li>• {t('resetPasswordPage.passwordRequirements.number')}</li>
-                                <li>• {t('resetPasswordPage.passwordRequirements.special')}</li>
+                                <li>• ความยาวอย่างน้อย 8 ตัวอักษร</li>
+                                <li>• ต้องมีตัวอักษรพิมพ์ใหญ่</li>
+                                <li>• ต้องมีตัวอักษรพิมพ์เล็ก</li>
+                                <li>• ต้องมีตัวเลข</li>
+                                <li>• ต้องมีอักขระพิเศษ</li>
                               </ul>
                             </div>
                           </div>
@@ -295,7 +294,7 @@ export const ResetPasswordPage: React.FC = () => {
 
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('resetPasswordPage.confirmNewPasswordLabel')}
+                          ยืนยันรหัสผ่านใหม่
                         </label>
                         <div className="relative">
                           <input
@@ -303,7 +302,7 @@ export const ResetPasswordPage: React.FC = () => {
                             name="new_password_confirmation"
                             value={formData.new_password_confirmation}
                             onChange={handleChange}
-                            placeholder={t('resetPasswordPage.newPasswordPlaceholder')}
+                            placeholder="ป้อนรหัสผ่านใหม่ของคุณอีกครั้ง"
                             required
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                           />
@@ -328,7 +327,7 @@ export const ResetPasswordPage: React.FC = () => {
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                         ) : (
                           <>
-                            {t('resetPasswordPage.resetPasswordButton')}
+                            รีเซ็ตรหัสผ่าน
                             <FaLockOpen className="h-4 w-4" />
                           </>
                         )}
@@ -350,17 +349,17 @@ export const ResetPasswordPage: React.FC = () => {
                       </div>
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                          {t('resetPasswordPage.successTitle')}
+                          รีเซ็ตรหัสผ่านสำเร็จ!
                         </h3>
                         <p className="text-gray-600 mb-6">
-                          {t('resetPasswordPage.successDescription')}
+                          รหัสผ่านของคุณได้รับการรีเซ็ตเรียบร้อยแล้ว คุณสามารถเข้าสู่ระบบด้วยรหัสผ่านใหม่ได้เลย
                         </p>
                         <Link 
                           to={ROUTE_PATHS.LOGIN} 
                           className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
                         >
                           <FaArrowRight className="h-4 w-4" />
-                          {t('resetPasswordPage.proceedToLoginLink')}
+                          ไปยังหน้าเข้าสู่ระบบ
                         </Link>
                       </div>
                     </motion.div>
@@ -375,13 +374,13 @@ export const ResetPasswordPage: React.FC = () => {
                     className="mt-8 text-center"
                   >
                     <p className="text-gray-600">
-                      {t('resetPasswordPage.needHelp')}{' '}
+                      ต้องการความช่วยเหลือ?{' '}
                       <Link 
                         to={ROUTE_PATHS.LOGIN} 
                         className="font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center justify-center gap-1 mt-2"
                       >
                         <FaArrowLeft className="h-3 w-3" />
-                        {t('resetPasswordPage.backToLogin')}
+                        กลับไปยังหน้าเข้าสู่ระบบ
                       </Link>
                     </p>
                   </motion.div>

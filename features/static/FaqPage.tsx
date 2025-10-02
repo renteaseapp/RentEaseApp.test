@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '../../components/ui/Card';
-import { useTranslation } from 'react-i18next';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaQuestionCircle, 
@@ -82,8 +82,22 @@ const getCategoryIcon = (categoryTitle: string) => {
 };
 
 export const FaqPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
-  const faqData = t('faqPage.categories', { returnObjects: true }) as Array<any>;
+  const faqData = [
+    {
+      title: "ทั่วไป",
+      faqs: [
+        { q: "RentEase คืออะไร?", a: "RentEase คือแพลตฟอร์มสำหรับเช่าและให้เช่าสินค้าได้อย่างง่ายดายและปลอดภัย" },
+        { q: "สมัครสมาชิกอย่างไร?", a: "คลิก 'สมัครสมาชิก' และกรอกรายละเอียด จากนั้นยืนยันอีเมล" }
+      ]
+    },
+    {
+      title: "การเช่าสินค้า",
+      faqs: [
+        { q: "เช่าสินค้าอย่างไร?", a: "ค้นหาสินค้าที่ต้องการ กด 'ขอเช่าสินค้า' และทำตามขั้นตอน" },
+        { q: "ขั้นตอนการเช่าสินค้าเป็นอย่างไร?", a: "1. ค้นหาสินค้าที่ต้องการ\n2. กด 'ขอเช่าสินค้า'\n3. เลือกวันที่เช่าและวิธีรับสินค้า\n4. ส่งคำขอเช่าและรอเจ้าของอนุมัติ\n5. ชำระเงินหลังได้รับการอนุมัติ\n6. รับสินค้าและใช้งาน\n7. คืนสินค้าตามกำหนด" }
+      ]
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
@@ -100,10 +114,10 @@ export const FaqPage: React.FC = () => {
               <FaQuestionCircle className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-              {t('faqPage.title')}
+              คำถามที่พบบ่อย
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              {t('faqPage.subtitle', { defaultValue: 'Find answers to frequently asked questions about our rental platform' })}
+              ค้นหาคำตอบสำหรับคำถามที่พบบ่อยเกี่ยวกับแพลตฟอร์มการเช่าของเรา
             </p>
           </motion.div>
         </div>
@@ -156,7 +170,7 @@ export const FaqPage: React.FC = () => {
                       >
                         <FaBookOpen className="mx-auto text-4xl text-gray-300 mb-4" />
                         <p className="text-gray-500 text-lg">
-                          {t('faqPage.noFaqsInCategory', { defaultValue: 'No FAQs in this category yet.' })}
+                          ยังไม่มีคำถามที่พบบ่อยในหมวดหมู่นี้
                         </p>
                       </motion.div>
                     )}
@@ -175,10 +189,10 @@ export const FaqPage: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-12">
               <FaQuestionCircle className="mx-auto text-6xl text-gray-300 mb-6" />
               <h3 className="text-2xl font-semibold text-gray-700 mb-3">
-                {t('faqPage.noFaqsTitle', { defaultValue: 'No FAQs Available' })}
+                ไม่มีคำถามที่พบบ่อย
               </h3>
               <p className="text-gray-500 max-w-md mx-auto text-lg">
-                {t('faqPage.noFaqsSubtitle', { defaultValue: 'We\'re working on adding helpful frequently asked questions. Please check back soon!' })}
+                เรากำลังทำงานเพื่อเพิ่มคำถามที่พบบ่อยที่เป็นประโยชน์ โปรดกลับมาตรวจสอบอีกครั้ง!
               </p>
             </div>
           </motion.div>
@@ -195,13 +209,13 @@ export const FaqPage: React.FC = () => {
             <CardContent className="p-8 text-center">
               <FaSearch className="mx-auto text-4xl mb-4" />
               <h3 className="text-2xl font-bold mb-3">
-                {t('faqPage.needHelpTitle', { defaultValue: 'Still Need Help?' })}
+                ยังต้องการความช่วยเหลือใช่หรือไม่?
               </h3>
               <p className="text-blue-100 mb-6 max-w-md mx-auto">
-                {t('faqPage.needHelpSubtitle', { defaultValue: 'Can\'t find what you\'re looking for? Our support team is here to help you.' })}
+                ไม่พบสิ่งที่คุณกำลังมองหา? ทีมสนับสนุนของเราพร้อมช่วยเหลือคุณ
               </p>
               <button className="bg-white text-blue-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors duration-200">
-                {t('faqPage.contactSupport', { defaultValue: 'Contact Support' })}
+                ติดต่อฝ่ายสนับสนุน
               </button>
             </CardContent>
           </Card>

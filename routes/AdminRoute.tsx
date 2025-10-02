@@ -3,7 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTE_PATHS } from '../constants';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { useTranslation } from 'react-i18next';
+
 
 interface AdminRouteProps {
   // children?: React.ReactNode; // Not needed when using Outlet
@@ -11,10 +11,9 @@ interface AdminRouteProps {
 
 export const AdminRoute: React.FC<AdminRouteProps> = () => {
   const { user, isAdmin, isLoading } = useAuth();
-  const { t } = useTranslation();
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen"><LoadingSpinner message={t('adminRoute.authenticatingAdmin')} /></div>;
+    return <div className="flex justify-center items-center h-screen"><LoadingSpinner message="กำลังตรวจสอบสิทธิ์ผู้ดูแลระบบ" /></div>;
   }
 
   if (!user || !isAdmin) {

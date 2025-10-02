@@ -2,7 +2,7 @@ import React from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { Button } from '../ui/Button';
 import { FaGoogle } from 'react-icons/fa';
-import { useTranslation } from 'react-i18next';
+
 
 interface GoogleLoginButtonProps {
   onSuccess?: (response: any) => void;
@@ -23,7 +23,6 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
   disabled = false,
   isLoading = false
 }) => {
-  const { t } = useTranslation();
 
   const login = useGoogleLogin({
     onSuccess: (response) => {
@@ -61,7 +60,7 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
       ) : (
         <FaGoogle className="h-4 w-4" />
       )}
-      {isLoading ? t('common.loading') : t('auth.continueWithGoogle')}
+      {isLoading ? 'กำลังโหลด...' : 'ดำเนินการต่อด้วย Google'}
     </Button>
   );
 };

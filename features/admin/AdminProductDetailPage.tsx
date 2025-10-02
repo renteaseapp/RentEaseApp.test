@@ -9,7 +9,7 @@ import { ROUTE_PATHS } from '../../constants';
 import { Button } from '../../components/ui/Button';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
+
 import { 
   FaBox, 
   FaArrowLeft, 
@@ -31,7 +31,6 @@ import {
 } from 'react-icons/fa';
 
 export const AdminProductDetailPage: React.FC = () => {
-  const { t } = useTranslation('adminProductDetailPage');
   const { productId } = useParams<{ productId: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +49,7 @@ export const AdminProductDetailPage: React.FC = () => {
           setApprovalStatus(found?.admin_approval_status || '');
           setApprovalNotes((found as any)?.admin_approval_notes || '');
         })
-        .catch(err => setError((err as ApiError).message || t('error.loadFailed')))
+        .catch(err => setError((err as ApiError).message || 'โหลดสินค้าล้มเหลว'))
         .finally(() => setIsLoading(false));
     }
   };
@@ -70,7 +69,7 @@ export const AdminProductDetailPage: React.FC = () => {
       });
       fetchProduct();
     } catch (err) {
-      setError(t('error.updateApprovalFailed'));
+      setError('อัปเดตสถานะการอนุมัติล้มเหลว');
     } finally {
       setIsSubmitting(false);
     }
@@ -106,7 +105,7 @@ export const AdminProductDetailPage: React.FC = () => {
     return (
       <AdminLayout>
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-          <LoadingSpinner message={t('loadingProduct')} />
+          <LoadingSpinner message="กำลังโหลดสินค้า..." />
         </div>
       </AdminLayout>
     );
@@ -128,10 +127,10 @@ export const AdminProductDetailPage: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
           <div className="text-center">
             <FaBox className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-700 mb-2">{t('productNotFound')}</h2>
-            <p className="text-gray-500 mb-4">{t('productNotFoundDescription')}</p>
+            <h2 className="text-2xl font-bold text-gray-700 mb-2">ไม่พบสินค้า</h2>
+            <p className="text-gray-500 mb-4">ไม่สามารถค้นหาสินค้าที่คุณต้องการได้</p>
             <Link to={ROUTE_PATHS.ADMIN_MANAGE_PRODUCTS}>
-              <Button variant="primary">{t('backToProducts')}</Button>
+              <Button variant="primary">กลับไปยังหน้าจัดการสินค้า</Button>
             </Link>
           </div>
         </div>
@@ -166,7 +165,7 @@ export const AdminProductDetailPage: React.FC = () => {
                     {product.title}
                   </h1>
                   <p className="text-gray-600 mt-1">
-                    {t('productInfo', { productId: product.id, ownerId: product.owner_id })}
+                    รายละเอียดสินค้า ID: {product.id} | เจ้าของ ID: {product.owner_id}
                   </p>
                 </div>
               </div>
@@ -177,7 +176,7 @@ export const AdminProductDetailPage: React.FC = () => {
                   className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   <FaEye className="h-4 w-4" />
-                  <span>{t('viewProductPage')}</span>
+                  <span>ดูหน้าสินค้า</span>
                 </Link>
               </div>
             </div>
@@ -196,7 +195,7 @@ export const AdminProductDetailPage: React.FC = () => {
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-6">
                       <FaInfoCircle className="h-5 w-5 text-green-600" />
-                      <h2 className="text-xl font-bold text-gray-800">{t('productInformation')}</h2>
+                      <h2 className="text-xl font-bold text-gray-800">ข้อมูลสินค้า</h2>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -204,7 +203,7 @@ export const AdminProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <FaUser className="h-4 w-4 text-gray-400" />
                           <div>
-                            <p className="text-sm text-gray-500">{t('ownerId')}</p>
+                            <p className="text-sm text-gray-500">ID เจ้าของ</p>
                             <p className="font-semibold text-gray-900">{product.owner_id}</p>
                           </div>
                         </div>
@@ -212,7 +211,7 @@ export const AdminProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <FaTag className="h-4 w-4 text-gray-400" />
                           <div>
-                            <p className="text-sm text-gray-500">{t('categoryId')}</p>
+                            <p className="text-sm text-gray-500">ID หมวดหมู่</p>
                             <p className="font-semibold text-gray-900">{product.category_id}</p>
                           </div>
                         </div>
@@ -220,7 +219,7 @@ export const AdminProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <FaMapMarkerAlt className="h-4 w-4 text-gray-400" />
                           <div>
-                            <p className="text-sm text-gray-500">{t('provinceId')}</p>
+                            <p className="text-sm text-gray-500">ID จังหวัด</p>
                             <p className="font-semibold text-gray-900">{product.province_id}</p>
                           </div>
                         </div>
@@ -228,7 +227,7 @@ export const AdminProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <FaDollarSign className="h-4 w-4 text-gray-400" />
                           <div>
-                            <p className="text-sm text-gray-500">{t('pricePerDay')}</p>
+                            <p className="text-sm text-gray-500">ราคาต่อวัน</p>
                             <p className="font-bold text-green-600 text-lg">฿{product.rental_price_per_day?.toLocaleString()}</p>
                           </div>
                         </div>
@@ -236,7 +235,7 @@ export const AdminProductDetailPage: React.FC = () => {
                       
                       <div className="space-y-4">
                         <div>
-                          <p className="text-sm text-gray-500 mb-2">{t('availabilityStatus')}</p>
+                          <p className="text-sm text-gray-500 mb-2">สถานะความพร้อม</p>
                           <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium border ${
                             product.availability_status === 'available' 
                               ? 'bg-green-100 text-green-800 border-green-200' 
@@ -245,7 +244,7 @@ export const AdminProductDetailPage: React.FC = () => {
                             {product.availability_status === 'available' ? (
                               <>
                                 <FaCheckCircle className="h-3 w-3" />
-                                {t('available')}
+                                พร้อมให้เช่า
                               </>
                             ) : (
                               <>
@@ -257,19 +256,22 @@ export const AdminProductDetailPage: React.FC = () => {
                         </div>
                         
                         <div>
-                          <p className="text-sm text-gray-500 mb-2">{t('adminApprovalStatus')}</p>
+                          <p className="text-sm text-gray-500 mb-2">สถานะการอนุมัติ</p>
                           <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(product.admin_approval_status || '')}`}>
                             {getStatusIcon(product.admin_approval_status || '')}
-                            {t(`approvalStatus.${product.admin_approval_status}`)}
+                            {product.admin_approval_status === 'approved' ? 'อนุมัติแล้ว' : 
+                             product.admin_approval_status === 'pending' ? 'รอการตรวจสอบ' : 
+                             product.admin_approval_status === 'rejected' ? 'ถูกปฏิเสธ' : 
+                             product.admin_approval_status}
                           </span>
                         </div>
                         
                         <div>
-                          <p className="text-sm text-gray-500 mb-2">{t('createdAt')}</p>
+                          <p className="text-sm text-gray-500 mb-2">สร้างเมื่อ</p>
                           <div className="flex items-center gap-2">
                             <FaCalendarAlt className="h-4 w-4 text-gray-400" />
                             <span className="text-sm text-gray-700">
-                              {product.created_at ? new Date(product.created_at).toLocaleDateString() : t('notAvailable')}
+                              {product.created_at ? new Date(product.created_at).toLocaleDateString() : 'ไม่มีข้อมูล'}
                             </span>
                           </div>
                         </div>
@@ -278,7 +280,7 @@ export const AdminProductDetailPage: React.FC = () => {
                     
                     {product.description && (
                       <div className="mt-6">
-                        <p className="text-sm text-gray-500 mb-2">{t('description')}</p>
+                        <p className="text-sm text-gray-500 mb-2">คำอธิบาย</p>
                         <div className="bg-gray-50 rounded-lg p-4 text-gray-700">
                           {product.description}
                         </div>
@@ -301,20 +303,20 @@ export const AdminProductDetailPage: React.FC = () => {
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-6">
                       <FaShieldAlt className="h-5 w-5 text-green-600" />
-                      <h2 className="text-xl font-bold text-gray-800">{t('adminActions')}</h2>
+                      <h2 className="text-xl font-bold text-gray-800">การดำเนินการของผู้ดูแล</h2>
                     </div>
                     
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {t('approvalNotes')}
+                          บันทึกการอนุมัติ
                         </label>
                         <textarea 
                           className="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200" 
                           rows={4} 
                           value={approvalNotes} 
                           onChange={e => setApprovalNotes(e.target.value)}
-                          placeholder={t('approvalNotesPlaceholder')}
+                          placeholder="เพิ่มบันทึกการอนุมัติ (ถ้ามี)..."
                         />
                       </div>
                       
@@ -326,7 +328,7 @@ export const AdminProductDetailPage: React.FC = () => {
                           className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                         >
                           <FaCheck className="h-4 w-4 mr-2" />
-                          {isSubmitting ? t('processing') : t('approveProduct')}
+                          {isSubmitting ? 'กำลังประมวลผล...' : 'อนุมัติสินค้า'}
                         </Button>
                         
                         <Button 
@@ -336,7 +338,7 @@ export const AdminProductDetailPage: React.FC = () => {
                           className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
                         >
                           <FaTimes className="h-4 w-4 mr-2" />
-                          {isSubmitting ? t('processing') : t('rejectProduct')}
+                          {isSubmitting ? 'กำลังประมวลผล...' : 'ปฏิเสธสินค้า'}
                         </Button>
                       </div>
                     </div>
@@ -352,23 +354,23 @@ export const AdminProductDetailPage: React.FC = () => {
               >
                 <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
                   <CardContent className="p-6">
-                    <h3 className="text-lg font-bold mb-4">{t('quickStats')}</h3>
+                    <h3 className="text-lg font-bold mb-4">สถิติโดยย่อ</h3>
                     <div className="space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-blue-100">{t('securityDeposit')}</span>
+                        <span className="text-blue-100">เงินประกัน</span>
                         <span className="font-semibold">฿{product.security_deposit?.toLocaleString() || '0'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-blue-100">{t('quantityAvailable')}</span>
-                        <span className="font-semibold">{product.quantity_available || t('notAvailable')}</span>
+                        <span className="text-blue-100">จำนวนที่มี</span>
+                        <span className="font-semibold">{product.quantity_available || 'ไม่มีข้อมูล'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-blue-100">{t('minRentalDays')}</span>
-                        <span className="font-semibold">{product.min_rental_duration_days || t('notAvailable')}</span>
+                        <span className="text-blue-100">จำนวนวันเช่าขั้นต่ำ</span>
+                        <span className="font-semibold">{product.min_rental_duration_days || 'ไม่มีข้อมูล'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-blue-100">{t('averageRating')}</span>
-                        <span className="font-semibold">{product.average_rating ? `${product.average_rating}/5` : t('notAvailable')}</span>
+                        <span className="text-blue-100">คะแนนเฉลี่ย</span>
+                        <span className="font-semibold">{product.average_rating ? `${product.average_rating}/5` : 'ไม่มีข้อมูล'}</span>
                       </div>
                     </div>
                   </CardContent>

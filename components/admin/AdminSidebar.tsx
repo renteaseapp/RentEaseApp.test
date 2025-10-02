@@ -2,9 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ROUTE_PATHS } from '../../constants';
-import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { 
   FaChartBar, 
   FaUsers, 
@@ -21,7 +19,8 @@ import {
   FaCog,
   FaHistory,
   FaBars,
-  FaTimes
+  FaTimes,
+  FaFileContract
 } from 'react-icons/fa';
 
 interface AdminSidebarProps {
@@ -39,7 +38,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 }) => {
   const location = useLocation();
   const { logout, user } = useAuth();
-  const { t } = useTranslation();
+
   
   // Close mobile sidebar when route changes
   useEffect(() => {
@@ -62,49 +61,55 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   
   const menu = [
     { 
-      label: t('adminSidebar.dashboard'), 
+      label: 'แดชบอร์ด', 
       to: ROUTE_PATHS.ADMIN_DASHBOARD, 
       icon: <FaChartBar className="h-5 w-5" />,
       color: "from-blue-500 to-blue-600"
     },
     { 
-      label: t('adminSidebar.users'), 
+      label: 'ผู้ใช้', 
       to: ROUTE_PATHS.ADMIN_MANAGE_USERS, 
       icon: <FaUsers className="h-5 w-5" />,
       color: "from-green-500 to-green-600"
     },
     { 
-      label: t('adminSidebar.products'), 
+      label: 'สินค้า', 
       to: ROUTE_PATHS.ADMIN_MANAGE_PRODUCTS, 
       icon: <FaBox className="h-5 w-5" />,
       color: "from-purple-500 to-purple-600"
     },
     { 
-      label: t('adminSidebar.categories'), 
+      label: 'หมวดหมู่', 
       to: ROUTE_PATHS.ADMIN_MANAGE_CATEGORIES, 
       icon: <FaTags className="h-5 w-5" />,
       color: "from-yellow-500 to-yellow-600"
     },
     { 
-      label: t('adminSidebar.complaints'), 
+      label: 'การเช่า', 
+      to: ROUTE_PATHS.ADMIN_MANAGE_RENTALS, 
+      icon: <FaFileContract className="h-5 w-5" />,
+      color: "from-teal-500 to-teal-600"
+    },
+    { 
+      label: 'เรื่องร้องเรียน', 
       to: '/admin/complaints', 
       icon: <FaExclamationTriangle className="h-5 w-5" />,
       color: "from-red-500 to-red-600"
     },
     { 
-      label: t('adminSidebar.reports'), 
+      label: 'รายงาน & สถิติ', 
       to: ROUTE_PATHS.ADMIN_REPORTS, 
       icon: <FaChartLine className="h-5 w-5" />,
       color: "from-indigo-500 to-indigo-600"
     },
     { 
-      label: t('adminSidebar.logs'), 
+      label: 'ประวัติการกระทำ', 
       to: ROUTE_PATHS.ADMIN_LOGS, 
       icon: <FaHistory className="h-5 w-5" />,
       color: "from-orange-500 to-orange-600"
     },
     { 
-      label: t('adminSidebar.settings'), 
+      label: 'การตั้งค่าระบบ', 
       to: ROUTE_PATHS.ADMIN_SETTINGS, 
       icon: <FaCog className="h-5 w-5" />,
       color: "from-gray-500 to-gray-600"
@@ -146,7 +151,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 <FaShieldAlt className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                {t('navbar.adminPanel')}
+                แผงผู้ดูแลระบบ
               </span>
             </motion.div>
           )}
@@ -165,7 +170,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <button
               onClick={handleToggleCollapse}
               className="hidden lg:block p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200"
-              title={t('adminSidebar.toggleSidebar')}
+              title="ซ่อน/แสดงแถบด้านข้าง"
             >
               {isCollapsed ? <FaChevronRight className="h-4 w-4" /> : <FaChevronLeft className="h-4 w-4" />}
             </button>
@@ -211,7 +216,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         ))}
       </nav>
 
-        {/* Language Switcher */}
+        {/* Language Settings */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -224,12 +229,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 <FaGlobe className="h-4 w-4 text-white" />
               </div>
               <span className="text-sm font-medium text-gray-300">
-                {t('languageSwitcher.language')}
+                ภาษา
               </span>
             </div>
           )}
           <div className={`${isCollapsed ? 'w-full' : ''}`}>
-            <LanguageSwitcher isDarkTheme={true} />
           </div>
         </div>
       </motion.div>
@@ -256,7 +260,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <button
               onClick={logout}
               className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
-              title={t('adminSidebar.logout')}
+              title="ออกจากระบบ"
             >
               <FaSignOutAlt className="h-4 w-4" />
             </button>
@@ -270,7 +274,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <button
               onClick={logout}
               className="w-full p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
-              title={t('adminSidebar.logout')}
+              title="ออกจากระบบ"
             >
               <FaSignOutAlt className="h-4 w-4" />
             </button>

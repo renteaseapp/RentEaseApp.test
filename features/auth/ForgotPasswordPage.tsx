@@ -5,7 +5,7 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { ApiError } from '../../types';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { useTranslation } from 'react-i18next';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaEnvelope,
@@ -22,7 +22,6 @@ import {
 } from 'react-icons/fa';
 
 export const ForgotPasswordPage: React.FC = () => {
-  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +44,7 @@ export const ForgotPasswordPage: React.FC = () => {
       setShowResetForm(true);
     } catch (err) {
       const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to send reset OTP. Please try again.');
+      setError(apiError.message || 'ไม่สามารถส่ง OTP รีเซ็ตรหัสผ่านได้ โปรดลองอีกครั้ง');
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +53,7 @@ export const ForgotPasswordPage: React.FC = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('รหัสผ่านไม่ตรงกัน');
       return;
     }
     setIsLoading(true);
@@ -72,7 +71,7 @@ export const ForgotPasswordPage: React.FC = () => {
       }, 3000);
     } catch (err) {
       const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to reset password. Please try again.');
+      setError(apiError.message || 'ไม่สามารถรีเซ็ตรหัสผ่านได้ โปรดลองอีกครั้ง');
     } finally {
       setIsLoading(false);
     }
@@ -101,10 +100,10 @@ export const ForgotPasswordPage: React.FC = () => {
               <h1 className="text-3xl font-bold">RentEase</h1>
             </div>
             <h2 className="text-4xl font-bold mb-4">
-              {t('forgotPasswordPage.welcomeMessage')}
+              ลืมรหัสผ่าน?
             </h2>
             <p className="text-blue-100 text-lg mb-8">
-              {t('forgotPasswordPage.subtitle')}
+              รีเซ็ตรหัสผ่านของคุณได้อย่างง่ายดาย
             </p>
           </motion.div>
 
@@ -119,8 +118,8 @@ export const ForgotPasswordPage: React.FC = () => {
                 <FaKey className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">{t('forgotPasswordPage.features.secure')}</h3>
-                <p className="text-blue-100">{t('forgotPasswordPage.features.secureDesc')}</p>
+                <h3 className="font-semibold text-lg mb-1">ปลอดภัย</h3>
+                <p className="text-blue-100">ระบบการรักษาความปลอดภัยระดับสูง</p>
               </div>
             </div>
 
@@ -129,8 +128,8 @@ export const ForgotPasswordPage: React.FC = () => {
                 <FaUserShield className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">{t('forgotPasswordPage.features.protected')}</h3>
-                <p className="text-blue-100">{t('forgotPasswordPage.features.protectedDesc')}</p>
+                <h3 className="font-semibold text-lg mb-1">ได้รับการปกป้อง</h3>
+                <p className="text-blue-100">ข้อมูลของคุณได้รับการปกป้องอย่างเต็มที่</p>
               </div>
             </div>
 
@@ -139,8 +138,8 @@ export const ForgotPasswordPage: React.FC = () => {
                 <FaLockOpen className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">{t('forgotPasswordPage.features.quick')}</h3>
-                <p className="text-blue-100">{t('forgotPasswordPage.features.quickDesc')}</p>
+                <h3 className="font-semibold text-lg mb-1">รวดเร็ว</h3>
+                <p className="text-blue-100">กระบวนการรีเซ็ตรหัสผ่านที่รวดเร็วและง่ายดาย</p>
               </div>
             </div>
           </motion.div>
@@ -151,8 +150,8 @@ export const ForgotPasswordPage: React.FC = () => {
             transition={{ delay: 0.6 }}
             className="mt-12 p-6 rounded-xl bg-white/10 backdrop-blur-sm"
           >
-            <h3 className="font-semibold text-lg mb-2">{t('forgotPasswordPage.securityNote')}</h3>
-            <p className="text-blue-100">{t('forgotPasswordPage.securityDescription')}</p>
+            <h3 className="font-semibold text-lg mb-2">หมายเหตุด้านความปลอดภัย</h3>
+            <p className="text-blue-100">โปรดตรวจสอบให้แน่ใจว่าคุณใช้อุปกรณ์ที่ปลอดภัยเมื่อรีเซ็ตรหัสผ่าน</p>
           </motion.div>
         </div>
       </motion.div>
@@ -172,10 +171,10 @@ export const ForgotPasswordPage: React.FC = () => {
             className="text-center mb-8"
           >
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {t('forgotPasswordPage.title')}
+              ลืมรหัสผ่าน
             </h2>
             <p className="text-gray-600">
-              {t('forgotPasswordPage.instruction')}
+              ป้อนอีเมลของคุณเพื่อรับลิงก์รีเซ็ตรหัสผ่าน
             </p>
           </motion.div>
 
@@ -193,7 +192,7 @@ export const ForgotPasswordPage: React.FC = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                     >
-                      <ErrorMessage message={error} onDismiss={() => setError(null)} title={t('general.error')} />
+                      <ErrorMessage message={error} onDismiss={() => setError(null)} title="ข้อผิดพลาด" />
                     </motion.div>
                   )}
                   
@@ -205,7 +204,7 @@ export const ForgotPasswordPage: React.FC = () => {
                     >
                       <FaCheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                       <div>
-                        <p className="font-medium text-green-800">{t('general.success')}</p>
+                        <p className="font-medium text-green-800">สำเร็จ</p>
                         <p className="text-green-700 text-sm">{successMessage}</p>
                       </div>
                     </motion.div>
@@ -225,7 +224,7 @@ export const ForgotPasswordPage: React.FC = () => {
                     >
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('forgotPasswordPage.emailLabel')}
+                          อีเมล
                         </label>
                         <div className="relative">
                           <input
@@ -233,7 +232,7 @@ export const ForgotPasswordPage: React.FC = () => {
                             name="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder={t('forgotPasswordPage.emailPlaceholder')}
+                            placeholder="ป้อนอีเมลของคุณ"
                             required
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                           />
@@ -252,7 +251,7 @@ export const ForgotPasswordPage: React.FC = () => {
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                         ) : (
                           <>
-                            {t('forgotPasswordPage.sendResetLinkButton')}
+                            ส่งลิงก์รีเซ็ตรหัสผ่าน
                             <FaArrowRight className="h-4 w-4" />
                           </>
                         )}
@@ -270,14 +269,14 @@ export const ForgotPasswordPage: React.FC = () => {
                     >
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('forgotPasswordPage.otpLabel')}
+                          รหัส OTP
                         </label>
                         <input
                           type="text"
                           name="otp"
                           value={otp}
                           onChange={(e) => setOtp(e.target.value)}
-                          placeholder={t('forgotPasswordPage.otpPlaceholder')}
+                          placeholder="ป้อนรหัส OTP ที่ได้รับทางอีเมล"
                           required
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                         />
@@ -285,7 +284,7 @@ export const ForgotPasswordPage: React.FC = () => {
 
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('forgotPasswordPage.newPasswordLabel')}
+                          รหัสผ่านใหม่
                         </label>
                         <div className="relative">
                           <input
@@ -293,7 +292,7 @@ export const ForgotPasswordPage: React.FC = () => {
                             name="new_password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder={t('forgotPasswordPage.newPasswordPlaceholder')}
+                            placeholder="ป้อนรหัสผ่านใหม่ของคุณ"
                             required
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                           />
@@ -310,13 +309,13 @@ export const ForgotPasswordPage: React.FC = () => {
                           <div className="flex items-start gap-2">
                             <FaInfoCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                             <div className="text-sm text-blue-700">
-                              <p className="font-medium mb-1">{t('forgotPasswordPage.passwordRequirements.title')}</p>
+                              <p className="font-medium mb-1">ข้อกำหนดรหัสผ่าน</p>
                               <ul className="space-y-1 text-xs">
-                                <li>• {t('forgotPasswordPage.passwordRequirements.minLength')}</li>
-                                <li>• {t('forgotPasswordPage.passwordRequirements.uppercase')}</li>
-                                <li>• {t('forgotPasswordPage.passwordRequirements.lowercase')}</li>
-                                <li>• {t('forgotPasswordPage.passwordRequirements.number')}</li>
-                                <li>• {t('forgotPasswordPage.passwordRequirements.special')}</li>
+                                <li>• ความยาวอย่างน้อย 8 ตัวอักษร</li>
+                                <li>• ต้องมีตัวอักษรพิมพ์ใหญ่</li>
+                                <li>• ต้องมีตัวอักษรพิมพ์เล็ก</li>
+                                <li>• ต้องมีตัวเลข</li>
+                                <li>• ต้องมีอักขระพิเศษ</li>
                               </ul>
                             </div>
                           </div>
@@ -325,7 +324,7 @@ export const ForgotPasswordPage: React.FC = () => {
 
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('forgotPasswordPage.confirmPasswordLabel')}
+                          ยืนยันรหัสผ่านใหม่
                         </label>
                         <div className="relative">
                           <input
@@ -333,7 +332,7 @@ export const ForgotPasswordPage: React.FC = () => {
                             name="new_password_confirmation"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder={t('forgotPasswordPage.confirmPasswordPlaceholder')}
+                            placeholder="ป้อนรหัสผ่านใหม่ของคุณอีกครั้ง"
                             required
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                           />
@@ -358,7 +357,7 @@ export const ForgotPasswordPage: React.FC = () => {
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                         ) : (
                           <>
-                            {t('forgotPasswordPage.resetPasswordButton')}
+                            รีเซ็ตรหัสผ่าน
                             <FaLockOpen className="h-4 w-4" />
                           </>
                         )}
@@ -374,13 +373,13 @@ export const ForgotPasswordPage: React.FC = () => {
                   className="mt-8 text-center"
                 >
                   <p className="text-gray-600">
-                    {t('forgotPasswordPage.rememberPassword')}{' '}
+                    จำรหัสผ่านได้แล้ว?{' '}
                     <Link 
                       to={ROUTE_PATHS.LOGIN} 
                       className="font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center justify-center gap-1 mt-2"
                     >
                       <FaArrowLeft className="h-3 w-3" />
-                      {t('forgotPasswordPage.signInLink')}
+                      เข้าสู่ระบบ
                     </Link>
                   </p>
                 </motion.div>

@@ -1,13 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useAIChat } from '../../contexts/AIChatContext';
+import { useAIAgent } from '../../contexts/AIAgentContext';
 import { ROUTE_PATHS } from '../../constants';
-import { User } from '../../types';
 import { Button } from '../ui/Button';
-import { useTranslation } from 'react-i18next';
 
-import { LanguageSwitcher } from './LanguageSwitcher';
 import { getNotifications, markNotificationsRead } from '../../services/notificationService';
 import { socketService } from '../../services/socketService';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,6 +25,7 @@ import {
   FaUser,
   FaRobot,
 } from 'react-icons/fa';
+import { MessageCircle } from 'lucide-react';
 
 const HomeIcon = () => (
   <img src="/logo/vite.png" alt="RentEase Logo" className="h-8 w-8" />
@@ -35,8 +33,8 @@ const HomeIcon = () => (
 
 export const Navbar: React.FC = () => {
   const { user, isAdmin, logout, isLoading: authIsLoading } = useAuth();
-  const { toggleChat } = useAIChat();
-  const { t } = useTranslation();
+  const { toggleAgent } = useAIAgent();
+
   const navigate = useNavigate();
 
 
@@ -127,7 +125,7 @@ export const Navbar: React.FC = () => {
               
               // เพิ่มการจัดการการคลิกที่การแจ้งเตือน
               browserNotification.onclick = () => {
-                window.focus(); // โฟกัสหน้าต่างเบราว์เซอร์
+                window.focus(); // โฟกัสหน้าต่างกังกับการโหลดจาก public root
                 if (notification.link_url) {
                   navigate(notification.link_url); // นำทางไปยังหน้าที่เกี่ยวข้อง
                 }
@@ -218,14 +216,14 @@ export const Navbar: React.FC = () => {
                   className="text-gray-600 hover:text-blue-600 px-3 lg:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-blue-50 flex items-center gap-2"
                 >
                   <FaHome className="h-4 w-4" />
-                  <span className="hidden xl:inline">{t('navbar.home')}</span>
+                  <span className="hidden xl:inline">หน้าหลัก</span>
                 </Link>
                 <Link
                   to={ROUTE_PATHS.SEARCH_PRODUCTS}
                   className="text-gray-600 hover:text-blue-600 px-3 lg:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-blue-50 flex items-center gap-2"
                 >
                   <FaSearch className="h-4 w-4" />
-                  <span className="hidden xl:inline">{t('navbar.allProducts')}</span>
+                  <span className="hidden xl:inline">สินค้าทั้งหมด</span>
                 </Link>
               </div>
             </motion.div>
@@ -246,18 +244,15 @@ export const Navbar: React.FC = () => {
                   className="text-red-600 hover:text-red-700 hover:bg-red-50 px-2 sm:px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-200"
                 >
                   <FaShieldAlt className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t('navbar.adminPanel')}</span>
+                  <span className="hidden sm:inline">แผงผู้ดูแลระบบ</span>
                 </Link>
-                <div className="hidden sm:block">
-                  <LanguageSwitcher />
-                </div>
                 <Button
                   onClick={handleLogout}
                   variant="outline"
                   size="sm"
                   className="hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200"
                 >
-                  <span className="hidden sm:inline">{t('navbar.logout')}</span>
+                  <span className="hidden sm:inline">ออกจากระบบ</span>
                   <FaSignOutAlt className="sm:hidden h-4 w-4" />
                 </Button>
               </motion.div>
@@ -266,7 +261,6 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center">
                 <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
                   <div className="hidden sm:block">
-                    <LanguageSwitcher />
                   </div>
                   <div className="hidden sm:block h-6 border-l border-gray-300 mx-1 sm:mx-2"></div>
 
@@ -276,12 +270,13 @@ export const Navbar: React.FC = () => {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="p-1.5 sm:p-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200"
+                        className="p-2 sm:p-2.5 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 flex flex-col items-center justify-center"
                         aria-label="AI Assistant"
-                        onClick={toggleChat}
+                        onClick={toggleAgent}
                         title="AI Assistant"
                       >
-                        <FaRobot className="h-4 w-4 sm:h-5 sm:w-5 text-gradient-to-r from-blue-600 to-purple-600" />
+                        <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mb-0.5" />
+                        <span className="text-xs font-semibold text-blue-600">AI</span>
                       </motion.button>
 
                       {/* Notifications */}
@@ -396,7 +391,7 @@ export const Navbar: React.FC = () => {
                                     onClick={() => setIsDropdownOpen(false)}
                                   >
                                     <FaUser className="h-4 w-4 mr-3 text-gray-400" />
-                                    <span>{t('navbar.profile')}</span>
+                                    <span>โปรไฟล์</span>
                                   </Link>
                                   <Link
                                     to={ROUTE_PATHS.RENTER_DASHBOARD}
@@ -404,7 +399,7 @@ export const Navbar: React.FC = () => {
                                     onClick={() => setIsDropdownOpen(false)}
                                   >
                                     <FaTachometerAlt className="h-4 w-4 mr-3 text-gray-400" />
-                                    <span>{t('navbar.renterDashboard')}</span>
+                                    <span>แดชบอร์ดผู้เช่า</span>
                                   </Link>
                                   <Link
                                     to={ROUTE_PATHS.OWNER_DASHBOARD}
@@ -412,7 +407,7 @@ export const Navbar: React.FC = () => {
                                     onClick={() => setIsDropdownOpen(false)}
                                   >
                                     <FaStore className="h-4 w-4 mr-3 text-gray-400" />
-                                    <span>{t('navbar.ownerDashboard')}</span>
+                                    <span>แดชบอร์ดเจ้าของ</span>
                                   </Link>
                                   <Link
                                     to={ROUTE_PATHS.CHAT_INBOX}
@@ -420,7 +415,7 @@ export const Navbar: React.FC = () => {
                                     onClick={() => setIsDropdownOpen(false)}
                                   >
                                     <FaComments className="h-4 w-4 mr-3 text-gray-400" />
-                                    <span>{t('navbar.chat')}</span>
+                                    <span>แชท</span>
                                   </Link>
                                   <Link
                                     to={ROUTE_PATHS.WISHLIST}
@@ -428,7 +423,7 @@ export const Navbar: React.FC = () => {
                                     onClick={() => setIsDropdownOpen(false)}
                                   >
                                     <FaHeart className="h-4 w-4 mr-3 text-gray-400" />
-                                    <span>{t('navbar.wishlist')}</span>
+                                    <span>รายการโปรด</span>
                                   </Link>
                                   <Link
                                     to={ROUTE_PATHS.USER_COMPLAINTS}
@@ -436,7 +431,7 @@ export const Navbar: React.FC = () => {
                                     onClick={() => setIsDropdownOpen(false)}
                                   >
                                     <FaExclamationTriangle className="h-4 w-4 mr-3 text-gray-400" />
-                                    <span>{t('navbar.myComplaints')}</span>
+                                    <span>เรื่องร้องเรียนของฉัน</span>
                                   </Link>
                                 </div>
 
@@ -447,7 +442,7 @@ export const Navbar: React.FC = () => {
                                   className="flex items-center w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150"
                                 >
                                   <FaSignOutAlt className="h-4 w-4 mr-3" />
-                                  <span>{t('navbar.logout')}</span>
+                                  <span>ออกจากระบบ</span>
                                 </button>
                               </div>
                             </motion.div>
@@ -470,14 +465,14 @@ export const Navbar: React.FC = () => {
                         size="sm"
                         className="hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
                       >
-                        {t('navbar.login')}
+                        เข้าสู่ระบบ
                       </Button>
                       <Button
                         onClick={() => navigate(ROUTE_PATHS.REGISTER)}
                         size="sm"
                         className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
                       >
-                        {t('navbar.register')}
+                        สมัครสมาชิก
                       </Button>
                     </motion.div>
                   )}
@@ -541,7 +536,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <FaHome className="h-5 w-5" />
-                {t('navbar.home')}
+                หน้าหลัก
               </Link>
               <Link
                 to={ROUTE_PATHS.SEARCH_PRODUCTS}
@@ -549,14 +544,14 @@ export const Navbar: React.FC = () => {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <FaSearch className="h-5 w-5" />
-                {t('navbar.allProducts')}
+                สินค้าทั้งหมด
               </Link>
               {user && (
                 <button
-                  onClick={() => { toggleChat(); setIsMobileMenuOpen(false); }}
+                  onClick={() => { toggleAgent(); setIsMobileMenuOpen(false); }}
                   className="text-gray-600 hover:bg-blue-50 hover:text-blue-600 block px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 flex items-center gap-3 w-full text-left"
                 >
-                  <FaRobot className="h-5 w-5" />
+                  <MessageCircle className="h-5 w-5 text-blue-600" />
                   AI Assistant
                 </button>
               )}
@@ -564,8 +559,6 @@ export const Navbar: React.FC = () => {
               {/* Language Switcher in Mobile Menu */}
               <div className="px-4 py-3 border-t border-gray-200 mt-2">
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700">{t('navbar.language')}:</span>
-                  <LanguageSwitcher />
                 </div>
               </div>
             </div>
@@ -578,13 +571,13 @@ export const Navbar: React.FC = () => {
                     variant="outline"
                     className="flex-1 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
                   >
-                    {t('navbar.login')}
+                    เข้าสู่ระบบ
                   </Button>
                   <Button
                     onClick={() => { navigate(ROUTE_PATHS.REGISTER); setIsMobileMenuOpen(false); }}
                     className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
                   >
-                    {t('navbar.register')}
+                    สมัครสมาชิก
                   </Button>
                 </div>
               </div>

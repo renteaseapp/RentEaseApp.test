@@ -34,7 +34,7 @@ class SocketService {
         // Fix for: Property 'env' does not exist on type 'ImportMeta'.
         // Use (import.meta as any).env to bypass TypeScript error.
         const apiUrl =
-          (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001';
+          (import.meta as any).env?.VITE_SOCKET_URL || 'https://renteaseapi2.onrender.com';
 
         this.socket = io(apiUrl, {
           auth: { token },
@@ -333,4 +333,4 @@ class SocketService {
   }
 }
 
-export const socketService = new SocketService(); 
+export const socketService = new SocketService();

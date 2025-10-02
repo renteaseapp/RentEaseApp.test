@@ -1,6 +1,6 @@
 import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+
 import { useAuth } from '../../contexts/AuthContext';
 import { getRentalDetails, createReview } from '../../services/rentalService';
 import { Rental, ReviewPayload, ApiError } from '../../types';
@@ -41,7 +41,6 @@ const StarIcon: React.FC<{ filled: boolean; onClick?: () => void; onMouseEnter?:
 );
 
 export const SubmitReviewPage: React.FC = () => {
-  const { t } = useTranslation('submitReviewPage');
   const { rentalId } = useParams<{ rentalId: string }>();
   const { user: authUser } = useAuth();
   const navigate = useNavigate();
@@ -63,15 +62,15 @@ export const SubmitReviewPage: React.FC = () => {
       setIsLoading(true);
       getRentalDetails(rentalId, authUser.id, 'renter')
         .then(setRental)
-        .catch(err => setError((err as ApiError).message || t('errors.loadFailed')))
+        .catch(err => setError((err as ApiError).message || "ไม่สามารถโหลดข้อมูลได้"))
         .finally(() => setIsLoading(false));
     }
-  }, [rentalId, authUser, t]);
+  }, [rentalId, authUser]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!rental || !authUser?.id || ratingProduct === 0 || ratingOwner === 0) {
-        setError(t('errors.provideRatings'));
+        setError("กรุณาให้คะแนนทั้งสินค้าและเจ้าของสินค้า");
         return;
     }
     setIsSubmitting(true);
@@ -92,10 +91,10 @@ export const SubmitReviewPage: React.FC = () => {
           rating_owner: payload.rating_owner,
           comment: payload.comment || ''
         });
-        setSuccessMessage(t('errors.submitSuccess'));
+        setSuccessMessage("ส่งรีวิวสำเร็จแล้ว");
         setTimeout(() => navigate(ROUTE_PATHS.MY_RENTALS_RENTER), 2000);
     } catch (err) {
-        setError((err as ApiError).message || t('errors.submitFailed'));
+        setError((err as ApiError).message || "ส่งรีวิวไม่สำเร็จ");
     } finally {
         setIsSubmitting(false);
     }
@@ -103,18 +102,18 @@ export const SubmitReviewPage: React.FC = () => {
 
   const getRatingText = (rating: number) => {
     switch (rating) {
-      case 1: return t('ratings.poor');
-      case 2: return t('ratings.fair');
-      case 3: return t('ratings.good');
-      case 4: return t('ratings.veryGood');
-      case 5: return t('ratings.excellent');
+      case 1: return "แย่";
+      case 2: return "พอใช้";
+      case 3: return "ดี";
+      case 4: return "ดีมาก";
+      case 5: return "ยอดเยี่ยม";
       default: return '';
     }
   };
 
   if (isLoading) return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center pt-20">
-      <LoadingSpinner message={t('loadingRental')} />
+      <LoadingSpinner message={"กำลังโหลดรายละเอียดการเช่า..."} />
     </div>
   );
   
@@ -123,8 +122,8 @@ export const SubmitReviewPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center pt-20">
       <div className="text-center p-8">
         <FaExclamationTriangle className="text-6xl text-red-400 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('rentalNotFound')}</h2>
-        <p className="text-gray-600">{t('rentalNotAccessible')}</p>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">{"ไม่พบรายละเอียดการเช่า"}</h2>
+        <p className="text-gray-600">{"ไม่สามารถเข้าถึงข้อมูลการเช่านี้ได้"}</p>
       </div>
     </div>
   );
@@ -143,9 +142,9 @@ export const SubmitReviewPage: React.FC = () => {
             <FaComment className="text-2xl text-white" />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            {t('title')}
+            {"ส่งรีวิว"}
           </h1>
-          <p className="text-gray-600 text-lg">{t('subtitle')}</p>
+          <p className="text-gray-600 text-lg">{"บอกเล่าประสบการณ์การเช่าของคุณ"}</p>
         </motion.div>
 
         {/* Main Content Card */}
@@ -162,11 +161,11 @@ export const SubmitReviewPage: React.FC = () => {
                 <FaBox className="text-2xl" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold mb-1">{t('reviewingRental')}</h2>
+                <h2 className="text-xl font-semibold mb-1">{"รีวิวการเช่าสินค้า"}</h2>
                 <p className="text-blue-100 text-lg">{rental.product?.title}</p>
                 <div className="flex items-center mt-2 text-blue-100">
                   <FaUser className="mr-2" />
-                  <span>{t('owner')}: {rental.owner?.first_name}</span>
+                  <span>{"เจ้าของ"}: {rental.owner?.first_name}</span>
                 </div>
               </div>
             </div>
@@ -185,7 +184,7 @@ export const SubmitReviewPage: React.FC = () => {
                   <div className="flex items-center">
                     <FaExclamationTriangle className="text-red-400 mr-3 text-xl" />
                     <div>
-                      <p className="text-red-800 font-medium">{t('error')}</p>
+                      <p className="text-red-800 font-medium">{"เกิดข้อผิดพลาด"}</p>
                       <p className="text-red-700">{error}</p>
                     </div>
                     <button 
@@ -211,7 +210,7 @@ export const SubmitReviewPage: React.FC = () => {
                   <div className="flex items-center">
                     <FaCheckCircle className="text-green-400 mr-3 text-xl" />
                     <div>
-                      <p className="text-green-800 font-medium">{t('success')}</p>
+                      <p className="text-green-800 font-medium">{"สำเร็จ"}</p>
                       <p className="text-green-700">{successMessage}</p>
                     </div>
                     <button 
@@ -241,8 +240,8 @@ export const SubmitReviewPage: React.FC = () => {
                       <FaBox className="text-white text-xl" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800">{t('rateProduct')}</h3>
-                      <p className="text-gray-600 text-sm">{t('rateProductDescription')}</p>
+                      <h3 className="text-lg font-semibold text-gray-800">{"ให้คะแนนสินค้า"}</h3>
+                      <p className="text-gray-600 text-sm">{"ให้คะแนนความพึงพอใจต่อสินค้าชิ้นนี้"}</p>
                     </div>
                   </div>
                   <div className="flex justify-center space-x-2">
@@ -279,8 +278,8 @@ export const SubmitReviewPage: React.FC = () => {
                       <FaUser className="text-white text-xl" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800">{t('rateOwner')}</h3>
-                      <p className="text-gray-600 text-sm">{t('rateOwnerDescription')}</p>
+                      <h3 className="text-lg font-semibold text-gray-800">{"ให้คะแนนเจ้าของสินค้า"}</h3>
+                      <p className="text-gray-600 text-sm">{"ให้คะแนนความพึงพอใจต่อบริการของเจ้าของสินค้า"}</p>
                     </div>
                   </div>
                   <div className="flex justify-center space-x-2">
@@ -317,8 +316,8 @@ export const SubmitReviewPage: React.FC = () => {
                       <FaComment className="text-white text-xl" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800">{t('shareExperience')}</h3>
-                      <p className="text-gray-600 text-sm">{t('shareExperienceDescription')}</p>
+                      <h3 className="text-lg font-semibold text-gray-800">{"แบ่งปันประสบการณ์"}</h3>
+                      <p className="text-gray-600 text-sm">{"เขียนคอมเมนต์เกี่ยวกับสินค้าและบริการ"}</p>
                     </div>
                   </div>
                   <textarea 
@@ -328,10 +327,10 @@ export const SubmitReviewPage: React.FC = () => {
                     value={comment}
                     onChange={e => setComment(e.target.value)}
                     className="w-full p-4 border border-green-200 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 resize-none"
-                    placeholder={t('commentPlaceholder')}
+                    placeholder={"เขียนรีวิวของคุณที่นี่ (ไม่บังคับ)..."}
                   />
                   <div className="flex items-center justify-between mt-3 text-sm text-gray-500">
-                    <span>{t('reviewHelpsCommunity')}</span>
+                    <span>{"รีวิวของคุณช่วยชุมชนได้"}</span>
                     <span>{comment.length}/500</span>
                   </div>
                 </motion.div>
@@ -350,12 +349,12 @@ export const SubmitReviewPage: React.FC = () => {
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                        <span>{t('submittingReview')}</span>
+                        <span>{"กำลังส่งรีวิว..."}</span>
                       </>
                     ) : (
                       <>
                         <FaCheckCircle className="text-xl" />
-                        <span>{t('submitReview')}</span>
+                        <span>{"ส่งรีวิว"}</span>
                       </>
                     )}
                   </button>
@@ -373,10 +372,10 @@ export const SubmitReviewPage: React.FC = () => {
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaCheckCircle className="text-4xl text-green-500" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">{t('reviewSubmitted')}</h3>
-                <p className="text-gray-600 mb-6">{t('thankYouMessage')}</p>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">{"ส่งรีวิวเรียบร้อยแล้ว"}</h3>
+                <p className="text-gray-600 mb-6">{"ขอบคุณสำหรับการแบ่งปันประสบการณ์ของคุณ"}</p>
                 <div className="flex items-center justify-center space-x-2 text-blue-600">
-                  <span>{t('redirectingToRentals')}</span>
+                  <span>{"กำลังนำทางไปที่หน้ารายการเช่า..."}</span>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                 </div>
               </motion.div>
@@ -394,15 +393,15 @@ export const SubmitReviewPage: React.FC = () => {
           <div className="flex items-center justify-center space-x-6">
             <div className="flex items-center space-x-2">
               <FaShieldAlt className="text-blue-400" />
-              <span className="text-sm">{t('securePrivate')}</span>
+              <span className="text-sm">{"ปลอดภัยและเป็นส่วนตัว"}</span>
             </div>
             <div className="flex items-center space-x-2">
               <FaSmile className="text-purple-400" />
-              <span className="text-sm">{t('helpOthers')}</span>
+              <span className="text-sm">{"ช่วยให้ผู้อื่นตัดสินใจได้ง่ายขึ้น"}</span>
             </div>
             <div className="flex items-center space-x-2">
               <FaHeart className="text-red-400" />
-              <span className="text-sm">{t('communityDriven')}</span>
+              <span className="text-sm">{"ชุมชนขับเคลื่อน"}</span>
             </div>
           </div>
         </motion.div>

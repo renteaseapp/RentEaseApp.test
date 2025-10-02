@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+
 import { 
   FaCheckCircle, 
   FaExclamationTriangle, 
@@ -9,7 +9,7 @@ import {
   FaTimes
 } from 'react-icons/fa';
 import { ProductAvailabilityStatus, ProductAdminApprovalStatus } from '../../types';
-import { getAvailabilityStatusColor, getAvailabilityStatusText, getAdminApprovalStatusColor, getAdminApprovalStatusText } from '../../utils/quantityHelpers';
+import { getAvailabilityStatusColor, getAdminApprovalStatusColor } from '../../utils/quantityHelpers';
 
 interface AvailabilityBadgeProps {
   status: ProductAvailabilityStatus | ProductAdminApprovalStatus | string;
@@ -26,7 +26,6 @@ export const AvailabilityBadge: React.FC<AvailabilityBadgeProps> = ({
   showIcon = true,
   className = ''
 }) => {
-  const { t } = useTranslation();
 
   const sizeClasses = {
     sm: 'text-xs px-2 py-1',
@@ -55,7 +54,7 @@ export const AvailabilityBadge: React.FC<AvailabilityBadgeProps> = ({
 
     if (type === 'admin') {
       const color = getAdminApprovalStatusColor(status);
-      const text = getAdminApprovalStatusText(status, t);
+      const text = status === 'approved' ? 'อนุมัติแล้ว' : status === 'pending' ? 'รอการตรวจสอบ' : status === 'rejected' ? 'ถูกปฏิเสธ' : status;
       const iconType = status === 'approved' ? 'check' : status === 'pending' ? 'clock' : 'warning';
       
       return {
@@ -65,8 +64,14 @@ export const AvailabilityBadge: React.FC<AvailabilityBadgeProps> = ({
       };
     } else {
       const color = getAvailabilityStatusColor(status);
-      const text = getAvailabilityStatusText(status, t);
-      
+      const text = status === 'available' ? 'พร้อมให้เช่า' :
+                   status === 'rented_out' ? 'ถูกเช่าหมดแล้ว' :
+                   status === 'unavailable' ? 'ไม่พร้อมให้เช่า' :
+                   status === 'pending_approval' ? 'รอการอนุมัติ' :
+                   status === 'draft' ? 'ร่าง' :
+                   status === 'rejected' ? 'ถูกปฏิเสธ' :
+                   status.replace('_', ' ').toUpperCase();
+
       let iconType = 'warning';
       switch (status) {
         case 'available': iconType = 'check'; break;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTE_PATHS } from '../../constants';
-import { useTranslation } from 'react-i18next';
+
 
 
 const FooterIconLink: React.FC<{ href: string, children: React.ReactNode, ariaLabel: string }> = ({ href, children, ariaLabel}) => (
@@ -30,7 +30,6 @@ const InstagramIcon = () => (
 
 
 export const Footer: React.FC = () => {
-  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -38,31 +37,31 @@ export const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">{t('footer.companyName')}</h3>
+            <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">RentEase</h3>
             <ul role="list" className="mt-4 space-y-4">
-              <li><Link to={ROUTE_PATHS.ABOUT_US} className="text-base text-gray-300 hover:text-white">{t('footer.about.aboutUs')}</Link></li>
+              <li><Link to={ROUTE_PATHS.ABOUT_US} className="text-base text-gray-300 hover:text-white">เกี่ยวกับเรา</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">{t('footer.support.title')}</h3>
+            <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">ช่วยเหลือ</h3>
             <ul role="list" className="mt-4 space-y-4">
-              <li><Link to={ROUTE_PATHS.FAQ} className="text-base text-gray-300 hover:text-white">{t('footer.support.faq')}</Link></li>
+              <li><Link to={ROUTE_PATHS.FAQ} className="text-base text-gray-300 hover:text-white">คำถามที่พบบ่อย</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">{t('footer.legal.title')}</h3>
+            <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">กฎหมาย</h3>
             <ul role="list" className="mt-4 space-y-4">
-              <li><Link to={ROUTE_PATHS.TERMS_OF_SERVICE} className="text-base text-gray-300 hover:text-white">{t('footer.legal.termsOfService')}</Link></li>
-              <li><Link to={ROUTE_PATHS.PRIVACY_POLICY} className="text-base text-gray-300 hover:text-white">{t('footer.legal.privacyPolicy')}</Link></li>
+              <li><Link to={ROUTE_PATHS.TERMS_OF_SERVICE} className="text-base text-gray-300 hover:text-white">ข้อตกลงการใช้บริการ</Link></li>
+              <li><Link to={ROUTE_PATHS.PRIVACY_POLICY} className="text-base text-gray-300 hover:text-white">นโยบายความเป็นส่วนตัว</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 mb-2">{t('footer.connect')}</h3>
-            <a href="mailto:rentease.com@gmail.com" className="text-gray-300 hover:text-blue-400 text-sm">{t('footer.contactEmail')}</a>
+            <h3 className="text-sm font-semibold text-gray-400 mb-2">ติดต่อเรา</h3>
+            <a href="mailto:rentease.com@gmail.com" className="text-gray-300 hover:text-blue-400 text-sm">rentease.com@gmail.com</a>
           </div>
         </div>
         <div className="mt-12 border-t border-gray-700 pt-8">
-          <p className="text-base text-gray-400 xl:text-center">{t('footer.copyright', { year: currentYear })}</p>
+          <p className="text-base text-gray-400 xl:text-center">© {currentYear} RentEase, Inc. สงวนลิขสิทธิ์.</p>
         </div>
       </div>
     </footer>

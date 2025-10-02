@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+
 import { motion } from 'framer-motion';
 import { FaShieldAlt, FaUser, FaBars } from 'react-icons/fa';
 import { AdminSidebar } from './AdminSidebar';
@@ -10,7 +10,6 @@ interface AdminLayoutProps {
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
-  const { t } = useTranslation();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
@@ -48,7 +47,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               <FaShieldAlt className="h-5 w-5 text-white" />
             </div>
             <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              {t('navbar.adminPanel')}
+              แผงผู้ดูแลระบบ
             </span>
           </div>
           

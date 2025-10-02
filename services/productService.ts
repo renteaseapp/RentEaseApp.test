@@ -1,6 +1,6 @@
 import { Product, Category, Province, ApiError, ProductAdminApprovalStatus, ProductAvailabilityStatus, ProductSearchParams, PaginatedResponse } from '../types';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from '../constants';
 
 export const getFeaturedProducts = async (limit: number = 8): Promise<{ data: Product[] }> => {
   try {
@@ -143,6 +143,73 @@ export const searchProducts = async (params: ProductSearchParams): Promise<Pagin
   }
 };
 
+// New function for location-based search
+export const searchProductsByLocation = async (lat: number, lng: number, radius_km: number = 50, params: ProductSearchParams = {}): Promise<PaginatedResponse<Product>> => {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    // Add location parameters
+    queryParams.append('lat', lat.toString());
+    queryParams.append('lng', lng.toString());
+    queryParams.append('radius_km', radius_km.toString());
+    
+    // Add other search parameters
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.category_id) queryParams.append('category_id', params.category_id.toString());
+    if (params.q) queryParams.append('q', params.q);
+    if (params.min_price) queryParams.append('min_price', params.min_price.toString());
+    if (params.max_price) queryParams.append('max_price', params.max_price.toString());
+    if (params.sort) queryParams.append('sort', params.sort);
+
+    const response = await fetch(`${API_BASE_URL}/products?${queryParams.toString()}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to search products by location');
+    }
+    
+    const responseData = await response.json();
+    console.log('API /products response:', responseData);
+
+    let products: Product[] = [];
+    let meta: any = {};
+    let links: any = {};
+
+    if (
+      responseData.data &&
+      Array.isArray(responseData.data.data) &&
+      responseData.data.meta
+    ) {
+      products = responseData.data.data;
+      meta = responseData.data.meta;
+      links = responseData.data.links || { first: null, last: null, prev: null, next: null };
+    } else {
+      throw new Error('Invalid response format from server: ' + JSON.stringify(responseData));
+    }
+
+    return {
+      data: products,
+      meta: {
+        current_page: meta.current_page || 1,
+        last_page: meta.last_page || 1,
+        per_page: meta.per_page || 10,
+        total: meta.total || 0,
+        from: meta.from || 0,
+        to: meta.to || 0
+      },
+      links: {
+        first: links.first || null,
+        last: links.last || null,
+        prev: links.prev || null,
+        next: links.next || null
+      }
+    };
+  } catch (error) {
+    console.error('Error searching products by location:', error);
+    throw error;
+  }
+};
+
 export const getPopularProducts = async (limit: number = 5): Promise<{ data: Product[] }> => {
   try {
     const response = await fetch(`${API_BASE_URL}/products/popular?limit=${limit}`);
@@ -209,10 +276,13 @@ export const getBufferTimeSettings = async (): Promise<{
     const responseData = await response.json();
     const settings = responseData.data || {};
     
+    // ใช้ field names ที่ถูกต้องตาม backend response structure
+    const bufferSettings = settings.buffer_settings || {};
+    
     return {
-      enabled: settings.enable_buffer_time === 'true',
-      delivery_buffer_days: parseInt(settings.delivery_buffer_days || '1'),
-      return_buffer_days: parseInt(settings.return_buffer_days || '1')
+      enabled: bufferSettings.enabled === true,
+      delivery_buffer_days: parseInt(bufferSettings.delivery_buffer_days || '1'),
+      return_buffer_days: parseInt(bufferSettings.return_buffer_days || '1')
     };
   } catch (error) {
     console.error('Error fetching buffer time settings:', error);
