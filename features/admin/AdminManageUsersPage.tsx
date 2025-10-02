@@ -103,9 +103,9 @@ export const AdminManageUsersPage: React.FC = () => {
     // Convert to string for comparison since the backend might send string values
     const status = String(user.id_verification_status);
     
-    if (status === UserIdVerificationStatus.APPROVED || status === 'approved') {
+    if (status === UserIdVerificationStatus.APPROVED || status === 'verified') {
       return 'ยืนยันแล้ว';
-    } else if (status === 'verified') { // Handle legacy string value
+    } else if (status === 'approved') { // Handle legacy string value
       return 'ยืนยันแล้ว';
     } else if (status === UserIdVerificationStatus.REJECTED || status === 'rejected') {
       return 'ถูกปฏิเสธ';

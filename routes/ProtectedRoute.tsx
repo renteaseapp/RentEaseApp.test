@@ -37,7 +37,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = () => {
   // Allow product detail dynamic route
   const isProductDetail = location.pathname.startsWith('/products/');
   const isAllowed = allowedIfNotVerified.some(path => location.pathname === path) || isProductDetail;
-  const isVerified = user.id_verification_status === UserIdVerificationStatus.APPROVED || String(user.id_verification_status) === 'verified';
+  const isVerified = user.id_verification_status === UserIdVerificationStatus.APPROVED || String(user.id_verification_status) === 'verified' || String(user.id_verification_status) === 'approved';
 
   if (!isVerified && !isAllowed) {
     return <Navigate to={ROUTE_PATHS.ID_VERIFICATION} replace state={{ from: location }} />;

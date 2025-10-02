@@ -1096,7 +1096,8 @@ export const ProductDetailPage: React.FC = () => {
                           
                           // ถ้า login แล้วแต่ยังไม่ได้ verify ID
                           if (authUser.id_verification_status !== UserIdVerificationStatus.APPROVED && 
-                              String(authUser.id_verification_status) !== 'verified') {
+                              String(authUser.id_verification_status) !== 'verified' &&
+                              String(authUser.id_verification_status) !== 'approved') {
                             alert("กรุณายืนยันตัวตนก่อนส่งคำขอเช่า");
                             navigate(ROUTE_PATHS.PROFILE);
                             return;

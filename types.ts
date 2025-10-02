@@ -242,7 +242,7 @@ export enum ProductAdminApprovalStatus {
 export enum UserIdVerificationStatus {
   NOT_SUBMITTED = 'not_submitted',
   PENDING = 'pending',
-  APPROVED = 'approved',
+  APPROVED = 'verified',
   REJECTED = 'rejected'
 }
 
