@@ -91,7 +91,7 @@ export const AdminManageUsersPage: React.FC = () => {
 
   // Helper function to check if user is verified (handles both 'approved' and 'verified' status values)
   const isUserVerified = (user: User) => {
-    return user.id_verification_status === 'approved' || String(user.id_verification_status) === 'verified';
+    return user.id_verification_status === UserIdVerificationStatus.APPROVED || String(user.id_verification_status) === 'verified' || String(user.id_verification_status) === 'approved';
   };
 
   // Helper function to get Thai verification status text

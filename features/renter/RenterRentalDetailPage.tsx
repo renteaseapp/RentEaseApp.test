@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getRentalDetails, cancelRental, initiateReturn, setActualPickupTime } from '../../services/rentalService';
@@ -88,16 +88,20 @@ export const RenterRentalDetailPage: React.FC = () => {
   // Real-time rental hook
   const { rental: realtimeRental, isConnected: isRealtimeConnected, setInitialRental } = useRealtimeRental({ rentalId: rentalId || '' });
 
+  // Use refs to track previous values to prevent unnecessary re-renders
+  const previousStatusRef = useRef<string | null>(null);
+  const previousPaymentStatusRef = useRef<string | null>(null);
+
   // Enhanced real-time rental updates with notifications
   useEffect(() => {
     if (realtimeRental && rental) {
-      const previousStatus = rental.rental_status;
-      const previousPaymentStatus = rental.payment_status;
+      const previousStatus = previousStatusRef.current;
+      const previousPaymentStatus = previousPaymentStatusRef.current;
       
       setRental(realtimeRental as unknown as Rental);
       
       // Show notifications for status changes
-      if (previousStatus !== realtimeRental.rental_status) {
+      if (previousStatus && previousStatus !== realtimeRental.rental_status) {
         const statusMessages: Record<string, string> = {
           [RentalStatus.CONFIRMED]: 'การเช่าได้รับการยืนยันแล้ว',
           [RentalStatus.ACTIVE]: 'การเช่ากำลังดำเนินอยู่',
@@ -119,7 +123,7 @@ export const RenterRentalDetailPage: React.FC = () => {
         }
       }
       
-      if (previousPaymentStatus !== realtimeRental.payment_status) {
+      if (previousPaymentStatus && previousPaymentStatus !== realtimeRental.payment_status) {
         const paymentMessages: Record<string, string> = {
           'pending_verification': 'สลิปการโอนเงินกำลังรอตรวจสอบ',
           'paid': 'การชำระเงินได้รับการยืนยันแล้ว',
@@ -136,8 +140,12 @@ export const RenterRentalDetailPage: React.FC = () => {
           setTimeout(() => setRealtimeNotification(prev => ({ ...prev, isVisible: false })), 5000);
         }
       }
+
+      // Update refs with current values for next comparison
+      previousStatusRef.current = realtimeRental.rental_status;
+      previousPaymentStatusRef.current = realtimeRental.payment_status;
     }
-  }, [realtimeRental, rental]);
+  }, [realtimeRental]);
 
   // Initial data fetch - only called once on mount
   const fetchRentalDetails = useCallback(async () => {
@@ -165,7 +173,7 @@ export const RenterRentalDetailPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [rentalId, user?.id, setInitialRental]);
+  }, [rentalId, user?.id]);
 
   // Socket connection management
   useEffect(() => {
@@ -173,17 +181,22 @@ export const RenterRentalDetailPage: React.FC = () => {
       socketService.connect(token);
       setIsSocketConnected(true);
       socketService.onProductUpdated((updatedProduct) => {
-        if (rental && updatedProduct.id === rental.product_id) {
-          setProductDetails(updatedProduct);
-          setRealtimeNotification({ isVisible: true, message: 'มีการอัปเดตรายละเอียดสินค้า', type: 'info' });
-          setTimeout(() => setRealtimeNotification(prev => ({ ...prev, isVisible: false })), 5000);
-        }
+        // Use current rental state without adding it to dependency array
+        setProductDetails(prevDetails => {
+          // Only update if the product matches current rental
+          if (rental && updatedProduct.id === rental.product_id) {
+            setRealtimeNotification({ isVisible: true, message: 'มีการอัปเดตรายละเอียดสินค้า', type: 'info' });
+            setTimeout(() => setRealtimeNotification(prev => ({ ...prev, isVisible: false })), 5000);
+            return updatedProduct;
+          }
+          return prevDetails;
+        });
       });
       return () => {
         socketService.off('product_updated');
       };
     }
-  }, [token, rental]);
+  }, [token]);
 
   // Initial data fetch - only once on mount
   useEffect(() => {
