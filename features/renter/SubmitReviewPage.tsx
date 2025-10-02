@@ -2,7 +2,7 @@ import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../contexts/AuthContext';
-import { getRentalDetails, createReview } from '../../services/rentalService';
+import { getRentalDetails, createReview, getReview, updateReview } from '../../services/rentalService';
 import { Rental, ReviewPayload, ApiError } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
@@ -20,7 +20,8 @@ import {
   FaComment,
   FaShieldAlt,
   FaSmile,
-  FaCamera
+  FaCamera,
+  FaEdit
 } from 'react-icons/fa';
 
 const StarIcon: React.FC<{ filled: boolean; onClick?: () => void; onMouseEnter?: () => void; onMouseLeave?: () => void; className?: string }> = 
@@ -46,6 +47,8 @@ export const SubmitReviewPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [rental, setRental] = useState<Rental | null>(null);
+  const [existingReview, setExistingReview] = useState<any>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,8 +63,24 @@ export const SubmitReviewPage: React.FC = () => {
   useEffect(() => {
     if (rentalId && authUser?.id) {
       setIsLoading(true);
-      getRentalDetails(rentalId, authUser.id, 'renter')
-        .then(setRental)
+      
+      // Load rental details and check for existing review
+      Promise.all([
+        getRentalDetails(rentalId, authUser.id, 'renter'),
+        getReview(parseInt(rentalId)).catch(() => null) // Don't throw error if no review exists
+      ])
+        .then(([rentalData, reviewData]) => {
+          setRental(rentalData);
+          
+          if (reviewData) {
+            setExistingReview(reviewData);
+            setIsEditMode(true);
+            // Pre-fill form with existing review data
+            setRatingProduct(reviewData.rating_product || 0);
+            setRatingOwner(reviewData.rating_owner || 0);
+            setComment(reviewData.comment || '');
+          }
+        })
         .catch(err => setError((err as ApiError).message || "ไม่สามารถโหลดข้อมูลได้"))
         .finally(() => setIsLoading(false));
     }
@@ -77,24 +96,28 @@ export const SubmitReviewPage: React.FC = () => {
     setError(null);
     setSuccessMessage(null);
 
-    const payload: ReviewPayload = {
-        rental_id: rental.id,
-        rating_product: ratingProduct,
-        rating_owner: ratingOwner,
-        comment: comment,
-    };
-
     try {
-        await createReview({
-          rental_id: payload.rental_id,
-          rating_product: payload.rating_product,
-          rating_owner: payload.rating_owner,
-          comment: payload.comment || ''
-        });
-        setSuccessMessage("ส่งรีวิวสำเร็จแล้ว");
+        if (isEditMode) {
+          // Update existing review
+          await updateReview(parseInt(rentalId!), {
+            rating_product: ratingProduct,
+            rating_owner: ratingOwner,
+            comment: comment
+          });
+          setSuccessMessage("แก้ไขรีวิวสำเร็จแล้ว");
+        } else {
+          // Create new review
+          await createReview({
+            rental_id: rental.id,
+            rating_product: ratingProduct,
+            rating_owner: ratingOwner,
+            comment: comment || ''
+          });
+          setSuccessMessage("ส่งรีวิวสำเร็จแล้ว");
+        }
         setTimeout(() => navigate(ROUTE_PATHS.MY_RENTALS_RENTER), 2000);
     } catch (err) {
-        setError((err as ApiError).message || "ส่งรีวิวไม่สำเร็จ");
+        setError((err as ApiError).message || (isEditMode ? "แก้ไขรีวิวไม่สำเร็จ" : "ส่งรีวิวไม่สำเร็จ"));
     } finally {
         setIsSubmitting(false);
     }
@@ -139,12 +162,14 @@ export const SubmitReviewPage: React.FC = () => {
           className="text-center mb-8"
         >
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
-            <FaComment className="text-2xl text-white" />
+            {isEditMode ? <FaEdit className="text-2xl text-white" /> : <FaComment className="text-2xl text-white" />}
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            {"ส่งรีวิว"}
+            {isEditMode ? "แก้ไขรีวิว" : "ส่งรีวิว"}
           </h1>
-          <p className="text-gray-600 text-lg">{"บอกเล่าประสบการณ์การเช่าของคุณ"}</p>
+          <p className="text-gray-600 text-lg">
+            {isEditMode ? "แก้ไขประสบการณ์การเช่าของคุณ" : "บอกเล่าประสบการณ์การเช่าของคุณ"}
+          </p>
         </motion.div>
 
         {/* Main Content Card */}
@@ -161,7 +186,9 @@ export const SubmitReviewPage: React.FC = () => {
                 <FaBox className="text-2xl" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold mb-1">{"รีวิวการเช่าสินค้า"}</h2>
+                <h2 className="text-xl font-semibold mb-1">
+                  {isEditMode ? "แก้ไขรีวิวการเช่าสินค้า" : "รีวิวการเช่าสินค้า"}
+                </h2>
                 <p className="text-blue-100 text-lg">{rental.product?.title}</p>
                 <div className="flex items-center mt-2 text-blue-100">
                   <FaUser className="mr-2" />
@@ -349,12 +376,12 @@ export const SubmitReviewPage: React.FC = () => {
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                        <span>{"กำลังส่งรีวิว..."}</span>
+                        <span>{isEditMode ? "กำลังแก้ไขรีวิว..." : "กำลังส่งรีวิว..."}</span>
                       </>
                     ) : (
                       <>
-                        <FaCheckCircle className="text-xl" />
-                        <span>{"ส่งรีวิว"}</span>
+                        {isEditMode ? <FaEdit className="text-xl" /> : <FaCheckCircle className="text-xl" />}
+                        <span>{isEditMode ? "บันทึกการแก้ไข" : "ส่งรีวิว"}</span>
                       </>
                     )}
                   </button>
@@ -372,7 +399,9 @@ export const SubmitReviewPage: React.FC = () => {
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaCheckCircle className="text-4xl text-green-500" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">{"ส่งรีวิวเรียบร้อยแล้ว"}</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  {isEditMode ? "แก้ไขรีวิวเรียบร้อยแล้ว" : "ส่งรีวิวเรียบร้อยแล้ว"}
+                </h3>
                 <p className="text-gray-600 mb-6">{"ขอบคุณสำหรับการแบ่งปันประสบการณ์ของคุณ"}</p>
                 <div className="flex items-center justify-center space-x-2 text-blue-600">
                   <span>{"กำลังนำทางไปที่หน้ารายการเช่า..."}</span>

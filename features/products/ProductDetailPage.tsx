@@ -1172,7 +1172,7 @@ export const ProductDetailPage: React.FC = () => {
                     transition={{ duration: 0.5, delay: 0.5 }}
                   >
                     <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200 shadow-sm">
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-col gap-4">
                         <button
                           onClick={handleViewOwnerProfile}
                           className="flex items-center gap-4 hover:scale-105 transition-transform duration-200 cursor-pointer"
@@ -1214,33 +1214,35 @@ export const ProductDetailPage: React.FC = () => {
                             </p>
                           </div>
                         </button>
-                        {product.owner.id !== authUser?.id ? (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
-                            onClick={() => {
-                              // ถ้าไม่ได้ login ให้ redirect ไปหน้า login
-                              if (!authUser) {
-                                navigate(ROUTE_PATHS.LOGIN);
-                                return;
-                              }
-                              
-                              // ถ้า login แล้วให้ทำงานปกติ
-                              handleContactOwner();
-                            }}
-                            disabled={contactingOwner}
-                            isLoading={contactingOwner}
-                          >
-                            <FaComments className="w-4 h-4 mr-2" />
-                            {!authUser ? "เข้าสู่ระบบเพื่อติดต่อ" : "ติดต่อเจ้าของ"}
-                          </Button>
-                        ) : (
-                          <div className="text-sm text-gray-400 text-center">
-                            <FaUser className="w-5 h-5 mx-auto mb-1" />
-                            {"ไม่สามารถแชทกับสินค้าของตัวเองได้"}
-                          </div>
-                        )}
+                        <div className="flex justify-center">
+                          {product.owner.id !== authUser?.id ? (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                              onClick={() => {
+                                // ถ้าไม่ได้ login ให้ redirect ไปหน้า login
+                                if (!authUser) {
+                                  navigate(ROUTE_PATHS.LOGIN);
+                                  return;
+                                }
+                                
+                                // ถ้า login แล้วให้ทำงานปกติ
+                                handleContactOwner();
+                              }}
+                              disabled={contactingOwner}
+                              isLoading={contactingOwner}
+                            >
+                              <FaComments className="w-4 h-4 mr-2" />
+                              {!authUser ? "เข้าสู่ระบบเพื่อติดต่อ" : "ติดต่อเจ้าของ"}
+                            </Button>
+                          ) : (
+                            <div className="text-sm text-gray-400 text-center">
+                              <FaUser className="w-5 h-5 mx-auto mb-1" />
+                              {"ไม่สามารถแชทกับสินค้าของตัวเองได้"}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </motion.div>
