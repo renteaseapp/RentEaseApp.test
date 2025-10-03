@@ -64,10 +64,12 @@ export const AdminManageProductsPage: React.FC = () => {
   
   // Client-side filtering
   if (search) {
+    const q = search.toLowerCase().trim();
     products = products.filter(
       p =>
-        p.title.toLowerCase().includes(search.toLowerCase()) ||
-        String(p.owner_id).includes(search)
+        p.title.toLowerCase().includes(q) ||
+        String(p.id).includes(q) ||
+        String(p.owner_id).includes(q)
     );
   }
 
@@ -204,11 +206,11 @@ export const AdminManageProductsPage: React.FC = () => {
           <input
             type="text"
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-            placeholder="ค้นหาด้วยชื่อสินค้าหรือ ID เจ้าของ..."
-            value={searchInput}
-            onChange={e => setSearchInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') setSearch(searchInput); }}
-          />
+                    placeholder="ค้นหาด้วยชื่อสินค้า, ID สินค้า หรือ ID เจ้าของ..."
+                    value={searchInput}
+                    onChange={e => setSearchInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') setSearch(searchInput); }}
+                  />
                 </div>
               </div>
 
@@ -305,8 +307,25 @@ export const AdminManageProductsPage: React.FC = () => {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-10 w-10">
-                                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                                  <FaBox className="h-5 w-5 text-white" />
+                                <div className="relative flex-shrink-0 h-10 w-10">
+                                  <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                                    <FaBox className="h-5 w-5 text-white" />
+                                  </div>
+                                  {(() => {
+                                    const imageUrl =
+                                      product.primary_image?.image_url ||
+                                      product.images?.find(img => img.is_primary)?.image_url ||
+                                      product.images?.[0]?.image_url;
+                                    return imageUrl ? (
+                                      <img
+                                        src={imageUrl}
+                                        alt={product.title}
+                                        className="absolute inset-0 h-10 w-10 rounded-full object-cover"
+                                        loading="lazy"
+                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                      />
+                                    ) : null;
+                                  })()}
                                 </div>
                               </div>
                               <div className="ml-4">

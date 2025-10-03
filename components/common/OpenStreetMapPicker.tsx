@@ -45,7 +45,7 @@ const MapClickHandler: React.FC<{
   onLocationSelect: (location: Location) => void;
   setSelectedLocation: (location: Location) => void;
 }> = ({ onLocationSelect, setSelectedLocation }) => {
-  const map = useMapEvents({
+  useMapEvents({
     click: async (e) => {
       const { lat, lng } = e.latlng;
       
@@ -190,7 +190,7 @@ export const OpenStreetMapPicker: React.FC<OpenStreetMapPickerProps> = ({
             setIsLoading(false);
           }
         },
-        (error) => {
+        () => {
           setIsLoading(false);
           alert('ไม่สามารถเข้าถึงตำแหน่งปัจจุบันได้');
         }

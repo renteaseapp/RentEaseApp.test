@@ -75,15 +75,25 @@ const AppContent: React.FC = () => {
     setupGlobalErrorHandling();
   }, []);
   const location = useLocation();
+  React.useEffect(() => {
+    // Scroll to top on route change
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
   const noFooterPaths = [
     ROUTE_PATHS.CHAT_ROOM,
     '/admin', // Hide footer on all admin pages
   ];
   const shouldShowFooter = !noFooterPaths.some(path => location.pathname.startsWith(path.split('/:')[0]));
 
+  // Hide Navbar on all admin pages
+  const noNavbarPaths = [
+    '/admin',
+  ];
+  const shouldShowNavbar = !noNavbarPaths.some(path => location.pathname.startsWith(path.split('/:')[0]));
+
   return (
           <div className="flex flex-col min-h-screen">
-            <Navbar />
+            {shouldShowNavbar && <Navbar />}
             <SuspendedUserPopup />
             <AIAgentWidget />
             <RealtimeNotification />

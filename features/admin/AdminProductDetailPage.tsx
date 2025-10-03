@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { adminGetProducts, adminApproveProduct } from '../../services/adminService';
 import { Product, ApiError, ProductAdminApprovalStatus } from '../../types';
@@ -9,7 +9,6 @@ import { ROUTE_PATHS } from '../../constants';
 import { Button } from '../../components/ui/Button';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { motion } from 'framer-motion';
-
 import { 
   FaBox, 
   FaArrowLeft, 
@@ -29,6 +28,7 @@ import {
   FaInfoCircle,
   FaEye
 } from 'react-icons/fa';
+import { getProductByID } from '../../services/productService';
 
 export const AdminProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -39,6 +39,21 @@ export const AdminProductDetailPage: React.FC = () => {
   const [approvalStatus, setApprovalStatus] = useState('');
   const [approvalNotes, setApprovalNotes] = useState('');
 
+  const [imageError, setImageError] = useState(false);
+  const imageUrl = useMemo(() => {
+    if (!product) return '';
+    return (
+      product.primary_image?.image_url ??
+      product.images?.find(img => img.is_primary)?.image_url ??
+      product.images?.[0]?.image_url ??
+      ''
+    );
+  }, [product]);
+
+  useEffect(() => {
+    // รีเซ็ตสถานะ error เมื่อ URL รูปเปลี่ยน เพื่อให้ลองโหลดใหม่อีกครั้ง
+    setImageError(false);
+  }, [imageUrl]);
   const fetchProduct = () => {
     if (productId) {
       setIsLoading(true);
@@ -48,6 +63,22 @@ export const AdminProductDetailPage: React.FC = () => {
           setProduct(found || null);
           setApprovalStatus(found?.admin_approval_status || '');
           setApprovalNotes((found as any)?.admin_approval_notes || '');
+          // Load full product details (including images) using public product endpoint
+          if (found?.id) {
+            return getProductByID(found.id)
+              .then(response => {
+                const full = response.data;
+                setProduct(full);
+                // Sync approval fields if present in full detail
+                if (full.admin_approval_status) setApprovalStatus(full.admin_approval_status);
+                if ((full as any).admin_approval_notes !== undefined) {
+                  setApprovalNotes((full as any).admin_approval_notes || '');
+                }
+              })
+              .catch(() => {
+                // ถ้าโหลดรายละเอียดเต็มล้มเหลว ก็ยังคงข้อมูลพื้นฐานจาก adminGetProducts ต่อไป
+              });
+          }
         })
         .catch(err => setError((err as ApiError).message || 'โหลดสินค้าล้มเหลว'))
         .finally(() => setIsLoading(false));
@@ -198,6 +229,27 @@ export const AdminProductDetailPage: React.FC = () => {
                       <h2 className="text-xl font-bold text-gray-800">ข้อมูลสินค้า</h2>
                     </div>
                     
+                    {/* Product Image Preview */}
+                    <div className="mb-6">
+                      <div className="flex items-center gap-3 mb-3">
+                        <FaImage className="h-5 w-5 text-blue-600" />
+                        <h3 className="text-lg font-semibold text-gray-800">รูปสินค้า</h3>
+                      </div>
+                      {imageUrl && !imageError ? (
+                        <img
+                          src={imageUrl}
+                          alt={product.title}
+                          loading="lazy"
+                          onError={() => setImageError(true)}
+                          className="w-full max-w-xl max-h-96 h-auto object-cover rounded-xl border border-gray-200 shadow-md"
+                        />
+                      ) : (
+                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-500">
+                          ไม่มีรูปภาพสินค้า
+                        </div>
+                      )}
+                    </div>
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div className="flex items-center gap-3">
@@ -321,25 +373,41 @@ export const AdminProductDetailPage: React.FC = () => {
                       </div>
                       
                       <div className="space-y-3">
-                        <Button 
-                          variant="primary" 
-                          disabled={isSubmitting} 
-                          onClick={() => handleApprove('approved' as ProductAdminApprovalStatus)}
-                          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
-                        >
-                          <FaCheck className="h-4 w-4 mr-2" />
-                          {isSubmitting ? 'กำลังประมวลผล...' : 'อนุมัติสินค้า'}
-                        </Button>
-                        
-                        <Button 
-                          variant="danger" 
-                          disabled={isSubmitting} 
-                          onClick={() => handleApprove('rejected' as ProductAdminApprovalStatus)}
-                          className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-                        >
-                          <FaTimes className="h-4 w-4 mr-2" />
-                          {isSubmitting ? 'กำลังประมวลผล...' : 'ปฏิเสธสินค้า'}
-                        </Button>
+                        {product.admin_approval_status === 'pending' ? (
+                          <>
+                            <Button 
+                              variant="primary" 
+                              disabled={isSubmitting} 
+                              onClick={() => handleApprove('approved' as ProductAdminApprovalStatus)}
+                              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                            >
+                              <FaCheck className="h-4 w-4 mr-2" />
+                              {isSubmitting ? 'กำลังประมวลผล...' : 'อนุมัติสินค้า'}
+                            </Button>
+                            <Button 
+                              variant="danger" 
+                              disabled={isSubmitting} 
+                              onClick={() => handleApprove('rejected' as ProductAdminApprovalStatus)}
+                              className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                            >
+                              <FaTimes className="h-4 w-4 mr-2" />
+                              {isSubmitting ? 'กำลังประมวลผล...' : 'ปฏิเสธสินค้า'}
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            {product.admin_approval_status === 'approved' && (
+                              <div className="w-full rounded-lg border border-green-200 bg-green-50 text-green-700 p-3 text-center">
+                                สินค้าถูกอนุมัติแล้ว
+                              </div>
+                            )}
+                            {product.admin_approval_status === 'rejected' && (
+                              <div className="w-full rounded-lg border border-red-200 bg-red-50 text-red-700 p-3 text-center">
+                                สินค้าถูกปฏิเสธแล้ว
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -358,19 +426,19 @@ export const AdminProductDetailPage: React.FC = () => {
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-blue-100">เงินประกัน</span>
-                        <span className="font-semibold">฿{product.security_deposit?.toLocaleString() || '0'}</span>
+                        <span className="font-semibold">฿{product.security_deposit !== undefined && product.security_deposit !== null ? product.security_deposit.toLocaleString() : 'ไม่มีข้อมูล'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-blue-100">จำนวนที่มี</span>
-                        <span className="font-semibold">{product.quantity_available || 'ไม่มีข้อมูล'}</span>
+                        <span className="font-semibold">{product.quantity_available ?? 'ไม่มีข้อมูล'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-blue-100">จำนวนวันเช่าขั้นต่ำ</span>
-                        <span className="font-semibold">{product.min_rental_duration_days || 'ไม่มีข้อมูล'}</span>
+                        <span className="font-semibold">{product.min_rental_duration_days ?? 'ไม่มีข้อมูล'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-blue-100">คะแนนเฉลี่ย</span>
-                        <span className="font-semibold">{product.average_rating ? `${product.average_rating}/5` : 'ไม่มีข้อมูล'}</span>
+                        <span className="font-semibold">{product.average_rating !== undefined && product.average_rating !== null ? `${product.average_rating}/5` : 'ไม่มีข้อมูล'}</span>
                       </div>
                     </div>
                   </CardContent>

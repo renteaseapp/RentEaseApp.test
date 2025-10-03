@@ -216,28 +216,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         ))}
       </nav>
 
-        {/* Language Settings */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="px-3 py-4 border-t border-gray-700"
-        >
-        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-          {!isCollapsed && (
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500">
-                <FaGlobe className="h-4 w-4 text-white" />
-              </div>
-              <span className="text-sm font-medium text-gray-300">
-                ภาษา
-              </span>
-            </div>
-          )}
-          <div className={`${isCollapsed ? 'w-full' : ''}`}>
-          </div>
-        </div>
-      </motion.div>
-
         {/* User Profile Section */}
         {!isCollapsed && user && (
           <motion.div
