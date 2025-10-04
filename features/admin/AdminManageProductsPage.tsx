@@ -269,7 +269,7 @@ export const AdminManageProductsPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
+            className="hidden md:block bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
           >
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -457,13 +457,136 @@ export const AdminManageProductsPage: React.FC = () => {
       </div>
           </motion.div>
 
+          {/* Mobile Products List */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="block md:hidden"
+          >
+            {products && products.length > 0 ? (
+              <div className="space-y-4">
+                {products.map((product, index) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="relative h-12 w-12 flex-shrink-0">
+                        <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                          <FaBox className="h-6 w-6 text-white" />
+                        </div>
+                        {(() => {
+                          const imageUrl =
+                            product.primary_image?.image_url ||
+                            product.images?.find(img => img.is_primary)?.image_url ||
+                            product.images?.[0]?.image_url;
+                          return imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={product.title}
+                              className="absolute inset-0 h-12 w-12 rounded-full object-cover"
+                              loading="lazy"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                          ) : null;
+                        })()}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-base font-semibold text-gray-900">{product.title}</div>
+                        <div className="text-sm text-gray-500">ID: {product.id}</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <div className="flex items-center text-sm text-gray-700">
+                        <FaUser className="h-4 w-4 text-gray-400 mr-2" />
+                        เจ้าของ: {product.owner_id}
+                      </div>
+                      <div className="flex items-center text-sm text-gray-700">
+                        <FaDollarSign className="h-4 w-4 text-gray-400 mr-2" />
+                        ฿{product.rental_price_per_day?.toLocaleString()}
+                      </div>
+                      <div className="col-span-2">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                          product.admin_approval_status === 'approved'
+                            ? 'bg-green-100 text-green-800 border border-green-200'
+                            : product.admin_approval_status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                            : 'bg-red-100 text-red-800 border border-red-200'
+                        }`}>
+                          {product.admin_approval_status === 'approved' ? (
+                            <>
+                              <FaCheckCircle className="h-3 w-3 mr-1" />
+                              อนุมัติแล้ว
+                            </>
+                          ) : product.admin_approval_status === 'pending' ? (
+                            <>
+                              <FaClock className="h-3 w-3 mr-1" />
+                              รอการตรวจสอบ
+                            </>
+                          ) : (
+                            <>
+                              <FaExclamationTriangle className="h-3 w-3 mr-1" />
+                              ถูกปฏิเสธ
+                            </>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Link
+                        to={ROUTE_PATHS.ADMIN_PRODUCT_DETAIL.replace(':productId', String(product.id))}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700"
+                      >
+                        <FaEye className="h-4 w-4" />
+                        ดู/แก้ไข
+                      </Link>
+                      {product.admin_approval_status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleApproval(product.id, 'approved' as ProductAdminApprovalStatus)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-green-600 text-white hover:bg-green-700"
+                          >
+                            <FaCheck className="h-4 w-4" />
+                            อนุมัติ
+                          </button>
+                          <button
+                            onClick={() => handleApproval(product.id, 'rejected' as ProductAdminApprovalStatus)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-red-600 text-white hover:bg-red-700"
+                          >
+                            <FaX className="h-4 w-4" />
+                            ปฏิเสธ
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 text-center">
+                <div className="flex flex-col items-center">
+                  <FaBox className="h-12 w-12 text-gray-300 mb-4" />
+                  <p className="text-lg font-medium">ไม่พบสินค้า</p>
+                  <p className="text-sm text-gray-500">ไม่มีสินค้าที่ตรงกับตัวกรองของคุณ</p>
+                </div>
+              </div>
+            )}
+          </motion.div>
+
           {/* Pagination */}
-      {hasPagination && (
+          {hasPagination && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
-              className="flex justify-between items-center mt-8 bg-white rounded-xl shadow-lg border border-gray-100 p-4"
+              className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 bg-white rounded-xl shadow-lg border border-gray-100 p-4"
             >
               <Button 
                 variant="outline" 

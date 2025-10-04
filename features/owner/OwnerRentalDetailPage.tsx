@@ -57,6 +57,7 @@ const getStatusThaiText = (status: string, type: 'rental' | 'payment' | 'deliver
         case 'unpaid': return 'ยังไม่ชำระ';
         case 'failed': return 'ชำระไม่สำเร็จ';
         case 'refunded': return 'คืนเงินแล้ว';
+        case 'partially_refunded': return 'คืนเงินบางส่วน';
         default: return status;
       }
     } else if (type === 'delivery_status') {

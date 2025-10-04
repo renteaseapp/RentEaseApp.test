@@ -289,7 +289,7 @@ export const AdminRentalManagementPage: React.FC = () => {
           >
             <Card>
               <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row items-center md:items-stretch gap-4">
                   {/* Search */}
                   <div className="flex-1">
                     <div className="relative">
@@ -349,11 +349,141 @@ export const AdminRentalManagementPage: React.FC = () => {
             </Card>
           </motion.div>
 
+          {/* Mobile Rentals List (สำหรับหน้าจอเล็ก) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="block md:hidden"
+          >
+            <Card>
+              <CardContent className="p-4">
+                {rentals.length > 0 ? (
+                  <div className="space-y-4">
+                    <AnimatePresence>
+                      {rentals.map((rental) => {
+                        const statusInfo = RENTAL_STATUS_MAP[rental.rental_status as keyof typeof RENTAL_STATUS_MAP] || 
+                          { label: rental.rental_status, color: 'bg-gray-100 text-gray-800', icon: FaClock };
+                        const paymentInfo = PAYMENT_STATUS_MAP[rental.payment_status as keyof typeof PAYMENT_STATUS_MAP] ||
+                          { label: 'ไม่ทราบสถานะ', color: 'bg-gray-100 text-gray-800' };
+                        const StatusIcon = statusInfo.icon;
+
+                        return (
+                          <motion.div
+                            key={rental.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                            className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="flex-shrink-0 h-14 w-14">
+                                {rental.product.primary_image?.image_url ? (
+                                  <img
+                                    className="h-14 w-14 rounded-lg object-cover"
+                                    src={rental.product.primary_image.image_url}
+                                    alt={rental.product.title}
+                                  />
+                                ) : (
+                                  <div className="h-14 w-14 rounded-lg bg-gray-200 flex items-center justify-center">
+                                    <FaBox className="h-6 w-6 text-gray-400" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <div className="text-sm font-semibold text-gray-900">
+                                    #{rental.rental_uid}
+                                  </div>
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                                    <StatusIcon className="mr-1 h-3 w-3" />
+                                    {statusInfo.label}
+                                  </span>
+                                </div>
+                                <div className="mt-1 text-sm text-gray-700">
+                                  {rental.product.title}
+                                </div>
+                                <div className="mt-2 grid grid-cols-2 gap-2">
+                                  <div className="text-xs text-gray-600 flex items-center">
+                                    <FaUser className="h-3 w-3 mr-1 text-gray-400" /> ผู้เช่า: {rental.renter.first_name} {rental.renter.last_name}
+                                  </div>
+                                  <div className="text-xs text-gray-600 flex items-center">
+                                    <FaUser className="h-3 w-3 mr-1 text-gray-400" /> เจ้าของ: {rental.owner.first_name} {rental.owner.last_name}
+                                  </div>
+                                </div>
+                                <div className="mt-2 flex items-center justify-between">
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${paymentInfo.color}`}>
+                                    {paymentInfo.label}
+                                  </span>
+                                  <div className="text-sm text-gray-900">
+                                    {formatCurrency(rental.total_amount_due)}
+                                  </div>
+                                </div>
+                                <div className="mt-1 text-xs text-gray-500">
+                                  สร้างเมื่อ: {formatDate(rental.created_at)}
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  !isLoading && (
+                    <div className="text-center py-8">
+                      <FaShoppingCart className="mx-auto h-10 w-10 text-gray-400" />
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">ไม่พบข้อมูลการเช่า</h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {search || selectedStatus !== 'all'
+                          ? 'ลองเปลี่ยนเงื่อนไขการค้นหาหรือตัวกรอง'
+                          : 'ยังไม่มีรายการการเช่าในระบบ'}
+                      </p>
+                    </div>
+                  )
+                )}
+
+                {hasPagination && rentalsResponse?.meta && (
+                  <div className="mt-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="text-sm text-gray-700">
+                        แสดง {rentalsResponse.meta.from} ถึง {rentalsResponse.meta.to} จาก {rentalsResponse.meta.total} รายการ
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          onClick={() => setPage(page - 1)}
+                          disabled={page <= 1}
+                          variant="outline"
+                          size="sm"
+                        >
+                          ก่อนหน้า
+                        </Button>
+                        <span className="text-sm text-gray-700">
+                          หน้า {page} จาก {rentalsResponse.meta.last_page}
+                        </span>
+                        <Button
+                          onClick={() => setPage(page + 1)}
+                          disabled={page >= rentalsResponse.meta.last_page}
+                          variant="outline"
+                          size="sm"
+                        >
+                          ถัดไป
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {/* Rentals Table */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
+            className="hidden md:block"
           >
             <Card>
               <CardContent className="p-0">

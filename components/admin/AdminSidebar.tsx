@@ -45,7 +45,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     if (onMobileToggle) {
       onMobileToggle(false);
     }
-  }, [location.pathname, onMobileToggle]);
+  }, [location.pathname]);
   
   // Handle escape key to close mobile sidebar
   useEffect(() => {

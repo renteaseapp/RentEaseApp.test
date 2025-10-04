@@ -418,12 +418,12 @@ export const AdminManageCategoriesPage: React.FC = () => {
             )}
           </AnimatePresence>
 
-          {/* Categories Table */}
+          {/* Categories Table (Desktop) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
+            className="hidden md:block bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
           >
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -568,6 +568,94 @@ export const AdminManageCategoriesPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+          </motion.div>
+
+          {/* Mobile Categories List */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="block md:hidden bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
+          >
+            {filteredCategories && filteredCategories.length > 0 ? (
+              <div className="p-4 space-y-4">
+                {filteredCategories.map((category, index) => (
+                  <motion.div
+                    key={category.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="rounded-xl border border-gray-100 shadow-sm p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-orange-500 to-yellow-600 flex items-center justify-center">
+                          <FaTags className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-base font-semibold text-gray-800">{category.name}</div>
+                          <div className="text-sm text-gray-500">ID: {category.id}</div>
+                        </div>
+                      </div>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
+                        category.is_active 
+                          ? 'bg-green-100 text-green-800 border-green-200' 
+                          : 'bg-red-100 text-red-800 border-red-200'
+                      }`}>
+                        {category.is_active ? (
+                          <>
+                            <FaCheck className="h-3 w-3 mr-1" />
+                            {"ใช้งาน"}
+                          </>
+                        ) : (
+                          <>
+                            <FaEyeSlash className="h-3 w-3 mr-1" />
+                            {"ถูกซ่อน"}
+                          </>
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-mono bg-gray-100 text-gray-700 px-2 py-1 rounded">Slug: {category.slug}</span>
+                    </div>
+
+                    {category.description && (
+                      <p className="mt-3 text-sm text-gray-600">{category.description}</p>
+                    )}
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Button 
+                        size="sm"
+                        onClick={() => handleEdit(category)}
+                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                      >
+                        <FaEdit className="h-4 w-4 mr-2" />
+                        {"แก้ไข"}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleDelete(category)}
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                      >
+                        <FaTrash className="h-4 w-4 mr-2" />
+                        {"ลบ"}
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-gray-400">
+                <div className="flex flex-col items-center">
+                  <FaTags className="h-12 w-12 text-gray-300 mb-4" />
+                  <p className="text-lg font-medium">{"ไม่พบหมวดหมู่"}</p>
+                  <p className="text-sm text-gray-500">{"ไม่พบหมวดหมู่ที่ตรงกับเกณฑ์การค้นหา/ตัวกรอง"}</p>
+                </div>
+              </div>
+            )}
           </motion.div>
         </div>
       </div>

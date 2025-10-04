@@ -270,11 +270,124 @@ const AdminLogsPage: React.FC = () => {
             </motion.div>
           )}
 
+          {/* Mobile Card List Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="block md:hidden"
+          >
+            {logs && logs.length > 0 ? (
+              <div className="space-y-4">
+                {logs.map((log) => {
+                  const details = parseDetails(log.details);
+                  return (
+                    <Card key={log.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-sm text-gray-900">
+                            <FaCalendarAlt className="w-4 h-4 text-blue-500" />
+                            {formatDate(log.created_at)}
+                          </div>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800">
+                            {getActionTypeLabel(log.action_type)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <FaUser className="h-8 w-8 text-gray-400" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {log.admin_user?.first_name} {log.admin_user?.last_name}
+                            </div>
+                            <div className="text-xs text-gray-500">@{log.admin_user?.username}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-sm text-gray-900">
+                          <FaCog className="w-4 h-4 text-gray-400" />
+                          <span>{getEntityTypeLabel(log.target_entity_type)}</span>
+                          {log.target_entity_id > 0 && (
+                            <span className="text-gray-500">(ID: {log.target_entity_id})</span>
+                          )}
+                        </div>
+
+                        <div className="text-sm text-gray-900">
+                          {details ? (
+                            <details className="cursor-pointer">
+                              <summary className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors duration-200">
+                                <FaEye className="w-4 h-4" />
+                                ดูรายละเอียด
+                              </summary>
+                              <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                                <pre className="text-xs text-gray-700 whitespace-pre-wrap">
+                                  {JSON.stringify(details, null, 2)}
+                                </pre>
+                              </div>
+                            </details>
+                          ) : (
+                            <span className="text-gray-400">ไม่มีรายละเอียด</span>
+                          )}
+                        </div>
+
+                        <div className="text-xs text-gray-500">
+                          {log.ip_address ? (
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              log.ip_address.includes('https://renteaseapi2.onrender.com') || log.ip_address === '::1' || log.ip_address === '127.0.0.1'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {log.ip_address}
+                            </span>
+                          ) : (
+                            '-'
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex flex-col items-center gap-2">
+                    <FaHistory className="w-12 h-12 text-gray-300" />
+                    <p className="text-lg">{loading ? 'กำลังโหลด...' : 'ไม่พบข้อมูล'}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {meta && (
+              <div className="mt-4 flex items-center justify-between">
+                <button
+                  onClick={() => handlePageChange(meta.current_page - 1)}
+                  disabled={meta.current_page <= 1}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                >
+                  ก่อนหน้า
+                </button>
+                <span className="text-sm text-gray-700">
+                  หน้า {meta.current_page} / {meta.last_page}
+                </span>
+                <button
+                  onClick={() => handlePageChange(meta.current_page + 1)}
+                  disabled={meta.current_page >= meta.last_page}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                >
+                  ถัดไป
+                </button>
+              </div>
+            )}
+          </motion.div>
+
           {/* Logs Table Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
+            className="hidden md:block"
           >
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg overflow-hidden">
               <CardContent className="p-0">
@@ -475,4 +588,4 @@ const AdminLogsPage: React.FC = () => {
   );
 };
 
-export default AdminLogsPage; 
+export default AdminLogsPage;

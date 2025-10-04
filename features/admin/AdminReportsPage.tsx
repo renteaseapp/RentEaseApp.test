@@ -359,7 +359,55 @@ export const AdminReportsPage: React.FC = () => {
                   </div>
                   <h2 className="text-xl font-bold text-gray-800">ชื่อเสียงของผู้ใช้</h2>
                 </div>
-                <div className="overflow-x-auto">
+                {/* Mobile Card List */}
+                <div className="block md:hidden">
+                  {reputations.length === 0 ? (
+                    <div className="text-center text-gray-400 py-12">
+                      <div className="flex flex-col items-center">
+                        <FaStar className="h-12 w-12 text-gray-300 mb-4" />
+                        <p className="text-lg font-medium">ไม่พบข้อมูล</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {reputations.map((r: any, index) => {
+                        let badgeColor = 'bg-green-100 text-green-800 border-green-200';
+                        if (r.avg_rating < 3) badgeColor = 'bg-red-100 text-red-700 border-red-200';
+                        else if (r.avg_rating < 4) badgeColor = 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                        
+                        return (
+                          <motion.div
+                            key={r.owner_id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                            className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="font-semibold text-gray-900">{r.owner_name || `เจ้าของ ${r.owner_id}`}</p>
+                                <p className="text-sm text-gray-600 mt-1">{r.owner_email || '-'}</p>
+                              </div>
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full border text-xs font-semibold ${badgeColor}`}>
+                                <FaStar className="h-3 w-3 mr-1" />
+                                {r.avg_rating.toFixed(1)}
+                              </span>
+                            </div>
+                            <div className="mt-3 flex gap-3">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full border text-xs font-semibold bg-blue-100 text-blue-700 border-blue-200">
+                                รีวิว {r.review_count}
+                              </span>
+                              <span className="inline-flex items-center px-3 py-1 rounded-full border text-xs font-semibold bg-purple-100 text-purple-700 border-purple-200">
+                                สินค้า {r.product_count}
+                              </span>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                <div className="hidden md:block overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                       <tr>
@@ -455,13 +503,13 @@ export const AdminReportsPage: React.FC = () => {
 
                 {/* Filter Controls */}
                 <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                  <div className="flex flex-wrap gap-4 items-center">
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 items-stretch sm:items-center">
                     <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <FaFilter className="h-4 w-4" />
                       กรองตาม:
                     </label>
                     <select
-                      className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white"
+                      className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white w-full sm:w-auto"
                       value={productFilterType}
                       onChange={e => setProductFilterType(e.target.value as any)}
                     >
@@ -473,24 +521,24 @@ export const AdminReportsPage: React.FC = () => {
                     {productFilterType === 'month' && (
                       <input
                         type="month"
-                        className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white"
+                        className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white w-full sm:w-auto"
                         value={productMonth}
                         onChange={e => setProductMonth(e.target.value)}
                       />
                     )}
                     
                     {productFilterType === 'dateRange' && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                         <input
                           type="date"
-                          className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white"
+                          className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white w-full sm:w-auto"
                           value={productStartDate}
                           onChange={e => setProductStartDate(e.target.value)}
                         />
                         <span className="text-gray-500">-</span>
                         <input
                           type="date"
-                          className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white"
+                          className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white w-full sm:w-auto"
                           value={productEndDate}
                           onChange={e => setProductEndDate(e.target.value)}
                         />
@@ -504,7 +552,7 @@ export const AdminReportsPage: React.FC = () => {
                         setProductFilterType('all');
                         setProductsReport(null);
                       }}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 w-full sm:w-auto justify-center"
                     >
                       <FaTimes className="h-4 w-4" />
                       ล้างตัวกรอง
@@ -521,7 +569,7 @@ export const AdminReportsPage: React.FC = () => {
                         productEndDate
                       )}
                       disabled={!productsReport || !productsReport.top_rented_products || productsReport.top_rented_products.length === 0}
-                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 flex items-center gap-2"
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 flex items-center gap-2 w-full sm:w-auto justify-center"
                     >
                       <FaFileExport className="h-4 w-4" />
                       ส่งออก CSV

@@ -327,7 +327,7 @@ export const AdminManageUsersPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
+            className="hidden md:block bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
           >
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -441,7 +441,7 @@ export const AdminManageUsersPage: React.FC = () => {
                                         className="flex items-center px-4 py-2 text-sm text-blue-700 hover:bg-blue-50 transition-colors" 
                                         onClick={() => setActionRow(null)}
                                       >
-                                        <FaEye className="h-4 w-4 mr-2" />
+                                        <FaEye className="h-4 w-4" />
                                         ดู/แก้ไข
                                       </Link>
                                       
@@ -450,7 +450,7 @@ export const AdminManageUsersPage: React.FC = () => {
                                           onClick={() => { handleBan(user); setActionRow(null); }} 
                                           className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                                         >
-                                          <FaBan className="h-4 w-4 mr-2" />
+                                          <FaBan className="h-4 w-4" />
                                           แบน
                                         </button>
                                       ) : (
@@ -458,7 +458,7 @@ export const AdminManageUsersPage: React.FC = () => {
                                           onClick={() => { handleUnban(user); setActionRow(null); }} 
                                           className="flex items-center w-full px-4 py-2 text-sm text-green-600 hover:bg-green-50 transition-colors"
                                         >
-                                          <FaCheck className="h-4 w-4 mr-2" />
+                                          <FaCheck className="h-4 w-4" />
                                           ปลดแบน
                                         </button>
                                       )}
@@ -493,13 +493,107 @@ export const AdminManageUsersPage: React.FC = () => {
       </div>
           </motion.div>
 
+          {/* Mobile Users List */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="block md:hidden"
+          >
+            {users && users.length > 0 ? (
+              <div className="space-y-4">
+                {users.map((user, index) => (
+                  <motion.div
+                    key={user.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                        <FaUser className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-gray-900">{user.first_name} {user.last_name}</div>
+                        <div className="text-xs text-gray-500">ID: {user.id}</div>
+                        <div className="mt-1 text-sm text-gray-700 flex items-center gap-2">
+                          <FaEnvelope className="h-4 w-4 text-gray-400" />
+                          <span>{user.email}</span>
+                        </div>
+                        <div className="text-xs text-gray-500">@{user.username}</div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                        user.is_active ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'
+                      }`}>
+                        {user.is_active ? (
+                          <>
+                            <FaUserCheck className="h-3 w-3 mr-1" />
+                            ใช้งานอยู่
+                          </>
+                        ) : (
+                          <>
+                            <FaUserTimes className="h-3 w-3 mr-1" />
+                            ไม่ใช้งาน
+                          </>
+                        )}
+                      </span>
+                      <div className="flex items-center text-sm text-gray-700">
+                        <FaIdCard className="h-4 w-4 text-gray-400 mr-2" />
+                        {getUserVerificationStatusText(user)}
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                      <Link 
+                        to={ROUTE_PATHS.ADMIN_USER_DETAIL.replace(':userId', String(user.id))}
+                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors font-medium"
+                        onClick={() => setActionRow(null)}
+                      >
+                        <FaEye className="h-4 w-4" />
+                        ดู/แก้ไข
+                      </Link>
+                      {user.is_active ? (
+                        <button
+                          onClick={() => { handleBan(user); }}
+                          className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 transition-colors font-medium"
+                        >
+                          <FaBan className="h-4 w-4" />
+                          แบน
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => { handleUnban(user); }}
+                          className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-green-600 bg-green-50 hover:bg-green-100 transition-colors font-medium"
+                        >
+                          <FaCheck className="h-4 w-4" />
+                          ปลดแบน
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 text-center">
+                <div className="flex flex-col items-center">
+                  <FaUsers className="h-12 w-12 text-gray-300 mb-4" />
+                  <p className="text-lg font-medium">ไม่พบผู้ใช้</p>
+                  <p className="text-sm text-gray-500">ไม่มีผู้ใช้ที่ตรงกับตัวกรองของคุณ</p>
+                </div>
+              </div>
+            )}
+          </motion.div>
+
           {/* Pagination */}
       {hasPagination && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
-              className="flex justify-between items-center mt-8 bg-white rounded-xl shadow-lg border border-gray-100 p-4"
+              className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 bg-white rounded-xl shadow-lg border border-gray-100 p-4"
             >
               <Button 
                 variant="outline" 

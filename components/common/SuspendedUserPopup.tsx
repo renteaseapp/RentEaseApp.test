@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { socketService } from '../../services/socketService';
 
 import { FaExclamationTriangle, FaEnvelope, FaUserLock, FaSignOutAlt } from 'react-icons/fa';
 
@@ -142,21 +143,27 @@ export const SuspendedUserPopup: React.FC = () => {
     };
   }, []);
 
-  // Refresh user data periodically to check for status changes (disabled when real-time works)
+  // Refresh user data periodically only when popup is visible (isSuspended)
   useEffect(() => {
-    // Skip periodic refresh if we have real-time updates working
-    if (!user && !isLoading) return;
-    
-    // Only refresh if socket connection fails or for backup
+    // Run periodic refresh only when popup is shown
+    if (!isSuspended) return;
+
     const interval = setInterval(async () => {
-      // Check if we have recent socket activity - if yes, skip refresh
+      // Skip refresh if socket is connected
+      const isSocketConnected = socketService.getConnectionStatus?.() ?? false;
+      if (isSocketConnected) {
+        console.log('🔌 Socket connected - skip periodic refresh');
+        return;
+      }
+
+      // Fallback: Check recent socket activity
       const lastSocketUpdate = localStorage.getItem('lastSocketUpdate');
       const now = Date.now();
       if (lastSocketUpdate && (now - parseInt(lastSocketUpdate)) < 30000) {
-        console.log('🔌 Socket is active - skipping periodic refresh');
+        console.log('🔌 Recent socket activity - skipping periodic refresh');
         return;
       }
-      
+
       console.log('🔄 Periodic refresh (socket inactive)');
       setIsRefreshing(true);
       try {
@@ -166,10 +173,10 @@ export const SuspendedUserPopup: React.FC = () => {
       } finally {
         setIsRefreshing(false);
       }
-    }, 30000); // Back to 30 seconds but only when socket is inactive
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, [user, refreshUserData, isLoading]);
+  }, [isSuspended, refreshUserData]);
 
   // Prevent body scrolling when popup is shown
   useEffect(() => {
