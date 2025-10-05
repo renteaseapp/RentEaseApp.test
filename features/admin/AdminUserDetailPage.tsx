@@ -4,6 +4,7 @@ import { User, ApiError, UserIdVerificationStatus, UserIdDocumentType } from '..
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { AdminLayout } from '../../components/admin/AdminLayout';
+import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import {
   FaUser,
@@ -39,9 +40,9 @@ import {
 
 
 export const AdminUserDetailPage: React.FC = () => {
-
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -91,14 +92,14 @@ export const AdminUserDetailPage: React.FC = () => {
   };
 
   const handleIdVerification = async (status: UserIdVerificationStatus) => {
-    if (!userId) return;
+    if (!userId || !user?.id) return;
     setIsProcessing(true);
     setProcessError(null);
     try {
       await adminUpdateUserIdVerification(Number(userId), {
         id_verification_status: status,
         id_verified_at: new Date().toISOString(),
-        id_verified_by_admin_id: 1 // TODO: ใช้ admin id จริงจาก context
+        id_verified_by_admin_id: user.id
       });
       fetchUser();
     } catch (err: any) {

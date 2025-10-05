@@ -8,6 +8,7 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { ROUTE_PATHS } from '../../constants';
 import { Button } from '../../components/ui/Button';
 import { AdminLayout } from '../../components/admin/AdminLayout';
+import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { 
   FaBox, 
@@ -32,6 +33,7 @@ import { getProductByID } from '../../services/productService';
 
 export const AdminProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
+  const { user } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -90,13 +92,13 @@ export const AdminProductDetailPage: React.FC = () => {
   }, [productId]);
 
   const handleApprove = async (status: ProductAdminApprovalStatus) => {
-    if (!productId) return;
+    if (!productId || !user?.id) return;
     setIsSubmitting(true);
     try {
       await adminApproveProduct(Number(productId), {
         admin_approval_status: status,
         admin_approval_notes: approvalNotes,
-        approved_by_admin_id: 1 // TODO: ใช้ admin id จริงจาก context
+        approved_by_admin_id: user.id
       });
       fetchProduct();
     } catch (err) {
