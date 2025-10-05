@@ -286,7 +286,7 @@ export const RenterDashboardPage: React.FC = () => {
                                     </div>
                                     <div className="flex items-center gap-1">
                                       <FaCalendarAlt className="h-3 w-3" />
-                                      {"สิ้นสุด"} {formatDate(rental.end_date!)}
+                                      {"ต้องคืน"} {formatDate(rental.end_date!)}
                                     </div>
                                   </div>
                                 </Link>

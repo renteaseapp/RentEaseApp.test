@@ -261,28 +261,37 @@ const ProductRentalCalendar: React.FC<ProductRentalCalendarProps> = ({ productId
         const yearMonth = moment(date).format('YYYY-MM');
         const rentalDetails = await getProductRentalDetails(productId, yearMonth);
         
-        const calendarEvents: RentalEvent[] = rentalDetails.map((rental: RentalData) => {
-          // --- !!! การแก้ไขสำคัญ !!! ---
-          // react-big-calendar จะไม่นับรวมวันสิ้นสุด (end date is exclusive)
-          // หากเช่าถึงวันที่ 7 ต้องบวกไป 1 วันเป็นวันที่ 8 เพื่อให้ช่องวันที่ 7 แสดงผล
-          const endDate = moment(rental.end_date).add(1, 'days').toDate();
+        // สร้าง events แยกแต่ละคน
+        const calendarEvents: RentalEvent[] = [];
+        rentalDetails.forEach((rental: RentalData) => {
+          const startDate = moment(rental.start_date);
+          const endDate = moment(rental.end_date);
           
-          return {
-            id: rental.id,
-            title: `${rental.users.first_name}`,
-            start: new Date(rental.start_date),
-            end: endDate,
-            resource: {
-              rentalId: rental.id,
-              renterName: `${rental.users.first_name} ${rental.users.last_name}`,
-              renterEmail: rental.users.email,
-              status: rental.rental_status,
-              totalPrice: rental.total_price,
-              quantity: rental.quantity || 0,
-              startDate: rental.start_date,
-              endDate: rental.end_date,
-            }
-          };
+          // สร้าง event สำหรับแต่ละวันในช่วงการเช่า
+          let currentDate = startDate.clone();
+          while (currentDate.isSameOrBefore(endDate)) {
+            const eventDate = currentDate.toDate();
+            const eventEndDate = currentDate.clone().add(1, 'day').toDate();
+            
+            calendarEvents.push({
+              id: `${rental.id}-${currentDate.format('YYYY-MM-DD')}`,
+              title: rental.users.first_name,
+              start: eventDate,
+              end: eventEndDate,
+              resource: {
+                rentalId: rental.id,
+                renterName: `${rental.users.first_name} ${rental.users.last_name}`,
+                renterEmail: rental.users.email,
+                status: rental.rental_status,
+                totalPrice: rental.total_price,
+                quantity: rental.quantity || 0,
+                startDate: rental.start_date,
+                endDate: rental.end_date
+              }
+            });
+            
+            currentDate.add(1, 'day');
+          }
         });
         
         // Create buffer events if buffer time is enabled
@@ -292,41 +301,57 @@ const ProductRentalCalendar: React.FC<ProductRentalCalendarProps> = ({ productId
             // Delivery buffer (before rental start)
             if (bufferTimeSettings.delivery_buffer_days > 0) {
               const deliveryBufferStart = moment(rental.start_date)
-                .subtract(bufferTimeSettings.delivery_buffer_days, 'days')
-                .toDate();
-              const deliveryBufferEnd = new Date(rental.start_date);
+                .subtract(bufferTimeSettings.delivery_buffer_days, 'days');
+              const deliveryBufferEnd = moment(rental.start_date);
               
-              bufferEventsArray.push({
-                id: `delivery-buffer-${rental.id}`,
-                title: 'Buffer (จัดส่ง)',
-                start: deliveryBufferStart,
-                end: deliveryBufferEnd,
-                resource: {
-                  type: 'delivery_buffer',
-                  relatedRentalId: rental.id,
-                  bufferDays: bufferTimeSettings.delivery_buffer_days
-                }
-              });
+              // สร้าง buffer event สำหรับแต่ละวัน
+              let currentDate = deliveryBufferStart.clone();
+              while (currentDate.isBefore(deliveryBufferEnd)) {
+                const eventDate = currentDate.toDate();
+                const eventEndDate = currentDate.clone().add(1, 'day').toDate();
+                
+                bufferEventsArray.push({
+                  id: `delivery-buffer-${rental.id}-${currentDate.format('YYYY-MM-DD')}`,
+                  title: 'Buffer (จัดส่ง)',
+                  start: eventDate,
+                  end: eventEndDate,
+                  resource: {
+                    type: 'delivery_buffer',
+                    relatedRentalId: rental.id,
+                    bufferDays: bufferTimeSettings.delivery_buffer_days
+                  }
+                });
+                
+                currentDate.add(1, 'day');
+              }
             }
             
             // Return buffer (after rental end)
             if (bufferTimeSettings.return_buffer_days > 0) {
-              const returnBufferStart = moment(rental.end_date).add(1, 'days').toDate();
+              const returnBufferStart = moment(rental.end_date).add(1, 'days');
               const returnBufferEnd = moment(rental.end_date)
-                .add(1 + bufferTimeSettings.return_buffer_days, 'days')
-                .toDate();
+                .add(1 + bufferTimeSettings.return_buffer_days, 'days');
               
-              bufferEventsArray.push({
-                id: `return-buffer-${rental.id}`,
-                title: 'Buffer (รับคืน)',
-                start: returnBufferStart,
-                end: returnBufferEnd,
-                resource: {
-                  type: 'return_buffer',
-                  relatedRentalId: rental.id,
-                  bufferDays: bufferTimeSettings.return_buffer_days
-                }
-              });
+              // สร้าง buffer event สำหรับแต่ละวัน
+              let currentDate = returnBufferStart.clone();
+              while (currentDate.isBefore(returnBufferEnd)) {
+                const eventDate = currentDate.toDate();
+                const eventEndDate = currentDate.clone().add(1, 'day').toDate();
+                
+                bufferEventsArray.push({
+                  id: `return-buffer-${rental.id}-${currentDate.format('YYYY-MM-DD')}`,
+                  title: 'Buffer (รับคืน)',
+                  start: eventDate,
+                  end: eventEndDate,
+                  resource: {
+                    type: 'return_buffer',
+                    relatedRentalId: rental.id,
+                    bufferDays: bufferTimeSettings.return_buffer_days
+                  }
+                });
+                
+                currentDate.add(1, 'day');
+              }
             }
           });
         }
@@ -386,10 +411,38 @@ const ProductRentalCalendar: React.FC<ProductRentalCalendarProps> = ({ productId
     
     // Regular rental event
     const rentalEvent = event as RentalEvent;
-    const { color } = getStatusInfo(rentalEvent.resource.status);
+    const status = rentalEvent.resource.status;
+    
+    // กำหนดสีให้ตรงกับ legend
+    let backgroundColor = '#9ca3af'; // default gray-400
+    let textColor = '#ffffff';
+    
+    switch (status) {
+      case 'confirmed':
+        backgroundColor = '#10b981'; // green-500
+        break;
+      case 'active':
+        backgroundColor = '#3b82f6'; // blue-500
+        break;
+      case 'completed':
+        backgroundColor = '#6b7280'; // gray-500
+        break;
+      case 'pending_payment':
+        backgroundColor = '#eab308'; // yellow-500
+        break;
+      case 'pending_owner_approval':
+        backgroundColor = '#f97316'; // orange-500
+        break;
+      case 'cancelled':
+        backgroundColor = '#ef4444'; // red-500
+        break;
+    }
+    
     return {
-      className: `${color} text-white border-none p-1 text-xs rounded-md cursor-pointer hover:opacity-80 transition-all duration-200 shadow-md`,
+      className: 'text-white border-none p-1 text-xs rounded-md cursor-pointer hover:opacity-80 transition-all duration-200 shadow-md',
       style: {
+        backgroundColor: backgroundColor,
+        color: textColor,
         fontSize: '11px',
         fontWeight: '600',
         zIndex: 1000
@@ -448,7 +501,7 @@ const ProductRentalCalendar: React.FC<ProductRentalCalendarProps> = ({ productId
                         time: 'เวลา',
                         event: 'กิจกรรม',
                         noEventsInRange: 'ไม่มีการเช่าในช่วงเวลานี้',
-                        showMore: (total: number) => `+${total} เพิ่มเติม`
+                        showMore: (total: number) => total > 3 ? `+${total - 3} เพิ่มเติม` : ''
                     }}
                   />
           </div>
@@ -533,7 +586,7 @@ const ProductRentalCalendar: React.FC<ProductRentalCalendarProps> = ({ productId
                         time: 'เวลา',
                         event: 'กิจกรรม',
                         noEventsInRange: 'ไม่มีการเช่าในช่วงเวลานี้',
-                        showMore: (total: number) => `+${total} เพิ่มเติม`
+                        showMore: (total: number) => total > 3 ? `+${total - 3} เพิ่มเติม` : ''
                     }}
                     className="h-[600px] md:h-[700px]"
                     popup
@@ -646,7 +699,12 @@ const ProductRentalCalendar: React.FC<ProductRentalCalendarProps> = ({ productId
                             <div className="space-y-3">
                               <div className="flex justify-between items-center">
                                 <span className="text-sm text-gray-600">ประเภท</span>
-                                <Badge className={bufferResource.type === 'delivery_buffer' ? 'bg-orange-500' : 'bg-purple-500'}>
+                                <Badge 
+                                  className="text-white"
+                                  style={{
+                                    backgroundColor: bufferResource.type === 'delivery_buffer' ? '#fb923c' : '#c084fc'
+                                  }}
+                                >
                                   {bufferResource.type === 'delivery_buffer' ? 'จัดส่ง' : 'รับคืน'}
                                 </Badge>
                               </div>
@@ -716,7 +774,23 @@ const ProductRentalCalendar: React.FC<ProductRentalCalendarProps> = ({ productId
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-gray-600">สถานะ</span>
-                          <Badge className={`${getStatusInfo(selectedEvent.resource.status).color} text-white`}>
+                          <Badge 
+                            className="text-white"
+                            style={{
+                              backgroundColor: (() => {
+                                const status = selectedEvent.resource.status;
+                                switch (status) {
+                                  case 'confirmed': return '#10b981'; // green-500
+                                  case 'active': return '#3b82f6'; // blue-500
+                                  case 'completed': return '#6b7280'; // gray-500
+                                  case 'pending_payment': return '#eab308'; // yellow-500
+                                  case 'pending_owner_approval': return '#f97316'; // orange-500
+                                  case 'cancelled': return '#ef4444'; // red-500
+                                  default: return '#9ca3af'; // gray-400
+                                }
+                              })()
+                            }}
+                          >
                               {getStatusInfo(selectedEvent.resource.status).text}
                           </Badge>
                         </div>

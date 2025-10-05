@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getRentalDetails, approveRentalRequest, rejectRentalRequest, markPaymentSlipInvalid, processReturn, verifySlipByImage, verifyRentalPayment, completeRentalDirectly } from '../../services/rentalService';
-import { Rental, ApiError, RentalReturnConditionStatus, PayoutMethod } from '../../types';
+import { Rental, ApiError, RentalReturnConditionStatus, PayoutMethod, RentalStatus } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { Button } from '../../components/ui/Button';
@@ -28,7 +28,7 @@ import {
   FaUser, FaCalendarAlt, FaTruck, FaMapMarkerAlt, FaTag, FaBox, FaCreditCard,
   FaArrowLeft, FaComments, FaClipboardCheck, FaInfoCircle, FaHourglassHalf, FaPaperPlane,
   FaCoins, FaShippingFast, FaIdCard, FaBuilding, FaMoneyBillWave, FaReceipt, FaFileInvoiceDollar,
-  FaWifi, FaShieldAlt
+  FaWifi, FaShieldAlt, FaEye, FaUndo
 } from 'react-icons/fa';
 
 // --- Helper function for Thai Status Text ---
@@ -66,7 +66,7 @@ const getStatusThaiText = (status: string, type: 'rental' | 'payment' | 'deliver
         case 'shipped': return 'จัดส่งแล้ว';
         case 'delivered': return 'ส่งมอบแล้ว';
         case 'failed': return 'ส่งไม่สำเร็จ';
-        case 'returned': return 'คืนแล้ว';
+        case 'completed': return 'คืนแล้ว';
         default: return status;
       }
     } else if (type === 'return_condition') {
@@ -117,7 +117,7 @@ const StatusBadge: React.FC<{ status: string; type: 'rental' | 'payment' | 'deli
         case 'shipped': return 'bg-blue-100 text-blue-800 border-blue-200';
         case 'delivered': return 'bg-green-100 text-green-800 border-green-200';
         case 'failed': return 'bg-red-100 text-red-800 border-red-200';
-        case 'returned': return 'bg-purple-100 text-purple-800 border-purple-200';
+        case 'completed': return 'bg-purple-100 text-purple-800 border-purple-200';
         default: return 'bg-gray-100 text-gray-800 border-gray-200';
       }
     } else if (type === 'return_condition') {
@@ -165,7 +165,7 @@ const StatusBadge: React.FC<{ status: string; type: 'rental' | 'payment' | 'deli
         case 'shipped': return <FaShippingFast className="h-3 w-3" />;
         case 'delivered': return <FaCheckCircle className="h-3 w-3" />;
         case 'failed': return <FaTimesCircle className="h-3 w-3" />;
-        case 'returned': return <FaBox className="h-3 w-3" />;
+        case 'completed': return <FaBox className="h-3 w-3" />;
         default: return <FaInfoCircle className="h-3 w-3" />;
       }
     } else if (type === 'return_condition') {
@@ -206,21 +206,81 @@ const SectionTitle: React.FC<{ icon: React.ReactNode; title: string }> = ({ icon
   </div>
 );
 
-// --- Tab Button Component ---
-type TabId = 'overview' | 'delivery_return' | 'payment_verification';
-const TabButton: React.FC<{ label: string; icon: React.ReactNode; isActive: boolean; onClick: () => void }> = ({ label, icon, isActive, onClick }) => {
+// --- New Step-based Tab System ---
+type StepTabId = 'step1_request' | 'step2_payment' | 'step3_delivery' | 'step4_usage' | 'step5_return';
+
+interface StepTabProps {
+  stepNumber: number;
+  title: string;
+  icon: React.ReactNode;
+  isActive: boolean;
+  isCompleted: boolean;
+  isDisabled: boolean;
+  onClick: () => void;
+}
+
+const StepTab: React.FC<StepTabProps> = ({ stepNumber, title, icon, isActive, isCompleted, isDisabled, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex items-center justify-center gap-2 p-3 sm:p-4 text-sm sm:text-base font-semibold rounded-t-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 ${
+      disabled={isDisabled}
+      className={`relative flex-1 flex flex-col items-center gap-2 p-4 text-sm font-semibold rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 ${
         isActive
-          ? 'bg-white text-blue-600 shadow-md border-b-2 border-blue-600'
-          : 'text-gray-500 hover:text-blue-600 hover:bg-white/60'
+          ? 'bg-blue-600 text-white shadow-lg transform scale-105'
+          : isCompleted
+          ? 'bg-green-100 text-green-800 border border-green-200 hover:bg-green-200'
+          : isDisabled
+          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          : 'bg-white text-gray-600 border border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200'
       }`}
     >
-      {icon}
-      <span className="hidden sm:inline">{label}</span>
+      {/* Step Number Badge */}
+      <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold ${
+        isActive
+          ? 'bg-white text-blue-600'
+          : isCompleted
+          ? 'bg-green-600 text-white'
+          : isDisabled
+          ? 'bg-gray-300 text-gray-500'
+          : 'bg-blue-100 text-blue-600'
+      }`}>
+        {isCompleted ? <FaCheckCircle className="w-4 h-4" /> : stepNumber}
+      </div>
+      
+      {/* Icon */}
+      <div className={`w-6 h-6 ${isActive ? 'text-white' : isCompleted ? 'text-green-600' : isDisabled ? 'text-gray-400' : 'text-gray-500'}`}>
+        {icon}
+      </div>
+      
+      {/* Title */}
+      <span className="text-center leading-tight">{title}</span>
+      
+      {/* Active indicator */}
+      {isActive && (
+        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-600 rounded-full"></div>
+      )}
     </button>
+  );
+};
+
+// --- Progress Indicator ---
+const ProgressIndicator: React.FC<{ currentStep: string; totalSteps: number }> = ({ currentStep, totalSteps }) => {
+  // Convert step string to number for progress calculation
+  const stepNumber = currentStep === 'step1_request' ? 1 :
+                    currentStep === 'step2_payment' ? 2 :
+                    currentStep === 'step3_delivery' ? 3 :
+                    currentStep === 'step4_usage' ? 4 :
+                    currentStep === 'step5_return' ? 5 : 1;
+                    
+  const progressPercentage = (stepNumber / totalSteps) * 100;
+  
+  return (
+    <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+      <div 
+        className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500 ease-out"
+        style={{ width: `${progressPercentage}%` }}
+      ></div>
+    </div>
   );
 };
 
@@ -269,10 +329,26 @@ export const OwnerRentalDetailPage: React.FC = () => {
     message: '',
     type: 'info'
   });
-  const [activeTab, setActiveTab] = useState<TabId>('overview');
+  // New step-based tab system
+  const [activeStep, setActiveStep] = useState<StepTabId>('step1_request');
   const { rental: realtimeRental, isConnected: isRealtimeConnected, setInitialRental } = useRealtimeRental({ rentalId: rentalId || '' });
 
-  // Enhanced real-time rental updates with notifications
+  // Auto-navigate to appropriate step based on rental status
+  useEffect(() => {
+    if (rental) {
+      if (rental.rental_status === 'pending_owner_approval') {
+        setActiveStep('step1_request');
+      } else if (rental.payment_status === 'pending_verification') {
+        setActiveStep('step2_payment');
+      } else if (rental.rental_status === 'confirmed' && rental.pickup_method === 'delivery') {
+        setActiveStep('step3_delivery');
+      } else if (rental.rental_status === 'active') {
+        setActiveStep('step4_usage');
+      } else if (rental.rental_status === 'return_pending') {
+        setActiveStep('step5_return');
+      }
+    }
+  }, [rental]);
   useEffect(() => {
     if (realtimeRental && rental) {
       const previousStatus = rental.rental_status;
@@ -652,16 +728,70 @@ export const OwnerRentalDetailPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            <div className="bg-gray-100 p-1 rounded-xl flex items-center gap-1 shadow-inner">
-              <TabButton label={"ภาพรวม"} icon={<FaInfoCircle />} isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
-              <TabButton label={"การจัดส่งและรับคืน"} icon={<FaTruck />} isActive={activeTab === 'delivery_return'} onClick={() => setActiveTab('delivery_return')} />
-              <TabButton label={"ตรวจสอบการชำระเงิน"} icon={<FaReceipt />} isActive={activeTab === 'payment_verification'} onClick={() => setActiveTab('payment_verification')} />
+            {/* Step-based Tabs */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-800">ขั้นตอนการจัดการ</h3>
+                <ProgressIndicator currentStep={activeStep} totalSteps={5} />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                <StepTab 
+                  stepNumber={1}
+                  title="ตรวจสอบคำขอ"
+                  icon={<FaClipboardCheck />}
+                  isActive={activeStep === 'step1_request'}
+                  isCompleted={['pending_owner_approval', 'pending_payment', 'confirmed', 'active', 'completed'].includes(rental.rental_status as RentalStatus)}
+                  isDisabled={false}
+                  onClick={() => setActiveStep('step1_request')}
+                />
+                
+                <StepTab 
+                  stepNumber={2}
+                  title="ตรวจสอบการชำระเงิน"
+                  icon={<FaReceipt />}
+                  isActive={activeStep === 'step2_payment'}
+                  isCompleted={['confirmed', 'active', 'completed'].includes(rental.rental_status as RentalStatus)}
+                  isDisabled={false}
+                  onClick={() => setActiveStep('step2_payment')}
+                />
+                
+                <StepTab 
+                  stepNumber={3}
+                  title="จัดการจัดส่ง"
+                  icon={<FaTruck />}
+                  isActive={activeStep === 'step3_delivery'}
+                  isCompleted={['active', 'completed'].includes(rental.rental_status as RentalStatus)}
+                  isDisabled={false}
+                  onClick={() => setActiveStep('step3_delivery')}
+                />
+                
+                <StepTab 
+                  stepNumber={4}
+                  title="ติดตามการใช้งาน"
+                  icon={<FaEye />}
+                  isActive={activeStep === 'step4_usage'}
+                  isCompleted={['completed'].includes(rental.rental_status as RentalStatus)}
+                  isDisabled={false}
+                  onClick={() => setActiveStep('step4_usage')}
+                />
+                
+                <StepTab 
+                  stepNumber={5}
+                  title="จัดการการคืน"
+                  icon={<FaUndo />}
+                  isActive={activeStep === 'step5_return'}
+                  isCompleted={rental.rental_status === 'completed' as RentalStatus}
+                  isDisabled={false}
+                  onClick={() => setActiveStep('step5_return')}
+                />
+              </div>
             </div>
             
             <AnimatePresence mode="wait">
-              <motion.div key={activeTab} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+              <motion.div key={activeStep} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
                 
-                {activeTab === 'overview' && (
+                {activeStep === 'step1_request' && (
                   <div className="space-y-8">
                     <Card className="shadow-xl border border-gray-100 rounded-2xl">
                       <CardContent>
@@ -875,65 +1005,7 @@ export const OwnerRentalDetailPage: React.FC = () => {
                   </div>
                 )}
                 
-                {activeTab === 'delivery_return' && (
-                  <div className="space-y-8">
-                    {showDeliveryUpdateForm && (
-                      <Card className="shadow-xl border border-gray-100 rounded-2xl">
-                          <CardContent>
-                              <SectionTitle icon={<FaShippingFast />} title={"อัปเดตสถานะการจัดส่ง"} />
-                              <form onSubmit={handleDeliveryStatusUpdate} className="space-y-4">
-                                <div>
-                                  <label htmlFor="deliveryStatus" className="block text-sm font-medium text-gray-700 mb-1">{"สถานะการจัดส่ง"} <span className="text-red-500">*</span></label>
-                                  <select id="deliveryStatus" className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" value={deliveryStatus} onChange={e => setDeliveryStatus(e.target.value)} required>
-                                    <option value="delivered">{"ส่งมอบแล้ว"}</option>
-                                  </select>
-                                  <p className="text-sm text-gray-600 mt-1">{"อนุญาตให้อัปเดตเป็น 'ส่งมอบแล้ว' เท่านั้น"}</p>
-                                </div>
-                                <div>
-                                  <label htmlFor="trackingNumber" className="block text-sm font-medium text-gray-700 mb-1">{"หมายเลขติดตาม"}</label>
-                                  <input id="trackingNumber" className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" type="text" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} placeholder={"กรอกหมายเลขติดตาม"} />
-                                </div>
-                                <div>
-                                  <label htmlFor="carrierCode" className="block text-sm font-medium text-gray-700 mb-1">{"รหัสผู้ให้บริการ"}</label>
-                                  <input id="carrierCode" className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" type="text" value={carrierCode} onChange={e => setCarrierCode(e.target.value)} placeholder={"กรอกรหัสผู้ให้บริการ"} />
-                                </div>
-                                {deliveryError && <ErrorMessage message={deliveryError} />}
-                                <Button type="submit" isLoading={deliveryLoading} variant="primary" className="w-full">{"บันทึกสถานะการจัดส่ง"}</Button>
-                              </form>
-                          </CardContent>
-                      </Card>
-                    )}
-                    {rental.pickup_method === 'delivery' && rental.delivery_status === 'delivered' && !showDeliveryUpdateForm && (
-                        <Card className="shadow-xl border border-green-200 rounded-2xl bg-green-50"><CardContent><div className="flex items-center gap-3"><div className="p-2 bg-green-100 rounded-xl"><FaCheckCircle className="h-6 w-6 text-green-600" /></div><div><h3 className="text-lg font-semibold text-green-800">{"ส่งมอบสินค้าเรียบร้อยแล้ว"}</h3><p className="text-green-700">{"ไม่จำเป็นต้องมีการอัปเดตสถานะเพิ่มเติม"}</p></div></div></CardContent></Card>
-                    )}
-                    
-                    {rental.return_condition_status || rental.actual_return_time ? (
-                        <Card className="shadow-xl border border-gray-100 rounded-2xl">
-                          <CardContent>
-                            <SectionTitle icon={<FaClipboardCheck />} title={"การดำเนินการรับคืน"} />
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                              <DetailItem icon={<FaTag />} label={"วิธีการคืน"} value={getReturnMethodThai(rental.return_method)} />
-                              <DetailItem icon={<FaCalendarAlt />} label={"เวลาคืนจริง"} value={rental.actual_return_time ? new Date(rental.actual_return_time).toLocaleString('th-TH') : '-'} />
-                              <DetailItem icon={<FaCheckCircle />} label={"สถานะสภาพสินค้าตอนคืน"} value={rental.return_condition_status ? <StatusBadge status={rental.return_condition_status} type="return_condition" /> : '-'} />
-                              {rental.return_initiated_at && (<DetailItem icon={<FaClock />} label={"เริ่มการคืนเมื่อ"} value={new Date(rental.return_initiated_at).toLocaleString('th-TH')} />)}
-                            </div>
-                            {rental.notes_from_owner_on_return && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-1">{"หมายเหตุจากเจ้าของ"}:</p><p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">{rental.notes_from_owner_on_return}</p></div>)}
-                            {rental.return_details && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{"รายละเอียดการคืน"}</p><div className="bg-gray-50 p-3 rounded-lg border border-gray-200">{(() => { try { const details = typeof rental.return_details === 'string' ? JSON.parse(rental.return_details) : rental.return_details; return ( <div className="space-y-2 text-sm"> {details.location && (<div className="flex items-start gap-2"><FaMapMarkerAlt className="text-blue-500 mt-0.5" /><span className="font-medium text-gray-600">{"สถานที่คืน"}:</span><span className="text-gray-800">{details.location}</span></div>)} {details.latitude && details.longitude && (<div className="mt-3"><div className="flex items-center gap-2 mb-2"><FaMapMarkerAlt className="text-blue-500" /><span className="font-medium text-gray-600">{"แผนที่สถานที่นัดพบ"}:</span></div><div className="bg-white p-2 rounded-lg border border-gray-200"><OpenStreetMapPicker latitude={details.latitude} longitude={details.longitude} readOnly={true} height="200px" onLocationSelect={() => {}} /></div><button onClick={() => { const googleMapsUrl = `https://www.google.com/maps?q=${details.latitude},${details.longitude}`; window.open(googleMapsUrl, '_blank'); }} className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors"><FaMapMarkerAlt className="w-4 h-4" />{"เปิดใน Google Maps"}</button></div>)} {details.return_datetime && (<div className="flex items-center gap-2"><FaCalendarAlt className="text-blue-500" /><span className="font-medium text-gray-600">{"วันที่และเวลาคืน"}:</span><span className="text-gray-800">{new Date(details.return_datetime).toLocaleString('th-TH')}</span></div>)} {details.carrier && (<div className="flex items-center gap-2"><FaTruck className="text-blue-500" /><span className="font-medium text-gray-600">{"ผู้ให้บริการขนส่ง"}:</span><span className="text-gray-800">{details.carrier}</span></div>)} {details.tracking_number && (<div className="flex items-center gap-2"><FaIdCard className="text-blue-500" /><span className="font-medium text-gray-600">{"หมายเลขติดตามการคืน"}:</span><span className="text-gray-800">{details.tracking_number}</span></div>)} </div> ); } catch (e) { return <span className="text-gray-600">{rental.return_details as string}</span>; } })()}</div></div>)}
-                            {rental.return_shipping_receipt_url && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{"ใบเสร็จรับเงินการจัดส่งคืน"}</p><a href={rental.return_shipping_receipt_url} target="_blank" rel="noopener noreferrer" className="block relative group overflow-hidden rounded-lg max-w-xs"><img src={rental.return_shipping_receipt_url} alt={"ดูใบเสร็จรับเงินการจัดส่งคืน"} className="w-full h-auto object-contain rounded-lg shadow-md border border-gray-200 transition-transform duration-300 group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a></div>)}
-                            <div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{"รูปภาพสภาพสินค้าตอนคืน"}</p>{Array.isArray(rental.return_condition_image_urls) && rental.return_condition_image_urls.length > 0 ? (<div className="flex flex-wrap gap-2">{rental.return_condition_image_urls.map((imageUrl: string, idx: number) => (<a key={idx} href={imageUrl} target="_blank" rel="noopener noreferrer" className="block relative group"><img src={imageUrl} alt={`รูปภาพสภาพสินค้าตอนคืน #${idx + 1}`} className="w-24 h-24 object-cover rounded-lg border border-gray-200 shadow-sm transition-all group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a>))}</div>) : <p className="text-sm text-gray-400 italic">{"ไม่พบรูปภาพสภาพสินค้าตอนคืน"}</p>}</div>
-                          </CardContent>
-                        </Card>
-                    ) : (
-                        <Card className="shadow-xl border border-gray-100 rounded-2xl">
-                            <CardContent>
-                                <p className="text-gray-500 text-center py-8">{"ไม่มีข้อมูลการคืนสินค้าในขณะนี้"}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'payment_verification' && (
+                {activeStep === 'step2_payment' && (
                   <div className="space-y-8">
                      {Boolean(rental.payment_proof_url) ? (
                         <Card className="shadow-xl border border-gray-100 rounded-2xl">
@@ -974,6 +1046,83 @@ export const OwnerRentalDetailPage: React.FC = () => {
                             </CardContent>
                         </Card>
                      )}
+                  </div>
+                )}
+
+                {activeStep === 'step3_delivery' && (
+                  <div className="space-y-8">
+                    {showDeliveryUpdateForm && (
+                      <Card className="shadow-xl border border-gray-100 rounded-2xl">
+                          <CardContent>
+                              <SectionTitle icon={<FaShippingFast />} title={"อัปเดตสถานะการจัดส่ง"} />
+                              <form onSubmit={handleDeliveryStatusUpdate} className="space-y-4">
+                                <div>
+                                  <label htmlFor="deliveryStatus" className="block text-sm font-medium text-gray-700 mb-1">{"สถานะการจัดส่ง"} <span className="text-red-500">*</span></label>
+                                  <select id="deliveryStatus" className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" value={deliveryStatus} onChange={e => setDeliveryStatus(e.target.value)} required>
+                                    <option value="delivered">{"ส่งมอบแล้ว"}</option>
+                                  </select>
+                                  <p className="text-sm text-gray-600 mt-1">{"อนุญาตให้อัปเดตเป็น 'ส่งมอบแล้ว' เท่านั้น"}</p>
+                                </div>
+                                <div>
+                                  <label htmlFor="trackingNumber" className="block text-sm font-medium text-gray-700 mb-1">{"หมายเลขติดตาม"}</label>
+                                  <input id="trackingNumber" className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" type="text" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} placeholder={"กรอกหมายเลขติดตาม"} />
+                                </div>
+                                <div>
+                                  <label htmlFor="carrierCode" className="block text-sm font-medium text-gray-700 mb-1">{"รหัสผู้ให้บริการ"}</label>
+                                  <input id="carrierCode" className="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" type="text" value={carrierCode} onChange={e => setCarrierCode(e.target.value)} placeholder={"กรอกรหัสผู้ให้บริการ"} />
+                                </div>
+                                {deliveryError && <ErrorMessage message={deliveryError} />}
+                                <Button type="submit" isLoading={deliveryLoading} variant="primary" className="w-full">{"บันทึกสถานะการจัดส่ง"}</Button>
+                              </form>
+                          </CardContent>
+                      </Card>
+                    )}
+                    {rental.pickup_method === 'delivery' && rental.delivery_status === 'delivered' && !showDeliveryUpdateForm && (
+                        <Card className="shadow-xl border border-green-200 rounded-2xl bg-green-50"><CardContent><div className="flex items-center gap-3"><div className="p-2 bg-green-100 rounded-xl"><FaCheckCircle className="h-6 w-6 text-green-600" /></div><div><h3 className="text-lg font-semibold text-green-800">{"ส่งมอบสินค้าเรียบร้อยแล้ว"}</h3><p className="text-green-700">{"ไม่จำเป็นต้องมีการอัปเดตสถานะเพิ่มเติม"}</p></div></div></CardContent></Card>
+                    )}
+                  </div>
+                )}
+
+                {activeStep === 'step4_usage' && (
+                  <div className="space-y-8">
+                    <Card className="shadow-xl border border-gray-100 rounded-2xl">
+                      <CardContent>
+                        <SectionTitle icon={<FaEye />} title={"ติดตามการใช้งาน"} />
+                        <div className="text-center py-8">
+                          <FaEye className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+                          <p className="text-gray-500">{"ระบบติดตามการใช้งานจะพัฒนาในอนาคต"}</p>
+                          <p className="text-sm text-gray-400 mt-2">{"ขณะนี้สามารถติดต่อผู้เช่าผ่านระบบแชทได้"}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {activeStep === 'step5_return' && (
+                  <div className="space-y-8">
+                    {rental.return_condition_status || rental.actual_return_time ? (
+                        <Card className="shadow-xl border border-gray-100 rounded-2xl">
+                          <CardContent>
+                            <SectionTitle icon={<FaClipboardCheck />} title={"การดำเนินการรับคืน"} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                              <DetailItem icon={<FaTag />} label={"วิธีการคืน"} value={getReturnMethodThai(rental.return_method)} />
+                              <DetailItem icon={<FaCalendarAlt />} label={"เวลาคืนจริง"} value={rental.actual_return_time ? new Date(rental.actual_return_time).toLocaleString('th-TH') : '-'} />
+                              <DetailItem icon={<FaCheckCircle />} label={"สถานะสภาพสินค้าตอนคืน"} value={rental.return_condition_status ? <StatusBadge status={rental.return_condition_status} type="return_condition" /> : '-'} />
+                              {rental.return_initiated_at && (<DetailItem icon={<FaClock />} label={"เริ่มการคืนเมื่อ"} value={new Date(rental.return_initiated_at).toLocaleString('th-TH')} />)}
+                            </div>
+                            {rental.notes_from_owner_on_return && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-1">{"หมายเหตุจากเจ้าของ"}:</p><p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">{rental.notes_from_owner_on_return}</p></div>)}
+                            {rental.return_details && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{"รายละเอียดการคืน"}</p><div className="bg-gray-50 p-3 rounded-lg border border-gray-200">{(() => { try { const details = typeof rental.return_details === 'string' ? JSON.parse(rental.return_details) : rental.return_details; return ( <div className="space-y-2 text-sm"> {details.location && (<div className="flex items-start gap-2"><FaMapMarkerAlt className="text-blue-500 mt-0.5" /><span className="font-medium text-gray-600">{"สถานที่คืน"}:</span><span className="text-gray-800">{details.location}</span></div>)} {details.latitude && details.longitude && (<div className="mt-3"><div className="flex items-center gap-2 mb-2"><FaMapMarkerAlt className="text-blue-500" /><span className="font-medium text-gray-600">{"แผนที่สถานที่นัดพบ"}:</span></div><div className="bg-white p-2 rounded-lg border border-gray-200"><OpenStreetMapPicker latitude={details.latitude} longitude={details.longitude} readOnly={true} height="200px" onLocationSelect={() => {}} /></div><button onClick={() => { const googleMapsUrl = `https://www.google.com/maps?q=${details.latitude},${details.longitude}`; window.open(googleMapsUrl, '_blank'); }} className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors"><FaMapMarkerAlt className="w-4 h-4" />{"เปิดใน Google Maps"}</button></div>)} {details.return_datetime && (<div className="flex items-center gap-2"><FaCalendarAlt className="text-blue-500" /><span className="font-medium text-gray-600">{"วันที่และเวลาคืน"}:</span><span className="text-gray-800">{new Date(details.return_datetime).toLocaleString('th-TH')}</span></div>)} {details.carrier && (<div className="flex items-center gap-2"><FaTruck className="text-blue-500" /><span className="font-medium text-gray-600">{"ผู้ให้บริการขนส่ง"}:</span><span className="text-gray-800">{details.carrier}</span></div>)} {details.tracking_number && (<div className="flex items-center gap-2"><FaIdCard className="text-blue-500" /><span className="font-medium text-gray-600">{"หมายเลขติดตามการคืน"}:</span><span className="text-gray-800">{details.tracking_number}</span></div>)} </div> ); } catch (e) { return <span className="text-gray-600">{rental.return_details as string}</span>; } })()}</div></div>)}
+                            {rental.return_shipping_receipt_url && (<div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{"ใบเสร็จรับเงินการจัดส่งคืน"}</p><a href={rental.return_shipping_receipt_url} target="_blank" rel="noopener noreferrer" className="block relative group overflow-hidden rounded-lg max-w-xs"><img src={rental.return_shipping_receipt_url} alt={"ดูใบเสร็จรับเงินการจัดส่งคืน"} className="w-full h-auto object-contain rounded-lg shadow-md border border-gray-200 transition-transform duration-300 group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a></div>)}
+                            <div className="mt-4"><p className="text-sm font-medium text-gray-500 mb-2">{"รูปภาพสภาพสินค้าตอนคืน"}</p>{Array.isArray(rental.return_condition_image_urls) && rental.return_condition_image_urls.length > 0 ? (<div className="flex flex-wrap gap-2">{rental.return_condition_image_urls.map((imageUrl: string, idx: number) => (<a key={idx} href={imageUrl} target="_blank" rel="noopener noreferrer" className="block relative group"><img src={imageUrl} alt={`รูปภาพสภาพสินค้าตอนคืน #${idx + 1}`} className="w-24 h-24 object-cover rounded-lg border border-gray-200 shadow-sm transition-all group-hover:scale-105" /><div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"><FaInfoCircle className="text-white text-2xl" /></div></a>))}</div>) : <p className="text-sm text-gray-400 italic">{"ไม่พบรูปภาพสภาพสินค้าตอนคืน"}</p>}</div>
+                          </CardContent>
+                        </Card>
+                    ) : (
+                        <Card className="shadow-xl border border-gray-100 rounded-2xl">
+                            <CardContent>
+                                <p className="text-gray-500 text-center py-8">{"ไม่มีข้อมูลการคืนสินค้าในขณะนี้"}</p>
+                            </CardContent>
+                        </Card>
+                    )}
                   </div>
                 )}
 

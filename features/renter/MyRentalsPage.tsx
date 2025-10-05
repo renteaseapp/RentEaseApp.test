@@ -313,7 +313,7 @@ export const MyRentalsPage: React.FC = () => {
                           <div className="space-y-2 text-sm text-gray-700">
                             <div className="flex items-center gap-2">
                               <FaCalendarAlt className="h-4 w-4 text-blue-500" />
-                              <span><strong>ช่วงเช่า:</strong> {new Date(rental.start_date).toLocaleDateString('th-TH')} - {new Date(rental.end_date).toLocaleDateString('th-TH')}</span>
+                              <span><strong>ช่วงเช่า:</strong> {new Date(rental.start_date).toLocaleDateString('th-TH')} ถึง {new Date(rental.end_date).toLocaleDateString('th-TH')} (ต้องคืน)</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <FaUser className="h-4 w-4 text-green-500" />

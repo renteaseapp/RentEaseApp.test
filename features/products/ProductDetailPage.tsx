@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Product, ApiError, User } from '../../types';
-import { getProductByID, getProvinces, getProductRentals, getBufferTimeSettings } from '../../services/productService';
+import { getProductByID, getProvinces, getProductRentals, getProductRentalDetails, getBufferTimeSettings } from '../../services/productService';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
 
@@ -427,8 +427,10 @@ export const ProductDetailPage: React.FC = () => {
         cur.setMonth(cur.getMonth() + 1);
       }
 
-      // Fetch monthly booked dates in parallel with caching
+      // Fetch monthly booked dates and rental periods in parallel with caching
       const bookedSet = new Set<string>();
+      const rentalPeriods: Array<{start: string, end: string}> = [];
+      
       await Promise.all(
         months.map(async (ym) => {
           const cached = monthsCacheRef.current.get(ym);
@@ -437,10 +439,25 @@ export const ProductDetailPage: React.FC = () => {
             return;
           }
           try {
-            const res = await getProductRentals(product.id, ym);
-            const dates = res.booked_dates || [];
+            // Get both booked dates and rental details
+            const [availabilityRes, rentalDetailsRes] = await Promise.all([
+              getProductRentals(product.id, ym),
+              getProductRentalDetails(product.id, ym)
+            ]);
+            
+            const dates = availabilityRes.booked_dates || [];
             monthsCacheRef.current.set(ym, dates);
             dates.forEach((d: string) => bookedSet.add(d));
+            
+            // Also collect rental periods for proper buffer calculation
+            if (rentalDetailsRes && rentalDetailsRes.length > 0) {
+              rentalDetailsRes.forEach((rental: any) => {
+                rentalPeriods.push({
+                  start: rental.start_date,
+                  end: rental.end_date
+                });
+              });
+            }
           } catch (e) {
             console.error('Error monthly availability:', e);
           }
@@ -456,22 +473,29 @@ export const ProductDetailPage: React.FC = () => {
         // Booked day is unavailable
         if (bookedSet.has(dateStr)) available = false;
 
-        // Apply simple buffer rule: block days around booked dates
+        // Apply buffer rule: block days around actual rental periods (not buffer days)
         if (available && buffer.enabled) {
-          // previous days buffer
-          for (let i = 1; i <= buffer.delivery_buffer_days; i++) {
-            const prev = new Date(d);
-            prev.setDate(prev.getDate() - i);
-            const prevStr = format(prev, 'yyyy-MM-dd');
-            if (bookedSet.has(prevStr)) { available = false; break; }
-          }
-          // next days buffer
-          if (available) {
-            for (let i = 1; i <= buffer.return_buffer_days; i++) {
-              const next = new Date(d);
-              next.setDate(next.getDate() + i);
-              const nextStr = format(next, 'yyyy-MM-dd');
-              if (bookedSet.has(nextStr)) { available = false; break; }
+          for (const rental of rentalPeriods) {
+            const rentalStart = new Date(rental.start);
+            const rentalEnd = new Date(rental.end);
+            const currentDate = new Date(d);
+            
+            // Check if current date falls within delivery buffer before rental
+            const deliveryBufferStart = new Date(rentalStart);
+            deliveryBufferStart.setDate(deliveryBufferStart.getDate() - buffer.delivery_buffer_days);
+            
+            if (currentDate >= deliveryBufferStart && currentDate < rentalStart) {
+              available = false;
+              break;
+            }
+            
+            // Check if current date falls within return buffer after rental
+            const returnBufferEnd = new Date(rentalEnd);
+            returnBufferEnd.setDate(returnBufferEnd.getDate() + buffer.return_buffer_days);
+            
+            if (currentDate > rentalEnd && currentDate <= returnBufferEnd) {
+              available = false;
+              break;
             }
           }
         }

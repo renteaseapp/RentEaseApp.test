@@ -255,7 +255,9 @@ export const getProductRentalDetails = async (productId: number, yearMonth: stri
       throw new Error(errorData?.message || 'Failed to fetch product rental details');
     }
     const responseData = await response.json();
-    return responseData.data || [];
+    // responseData.data contains { rentals: [], booked_dates: [] }
+    // We need to return the rentals array
+    return responseData.data?.rentals || [];
   } catch (error) {
     console.error('Error fetching product rental details:', error);
     throw error;
@@ -281,16 +283,33 @@ export const getBufferTimeSettings = async (): Promise<{
     
     return {
       enabled: bufferSettings.enabled === true,
-      delivery_buffer_days: parseInt(bufferSettings.delivery_buffer_days || '1'),
-      return_buffer_days: parseInt(bufferSettings.return_buffer_days || '1')
+      delivery_buffer_days: parseInt(bufferSettings.delivery_buffer_days || '0'),
+      return_buffer_days: parseInt(bufferSettings.return_buffer_days || '0')
     };
   } catch (error) {
     console.error('Error fetching buffer time settings:', error);
-    // Return default values if fetch fails
+    // Return default values if fetch fails - get from backend settings
+    try {
+      // Try to get default settings from backend
+      const defaultResponse = await fetch(`${API_BASE_URL}/settings`);
+      if (defaultResponse.ok) {
+        const defaultSettings = await defaultResponse.json();
+        const defaultBufferSettings = defaultSettings.data?.buffer_settings || {};
+        return {
+          enabled: defaultBufferSettings.enabled === true,
+          delivery_buffer_days: parseInt(defaultBufferSettings.delivery_buffer_days || '0'),
+          return_buffer_days: parseInt(defaultBufferSettings.return_buffer_days || '0')
+        };
+      }
+    } catch (fallbackError) {
+      console.error('Error fetching default buffer settings:', fallbackError);
+    }
+    
+    // Final fallback - no hardcoded values
     return {
-      enabled: true,
-      delivery_buffer_days: 1,
-      return_buffer_days: 1
+      enabled: false,
+      delivery_buffer_days: 0,
+      return_buffer_days: 0
     };
   }
 };
@@ -336,7 +355,7 @@ export const checkProductAvailabilityWithBuffer = async (
     return responseData.data || {
       available: false,
       conflicts: [],
-      buffer_settings: { enabled: false, delivery_buffer_days: 1, return_buffer_days: 1 }
+      buffer_settings: { enabled: false, delivery_buffer_days: 0, return_buffer_days: 0 }
     };
   } catch (error) {
     console.error('Error checking product availability:', error);
