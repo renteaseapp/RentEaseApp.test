@@ -705,7 +705,87 @@ export const RenterRentalDetailPage: React.FC = () => {
                 {(rental.owner?.id || rental.owner_id) && (<motion.button whileHover={{ scale: contactingOwner ? 1 : 1.02 }} whileTap={{ scale: contactingOwner ? 1 : 0.98 }} onClick={handleChatWithOwner} disabled={contactingOwner} className={`w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-4 px-6 rounded-xl font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 ${contactingOwner ? 'opacity-75 cursor-not-allowed' : ''}`}>{contactingOwner ? (<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>) : (<FaComments className="h-5 w-5" />)}{contactingOwner ? "กำลังติดต่อเจ้าของ..." : "สนทนากับเจ้าของ"}</motion.button>)}
               </div>
               <hr className="my-6 border-gray-200" />
-              <div className="space-y-4"><h3 className="text-xl font-bold text-gray-800 mb-4">{"รายละเอียดการเช่า"}</h3><div className="space-y-3"><div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaShieldAlt className="h-5 w-5 text-blue-500" /><div><span className="text-sm text-gray-500">{"รหัสการเช่า"}</span><p className="font-semibold">{rental.rental_uid}</p></div></div><div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaInfoCircle className="h-5 w-5 text-green-500" /><div><span className="text-sm text-gray-500">{"สถานะ"}</span><p className="font-semibold">{statusInfo?.title || 'ไม่ทราบ'}</p></div></div><div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaCreditCard className="h-5 w-5 text-purple-500" /><div><span className="text-sm text-gray-500">{"สถานะการชำระเงิน"}</span><p className="font-semibold">{rental.payment_status ? getPaymentStatusText(rental.payment_status) : 'ไม่ทราบ'}</p></div></div><div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaCalendarAlt className="h-5 w-5 text-blue-500" /><div><span className="text-sm text-gray-500">{"ช่วงเวลาเช่า"}</span><p className="font-semibold">{new Date(rental.start_date).toLocaleDateString('th-TH')} - {new Date(rental.end_date).toLocaleDateString('th-TH')}</p></div></div><div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaClock className="h-5 w-5 text-green-500" /><div><span className="text-sm text-gray-500">{"เวลารับสินค้าจริง"}</span><p className="font-semibold">{rental.actual_pickup_time ? new Date(rental.actual_pickup_time).toLocaleString('th-TH') : '-'}</p></div></div><div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaHistory className="h-5 w-5 text-purple-500" /><div><span className="text-sm text-gray-500">{"เวลาคืนสินค้าจริง"}</span><p className="font-semibold">{rental.actual_return_time ? new Date(rental.actual_return_time).toLocaleString('th-TH') : '-'}</p></div></div></div></div>
+              <div className="space-y-4"><h3 className="text-xl font-bold text-gray-800 mb-4">{"รายละเอียดการเช่า"}</h3><div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaShieldAlt className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{"รหัสการเช่า"}</span>
+                      <p className="font-semibold">{rental.rental_uid}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaInfoCircle className="h-5 w-5 text-green-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{"สถานะ"}</span>
+                      <p className="font-semibold">{statusInfo?.title || 'ไม่ทราบ'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaCreditCard className="h-5 w-5 text-purple-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{"สถานะการชำระเงิน"}</span>
+                      <p className="font-semibold">{rental.payment_status ? getPaymentStatusText(rental.payment_status) : 'ไม่ทราบ'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaCalendarAlt className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{"ช่วงเวลาเช่า"}</span>
+                      <p className="font-semibold">{new Date(rental.start_date).toLocaleDateString('th-TH')} - {new Date(rental.end_date).toLocaleDateString('th-TH')}</p>
+                    </div>
+                  </div>
+                  {/* วันที่ต้องคืนสินค้า - เพิ่มใหม่ */}
+                  <div className={`flex items-center gap-3 p-3 rounded-xl ${
+                    rental.rental_status === RentalStatus.LATE_RETURN 
+                      ? 'bg-red-50 border border-red-200' 
+                      : 'bg-yellow-50 border border-yellow-200'
+                  }`}>
+                    <FaExclamationTriangle className={`h-5 w-5 ${
+                      rental.rental_status === RentalStatus.LATE_RETURN 
+                        ? 'text-red-500' 
+                        : 'text-yellow-500'
+                    }`} />
+                    <div>
+                      <span className="text-sm text-gray-500">{"วันที่ต้องคืนสินค้า"}</span>
+                      <p className={`font-semibold ${
+                        rental.rental_status === RentalStatus.LATE_RETURN 
+                          ? 'text-red-700' 
+                          : 'text-yellow-700'
+                      }`}>
+                        {new Date(rental.end_date).toLocaleDateString('th-TH', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                      {rental.rental_status === RentalStatus.LATE_RETURN && (
+                        <p className="text-xs text-red-600 mt-1">
+                          {"⚠️ เกินกำหนดคืนแล้ว - มีค่าปรับ"}
+                        </p>
+                      )}
+                      {rental.rental_status === RentalStatus.ACTIVE && new Date() > new Date(rental.end_date) && (
+                        <p className="text-xs text-red-600 mt-1">
+                          {"⚠️ เกินกำหนดคืนแล้ว"}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaClock className="h-5 w-5 text-green-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{"เวลารับสินค้าจริง"}</span>
+                      <p className="font-semibold">{rental.actual_pickup_time ? new Date(rental.actual_pickup_time).toLocaleString('th-TH') : '-'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <FaHistory className="h-5 w-5 text-purple-500" />
+                    <div>
+                      <span className="text-sm text-gray-500">{"เวลาคืนสินค้าจริง"}</span>
+                      <p className="font-semibold">{rental.actual_return_time ? new Date(rental.actual_return_time).toLocaleString('th-TH') : '-'}</p>
+                    </div>
+                  </div>
+                </div></div>
               <hr className="my-6 border-gray-200" />
               <div className="space-y-4"><h3 className="text-xl font-bold text-gray-800 mb-4">{"ผู้ที่เกี่ยวข้อง"}</h3><div className="space-y-3"><div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaUser className="h-5 w-5 text-blue-500" /><div><span className="text-sm text-gray-500">{"เจ้าของสินค้า"}</span><p className="font-semibold">{rental.owner?.first_name} {rental.owner?.last_name} (@{rental.owner?.username})</p></div></div><div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><FaUser className="h-5 w-5 text-green-500" /><div><span className="text-sm text-gray-500">{"ผู้เช่า (คุณ)"}</span><p className="font-semibold">{rental.renter?.first_name} {rental.renter?.last_name} (@{rental.renter?.username})</p></div></div></div></div>
               {(() => { const canCancel = [RentalStatus.PENDING_OWNER_APPROVAL, RentalStatus.PENDING_PAYMENT].includes(rental.rental_status); return canCancel; })() && (<><hr className="my-6 border-gray-200" /><motion.button onClick={() => setShowCancelDialog(true)} className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-4 px-6 rounded-xl font-semibold hover:from-red-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"><FaBan className="h-5 w-5" />{"ยกเลิกการเช่า"}</motion.button></>)}

@@ -673,6 +673,48 @@ export const OwnerRentalDetailPage: React.FC = () => {
                                 <div className="flex flex-col gap-1 text-xs text-gray-500"><span><b>ID:</b> {rental.id}</span><span><b>UID:</b> {rental.rental_uid}</span></div>
                                 <DetailItem icon={<FaUser />} label={"ผู้เช่า"} value={`${rental.renter?.first_name} ${rental.renter?.last_name}`} color="text-green-500" />
                                 <DetailItem icon={<FaCalendarAlt />} label={"ช่วงเวลาเช่า"} value={`${new Date(rental.start_date).toLocaleDateString('th-TH')} - ${new Date(rental.end_date).toLocaleDateString('th-TH')}`} color="text-purple-500" />
+                                {/* วันที่ต้องคืนสินค้า - เพิ่มใหม่ */}
+                                <div className={`p-3 rounded-lg border ${
+                                  rental.rental_status === 'late_return' 
+                                    ? 'bg-red-50 border-red-200' 
+                                    : 'bg-yellow-50 border-yellow-200'
+                                }`}>
+                                  <DetailItem 
+                                    icon={<FaExclamationTriangle className={
+                                      rental.rental_status === 'late_return' 
+                                        ? 'text-red-500' 
+                                        : 'text-yellow-500'
+                                    } />} 
+                                    label={"วันที่ต้องคืนสินค้า"} 
+                                    value={
+                                      <div>
+                                        <div className={`font-semibold ${
+                                          rental.rental_status === 'late_return' 
+                                            ? 'text-red-700' 
+                                            : 'text-yellow-700'
+                                        }`}>
+                                          {new Date(rental.end_date).toLocaleDateString('th-TH', {
+                                            weekday: 'long',
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                          })}
+                                        </div>
+                                        {rental.rental_status === 'late_return' && (
+                                          <div className="text-xs text-red-600 mt-1">
+                                            {"⚠️ เกินกำหนดคืนแล้ว - มีค่าปรับ"}
+                                          </div>
+                                        )}
+                                        {rental.rental_status === 'active' && new Date() > new Date(rental.end_date) && (
+                                          <div className="text-xs text-red-600 mt-1">
+                                            {"⚠️ เกินกำหนดคืนแล้ว"}
+                                          </div>
+                                        )}
+                                      </div>
+                                    } 
+                                    color={rental.rental_status === 'late_return' ? 'text-red-500' : 'text-yellow-500'} 
+                                  />
+                                </div>
                                 <DetailItem icon={<FaTruck />} label={"วิธีการรับ-ส่ง"} value={<span className="capitalize">{getPickupMethodThai(rental.pickup_method)}</span>} color="text-orange-500" />
                                 {rental.pickup_method === 'delivery' && rental.delivery_address && (
                                     <div>
