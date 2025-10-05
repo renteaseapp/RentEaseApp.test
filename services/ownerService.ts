@@ -175,9 +175,10 @@ export const createProduct = async (ownerId: number, productData: Omit<Product, 
 
         const formData = new FormData();
         
-        // Append product data
+        // Append product data (exclude update-only keys)
         Object.entries(productData).forEach(([key, value]) => {
-            if (key !== 'imagesInput' && value !== undefined) {
+            const excludedKeys = new Set(['imagesInput', 'removeImageIds', 'remove_image_ids', 'new_images']);
+            if (!excludedKeys.has(key) && value !== undefined) {
                 if (key === 'specifications' && typeof value === 'object') {
                     formData.append(key, JSON.stringify(value));
                 } else {
