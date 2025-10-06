@@ -109,6 +109,12 @@ function UserComplaintsPage() {
       return;
     }
     
+    if (newComplaint.attachments.length === 0) {
+      setError('ต้องแนบไฟล์อย่างน้อย 1 ไฟล์');
+      setSubmitting(false);
+      return;
+    }
+    
     if (newComplaint.subject_user_id && (isNaN(Number(newComplaint.subject_user_id)) || Number(newComplaint.subject_user_id) <= 0)) {
       setError('รหัสผู้ใช้ต้องเป็นตัวเลขบวก');
       setSubmitting(false);
@@ -435,6 +441,7 @@ function UserComplaintsPage() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     ไฟล์แนบ
+                    <span className="text-red-500 ml-1">*</span>
                   </label>
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-red-400 transition-colors">
                     <input
@@ -447,12 +454,17 @@ function UserComplaintsPage() {
                     <label htmlFor="file-upload" className="cursor-pointer">
                       <FaPaperclip className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                       <p className="text-gray-600">คลิกเพื่ออัปโหลดไฟล์หรือลากและวาง</p>
-                      <p className="text-sm text-gray-400 mt-1">รองรับรูปภาพ PDF และเอกสาร</p>
+                      <p className="text-sm text-gray-400 mt-1">รองรับรูปภาพ PDF และเอกสาร (ต้องแนบไฟล์อย่างน้อย 1 ไฟล์)</p>
                     </label>
                   </div>
                   {newComplaint.attachments.length > 0 && (
                     <div className="mt-2">
-                      <p className="text-sm text-gray-600">Selected files: {newComplaint.attachments.length}</p>
+                      <p className="text-sm text-green-600">✓ แนบไฟล์แล้ว {newComplaint.attachments.length} ไฟล์</p>
+                    </div>
+                  )}
+                  {newComplaint.attachments.length === 0 && (
+                    <div className="mt-2">
+                      <p className="text-sm text-red-500">✗ ต้องแนบไฟล์อย่างน้อย 1 ไฟล์</p>
                     </div>
                   )}
                 </div>
@@ -460,7 +472,7 @@ function UserComplaintsPage() {
                 <div className="flex justify-end">
                   <motion.button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || !newComplaint.title || !newComplaint.complaint_type || newComplaint.details.length < 20 || newComplaint.attachments.length === 0}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-8 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-orange-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"

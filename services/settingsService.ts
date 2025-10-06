@@ -31,6 +31,17 @@ export interface EstimatedFees {
   total_amount_estimate: number;
 }
 
+export interface PublicSettings {
+  buffer_settings: {
+    enabled: boolean;
+    delivery_buffer_days: number;
+    return_buffer_days: number;
+  };
+  rental_settings: {
+    max_rental_days: number;
+  };
+}
+
 export const settingsService = {
   async getPublicFeeSettings(): Promise<FeeSettings> {
     try {
@@ -39,6 +50,17 @@ export const settingsService = {
       return response.data.data;
     } catch (error) {
       console.error('❌ Error fetching fee settings:', error);
+      throw error;
+    }
+  },
+
+  async getPublicSettings(): Promise<PublicSettings> {
+    try {
+      const response = await api.get('/settings/public');
+      console.log('🔍 getPublicSettings response:', response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error('❌ Error fetching public settings:', error);
       throw error;
     }
   },

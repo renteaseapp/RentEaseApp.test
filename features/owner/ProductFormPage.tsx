@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useAlert } from '../../contexts/AlertContext';
 import { getOwnerProductForEdit, createProduct, updateProduct } from '../../services/ownerService';
 import { getCategories, getProvinces } from '../../services/productService';
+import { settingsService, PublicSettings } from '../../services/settingsService';
 import { Product, Category, Province, ApiError, ProductAvailabilityStatus, ProductImage } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Button } from '../../components/ui/Button';
@@ -73,6 +74,7 @@ export const ProductFormPage: React.FC = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
+  const [publicSettings, setPublicSettings] = useState<PublicSettings | null>(null);
   
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingDetails, setIsFetchingDetails] = useState(false);
@@ -82,11 +84,16 @@ export const ProductFormPage: React.FC = () => {
   useEffect(() => {
     const fetchDropdownData = async () => {
         try {
-            const [catsRes, provRes] = await Promise.all([getCategories(), getProvinces()]);
+            const [catsRes, provRes, settingsRes] = await Promise.all([
+                getCategories(),
+                getProvinces(),
+                settingsService.getPublicSettings()
+            ]);
             setCategories(catsRes.data);
             setProvinces(provRes.data);
+            setPublicSettings(settingsRes);
         } catch (err) {
-            showError("ไม่สามารถโหลดหมวดหมู่สินค้าได้");
+            showError("ไม่สามารถโหลดข้อมูลพื้นฐานได้");
         }
     };
     fetchDropdownData();
@@ -252,6 +259,11 @@ export const ProductFormPage: React.FC = () => {
     }
     if (formData.max_rental_duration_days && formData.max_rental_duration_days < formData.min_rental_duration_days) {
         showError("ระยะเวลาเช่าสูงสุดต้องมากกว่าหรือเท่ากับระยะเวลาเช่าขั้นต่ำ");
+        return;
+    }
+    if (formData.max_rental_duration_days && publicSettings?.rental_settings?.max_rental_days &&
+        formData.max_rental_duration_days > publicSettings.rental_settings.max_rental_days) {
+        showError(`ระยะเวลาเช่าสูงสุดต้องไม่เกิน ${publicSettings.rental_settings.max_rental_days} วันตามที่ระบบกำหนด`);
         return;
     }
     if (formData.address_details && formData.address_details.length > 255) {
@@ -568,7 +580,22 @@ export const ProductFormPage: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label={"ระยะเวลาเช่าขั้นต่ำ (วัน)"} name="min_rental_duration_days" type="number" value={formData.min_rental_duration_days || ''} onChange={handleChange} min="1" />
-            <InputField label={"ระยะเวลาเช่าสูงสุด (วัน)"} name="max_rental_duration_days" type="number" value={formData.max_rental_duration_days || ''} onChange={handleChange} min="1" />
+            <div>
+                <InputField
+                    label={"ระยะเวลาเช่าสูงสุด (วัน)"}
+                    name="max_rental_duration_days"
+                    type="number"
+                    value={formData.max_rental_duration_days || ''}
+                    onChange={handleChange}
+                    min="1"
+                    max={publicSettings?.rental_settings?.max_rental_days || undefined}
+                />
+                {publicSettings?.rental_settings?.max_rental_days && (
+                    <p className="mt-1 text-sm text-blue-600">
+                        ระยะเวลาเช่าสูงสุดตามที่ระบบกำหนดคือ {publicSettings.rental_settings.max_rental_days} วัน
+                    </p>
+                )}
+            </div>
         </div>
         
         <div>
