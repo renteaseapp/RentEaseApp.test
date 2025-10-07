@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   adminGetAllRentals
 } from '../../services/adminService';
@@ -11,13 +10,8 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  FaCalendarAlt, 
   FaSearch, 
   FaTimes, 
-  FaEye, 
-  FaEdit, 
-  FaCheck, 
-
   FaShoppingCart,
   FaClock,
   FaCheckCircle,
