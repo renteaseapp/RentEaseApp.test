@@ -484,7 +484,7 @@ const UserIdVerificationPage: React.FC = () => {
                       />
                       <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
                         <FaCamera className="h-3 w-3" />
-                        รูปเซลฟี่พร้อมถือเอกสาร (ไม่บังคับ)
+                        รูปเซลฟี่พร้อมถือเอกสาร
                       </div>
                     </div>
                   </div>
